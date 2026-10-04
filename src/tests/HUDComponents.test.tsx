@@ -49,8 +49,8 @@ describe('WordLabelPlate Component', () => {
     // Characters at index 0 and 1 should have class 'word-plate-char-typed'
     const typedChars = container.querySelectorAll('.word-plate-char-typed');
     expect(typedChars.length).toBe(2);
-    expect(typedChars[0].textContent).toBe('T');
-    expect(typedChars[1].textContent).toBe('A');
+    expect(typedChars[0]?.textContent).toBe('T');
+    expect(typedChars[1]?.textContent).toBe('A');
 
     // Character at index 2 ('R') should have class 'word-plate-char-next'
     const nextChar = container.querySelector('.word-plate-char-next');

@@ -59,8 +59,14 @@ describe('Desktop Prototype Configuration', () => {
     expect(DEFAULT_SCORING_RULES.enemyClearBonus).toBeGreaterThan(0);
 
     for (let i = 1; i < thresholds.length; i++) {
-      expect(thresholds[i].streak).toBeGreaterThan(thresholds[i - 1].streak);
-      expect(thresholds[i].multiplier).toBeGreaterThanOrEqual(thresholds[i - 1].multiplier);
+      const current = thresholds[i];
+      const prev = thresholds[i - 1];
+      expect(current).toBeDefined();
+      expect(prev).toBeDefined();
+      if (current && prev) {
+        expect(current.streak).toBeGreaterThan(prev.streak);
+        expect(current.multiplier).toBeGreaterThanOrEqual(prev.multiplier);
+      }
     }
   });
 });
@@ -172,7 +178,7 @@ describe('GameSnapshot Contract Integrity', () => {
     expect(snapshot.status).toBe('running');
     expect(snapshot.player.alive).toBe(true);
     expect(snapshot.enemies.length).toBe(1);
-    expect(snapshot.enemies[0].word).toBe('RADAR');
+    expect(snapshot.enemies[0]?.word).toBe('RADAR');
     expect(snapshot.scoring.multiplier).toBe(2);
   });
 });

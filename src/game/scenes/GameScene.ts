@@ -149,6 +149,7 @@ export class GameScene extends Phaser.Scene {
 
     for (let i = 0; i < word.length; i++) {
       const char = word[i];
+      if (!char) continue;
       let color = '#f3f7fa';
       if (i < typedLength) {
         color = '#52606d'; // Typed / faded
