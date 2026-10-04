@@ -1,0 +1,15 @@
+STATUS: license file MISSING from repo
+
+Source URL: https://kenney.nl/assets/digital-audio
+Pack Name: Kenney Digital Audio
+Reported License: Creative Commons Zero (CC0 1.0 Universal)
+
+Files currently used in public/assets/audio/:
+- public/assets/audio/laser.ogg
+- public/assets/audio/hit.ogg
+- public/assets/audio/destroy.ogg
+- public/assets/audio/wrong-input.ogg
+- public/assets/audio/wave-complete.ogg
+
+Audit Note:
+The archive `phase1-futuristic-asset-pack.zip` contained these audio files but omitted the original pack License.txt file. Therefore, the license file is missing from the repository.

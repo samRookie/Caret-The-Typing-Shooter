@@ -1,0 +1,16 @@
+STATUS: license file MISSING from repo
+
+Source URL: https://kenney.nl/assets/ui-pack
+Pack Name: Kenney UI Pack
+Reported License: Creative Commons Zero (CC0 1.0 Universal)
+
+Files currently used in public/:
+- public/assets/fonts/kenney-future.ttf
+- public/assets/fonts/kenney-future-narrow.ttf
+- public/assets/audio/ui-click.ogg
+
+Audit Note:
+The existing provenance document cited 'Kenney UI Pack' and claimed all license files were included. Both claims are incorrect:
+1. The only physical License.txt file present in the repository archives was inside `docs/source-assets/kenney_ui-pack-adventure.zip` (version 1.1).
+2. The fonts and click sound in `phase1-futuristic-asset-pack.zip` were not accompanied by their official pack License.txt file.
+Therefore, the license file for Kenney UI Pack is missing from the repository.
