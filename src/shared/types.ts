@@ -8,6 +8,7 @@ export interface TelemetryData {
   multiplier: number;
   accuracy: number;
   activeTarget: string | null;
+  activeTargetTypedIndex?: number;
 }
 
 export interface AudioSettings {

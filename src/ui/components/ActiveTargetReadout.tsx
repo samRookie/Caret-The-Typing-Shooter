@@ -1,12 +1,12 @@
 import React from 'react';
 
-export interface WordLabelPlateProps {
+export interface ActiveTargetReadoutProps {
   word: string;
   typedIndex?: number; // 0 means no character typed yet
   isTargeted?: boolean;
 }
 
-export const WordLabelPlate: React.FC<WordLabelPlateProps> = ({
+export const ActiveTargetReadout: React.FC<ActiveTargetReadoutProps> = ({
   word,
   typedIndex = 0,
   isTargeted = false,
@@ -38,3 +38,7 @@ export const WordLabelPlate: React.FC<WordLabelPlateProps> = ({
     </div>
   );
 };
+
+// Backwards-compatible export alias for any remaining references
+export const WordLabelPlate = ActiveTargetReadout;
+export type WordLabelPlateProps = ActiveTargetReadoutProps;

@@ -10,21 +10,56 @@ import { GameOverModal } from '@/ui/components/GameOverModal';
 import { TelemetryData } from '@/shared/types';
 
 export const App: React.FC = () => {
+  // Gated dynamically in dev mode; in production import.meta.env.DEV is false
+  const isPreview =
+    Boolean(import.meta.env.DEV) &&
+    typeof window !== 'undefined' &&
+    new URLSearchParams(window.location.search).get('preview') === '1';
+
   // Modal Preview States
   const [showLoading, setShowLoading] = useState(false);
   const [showPause, setShowPause] = useState(false);
   const [showGameOver, setShowGameOver] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
 
-  // Mock Telemetry for Step 2 visual validation (Zero gameplay coupling)
-  const [telemetry, setTelemetry] = useState<TelemetryData>({
-    score: 1450,
-    wave: 1,
-    streak: 8,
-    multiplier: 2,
-    accuracy: 94,
-    activeTarget: 'RECON',
-  });
+  // Telemetry: in preview mode we provide mock telemetry for visual verification,
+  // in normal/production mode we start with initial clean baseline state
+  const [telemetry, setTelemetry] = useState<TelemetryData>(() =>
+    isPreview
+      ? {
+          score: 1450,
+          wave: 1,
+          streak: 8,
+          multiplier: 2,
+          accuracy: 94,
+          activeTarget: 'RECON',
+          activeTargetTypedIndex: 2,
+        }
+      : {
+          score: 0,
+          wave: 1,
+          streak: 0,
+          multiplier: 1,
+          accuracy: 100,
+          activeTarget: null,
+          activeTargetTypedIndex: 0,
+        }
+  );
+
+  // Synchronize telemetry if preview mode changes
+  useEffect(() => {
+    if (isPreview) {
+      setTelemetry({
+        score: 1450,
+        wave: 1,
+        streak: 8,
+        multiplier: 2,
+        accuracy: 94,
+        activeTarget: 'RECON',
+        activeTargetTypedIndex: 2,
+      });
+    }
+  }, [isPreview]);
 
   // Apply data-reduced-motion attribute to document root
   useEffect(() => {
@@ -41,68 +76,83 @@ export const App: React.FC = () => {
 
   return (
     <div className="tactical-viewport">
-      {/* Top Tactical Switchboard (Preview & Accessibility Controls) */}
-      <TacticalFrame
-        title="TACTICAL COMMAND HUD"
-        subtitle="PHASE 1 VISUAL FOUNDATION"
-        style={{ padding: '8px 16px', flexShrink: 0 }}
-      >
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            flexWrap: 'wrap',
-            gap: '8px',
-          }}
+      {/* Top Header: preview switchboard is strictly gated behind import.meta.env.DEV && isPreview */}
+      {import.meta.env.DEV && isPreview ? (
+        <TacticalFrame
+          title="TACTICAL COMMAND HUD"
+          subtitle="PREVIEW SWITCHBOARD [DEV ONLY]"
+          style={{ padding: '8px 16px', flexShrink: 0 }}
         >
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-            <span
-              style={{
-                fontFamily: 'var(--font-condensed)',
-                fontSize: '11px',
-                color: 'var(--text-secondary)',
-                marginRight: '4px',
-              }}
-            >
-              PREVIEW CONTROLS:
-            </span>
-            <TacticalButton
-              size="sm"
-              variant={showLoading ? 'primary' : 'default'}
-              onClick={() => setShowLoading((prev) => !prev)}
-            >
-              {showLoading ? 'CLOSE LOADING' : 'PREVIEW LOADING'}
-            </TacticalButton>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: '8px',
+            }}
+          >
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <span
+                style={{
+                  fontFamily: 'var(--font-condensed)',
+                  fontSize: '11px',
+                  color: 'var(--text-secondary)',
+                  marginRight: '4px',
+                }}
+              >
+                PREVIEW CONTROLS:
+              </span>
+              <TacticalButton
+                size="sm"
+                variant={showLoading ? 'primary' : 'default'}
+                onClick={() => setShowLoading((prev) => !prev)}
+              >
+                {showLoading ? 'CLOSE LOADING' : 'PREVIEW LOADING'}
+              </TacticalButton>
 
-            <TacticalButton
-              size="sm"
-              variant={showPause ? 'primary' : 'default'}
-              onClick={() => setShowPause((prev) => !prev)}
-            >
-              {showPause ? 'CLOSE PAUSE' : 'PREVIEW PAUSE'}
-            </TacticalButton>
+              <TacticalButton
+                size="sm"
+                variant={showPause ? 'primary' : 'default'}
+                onClick={() => setShowPause((prev) => !prev)}
+              >
+                {showPause ? 'CLOSE PAUSE' : 'PREVIEW PAUSE'}
+              </TacticalButton>
 
-            <TacticalButton
-              size="sm"
-              variant={showGameOver ? 'primary' : 'default'}
-              onClick={() => setShowGameOver((prev) => !prev)}
-            >
-              {showGameOver ? 'CLOSE GAME OVER' : 'PREVIEW GAME OVER'}
-            </TacticalButton>
+              <TacticalButton
+                size="sm"
+                variant={showGameOver ? 'primary' : 'default'}
+                onClick={() => setShowGameOver((prev) => !prev)}
+              >
+                {showGameOver ? 'CLOSE GAME OVER' : 'PREVIEW GAME OVER'}
+              </TacticalButton>
+            </div>
           </div>
-
-          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-            <TacticalButton
-              size="sm"
-              variant={reducedMotion ? 'primary' : 'default'}
-              onClick={handleToggleReducedMotion}
-            >
-              REDUCED MOTION: {reducedMotion ? 'ON' : 'OFF'}
-            </TacticalButton>
+        </TacticalFrame>
+      ) : (
+        <TacticalFrame
+          title="TACTICAL COMMAND CONSOLE"
+          subtitle="SYSTEM ONLINE // READY"
+          style={{ padding: '8px 16px', flexShrink: 0 }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              fontSize: '12px',
+              fontFamily: 'var(--font-condensed)',
+            }}
+          >
+            <div style={{ display: 'flex', gap: '24px' }}>
+              <div>
+                <span style={{ color: 'var(--text-secondary)' }}>MODE: </span>
+                <span style={{ color: 'var(--text-primary)' }}>TACTICAL DEFENSE</span>
+              </div>
+            </div>
           </div>
-        </div>
-      </TacticalFrame>
+        </TacticalFrame>
+      )}
 
       {/* Main Viewport Container */}
       <div
@@ -129,8 +179,8 @@ export const App: React.FC = () => {
           onToggleReducedMotion={handleToggleReducedMotion}
         />
 
-        {/* Modal Overlays for Previewing and Verification */}
-        {showLoading && (
+        {/* Modal Overlays for Previewing and Verification (DEV and preview=1 only) */}
+        {import.meta.env.DEV && isPreview && showLoading && (
           <LoadingOverlay
             progress={78}
             statusMessage="ALLOCATING CANVAS BUFFERS // LOADING ORIGINAL SVGS"
@@ -150,7 +200,7 @@ export const App: React.FC = () => {
           />
         )}
 
-        {showGameOver && (
+        {import.meta.env.DEV && isPreview && showGameOver && (
           <GameOverModal
             score={telemetry.score}
             wave={telemetry.wave}
@@ -165,6 +215,7 @@ export const App: React.FC = () => {
                 multiplier: 1,
                 accuracy: 100,
                 activeTarget: 'DRONE',
+                activeTargetTypedIndex: 0,
               });
             }}
           />

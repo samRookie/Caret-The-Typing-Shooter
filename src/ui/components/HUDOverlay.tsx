@@ -1,6 +1,7 @@
 import React from 'react';
 import { MetricCard } from './MetricCard';
 import { TacticalButton } from './TacticalButton';
+import { ActiveTargetReadout } from './ActiveTargetReadout';
 import { TelemetryData } from '@/shared/types';
 
 export interface HUDOverlayProps {
@@ -41,7 +42,11 @@ export const HUDOverlay: React.FC<HUDOverlayProps> = ({
       >
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           <MetricCard label="SCORE" value={telemetry.score} variant="accent" />
-          <MetricCard label="WAVE" value={`0${telemetry.wave}`} variant="default" />
+          <MetricCard
+            label="WAVE"
+            value={String(telemetry.wave).padStart(2, '0')}
+            variant="default"
+          />
           <MetricCard label="STREAK" value={telemetry.streak} variant="success" />
           <MetricCard
             label="MULTIPLIER"
@@ -83,19 +88,28 @@ export const HUDOverlay: React.FC<HUDOverlayProps> = ({
         {telemetry.activeTarget && (
           <div
             style={{
-              background: 'rgba(10, 14, 20, 0.85)',
-              border: '1px solid var(--accent)',
-              borderRadius: 'var(--radius-sm)',
-              padding: '4px 14px',
-              fontFamily: 'var(--font-condensed)',
-              fontSize: '11px',
-              letterSpacing: '0.14em',
-              color: 'var(--accent-bright)',
-              boxShadow: 'var(--glow-subtle)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '4px',
               pointerEvents: 'auto',
             }}
           >
-            TARGET LOCK // {telemetry.activeTarget}
+            <span
+              style={{
+                fontFamily: 'var(--font-condensed)',
+                fontSize: '11px',
+                color: 'var(--accent)',
+                letterSpacing: '0.14em',
+              }}
+            >
+              TARGET LOCK
+            </span>
+            <ActiveTargetReadout
+              word={telemetry.activeTarget}
+              typedIndex={telemetry.activeTargetTypedIndex ?? 0}
+              isTargeted={true}
+            />
           </div>
         )}
       </div>
@@ -112,16 +126,7 @@ export const HUDOverlay: React.FC<HUDOverlayProps> = ({
           letterSpacing: '0.08em',
           pointerEvents: 'auto',
         }}
-      >
-        <div style={{ display: 'flex', gap: '16px' }}>
-          <span>HULL: 100%</span>
-          <span>WEAPONS: READY</span>
-        </div>
-        <div style={{ display: 'flex', gap: '16px' }}>
-          <span>ENERGY CORE: 0xFFB84A</span>
-          <span>LATENCY: 0ms</span>
-        </div>
-      </div>
+      />
     </div>
   );
 };

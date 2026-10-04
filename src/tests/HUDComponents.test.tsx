@@ -2,7 +2,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { TacticalButton } from '@/ui/components/TacticalButton';
 import { MetricCard } from '@/ui/components/MetricCard';
-import { WordLabelPlate } from '@/ui/components/WordLabelPlate';
+import { ActiveTargetReadout } from '@/ui/components/ActiveTargetReadout';
 import { LoadingOverlay } from '@/ui/components/LoadingOverlay';
 import { PauseModal } from '@/ui/components/PauseModal';
 import { GameOverModal } from '@/ui/components/GameOverModal';
@@ -40,10 +40,10 @@ describe('MetricCard Component', () => {
   });
 });
 
-describe('WordLabelPlate Component', () => {
+describe('ActiveTargetReadout Component', () => {
   it('correctly segments typed, next, and remaining characters', () => {
     const { container } = render(
-      <WordLabelPlate word="TARGET" typedIndex={2} isTargeted={true} />
+      <ActiveTargetReadout word="TARGET" typedIndex={2} isTargeted={true} />
     );
 
     // Characters at index 0 and 1 should have class 'word-plate-char-typed'
