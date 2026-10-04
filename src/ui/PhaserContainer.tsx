@@ -9,7 +9,13 @@ interface PhaserContainerProps {
 export const PhaserContainer: React.FC<PhaserContainerProps> = ({ onGameReady }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const gameRef = useRef<Phaser.Game | null>(null);
+  const onGameReadyRef = useRef(onGameReady);
   const [isReady, setIsReady] = useState(false);
+
+  // Keep latest onGameReady in ref without re-triggering the instantiation effect
+  useEffect(() => {
+    onGameReadyRef.current = onGameReady;
+  }, [onGameReady]);
 
   useEffect(() => {
     if (!containerRef.current || gameRef.current) return;
@@ -17,11 +23,14 @@ export const PhaserContainer: React.FC<PhaserContainerProps> = ({ onGameReady })
     const config = createGameConfig(containerRef.current);
     const game = new Phaser.Game(config);
     gameRef.current = game;
-    setIsReady(true);
 
-    if (onGameReady) {
-      onGameReady(game);
-    }
+    // Listen for the engine READY event rather than setting ready immediately
+    game.events.once(Phaser.Core.Events.READY, () => {
+      setIsReady(true);
+      if (onGameReadyRef.current) {
+        onGameReadyRef.current(game);
+      }
+    });
 
     return () => {
       if (gameRef.current) {
@@ -29,7 +38,7 @@ export const PhaserContainer: React.FC<PhaserContainerProps> = ({ onGameReady })
         gameRef.current = null;
       }
     };
-  }, [onGameReady]);
+  }, []); // Explicitly empty deps; single instance guard maintained
 
   return (
     <div

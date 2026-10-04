@@ -1,4 +1,35 @@
 import '@testing-library/jest-dom';
+import { vi } from 'vitest';
 
 // Minimal canvas mock for JSDOM
 HTMLCanvasElement.prototype.getContext = () => null;
+
+vi.mock('phaser', () => {
+  return {
+    default: {
+      AUTO: 'AUTO',
+      Scale: {
+        FIT: 'FIT',
+        RESIZE: 'RESIZE',
+        CENTER_BOTH: 'CENTER_BOTH',
+      },
+      BlendModes: {
+        ADD: 'ADD',
+      },
+      Core: {
+        Events: {
+          READY: 'ready',
+        },
+      },
+      Scene: class MockScene {},
+      Game: class MockGame {
+        events = {
+          once: vi.fn((_event: string, callback: () => void) => {
+            callback();
+          }),
+        };
+        destroy = vi.fn();
+      },
+    },
+  };
+});
