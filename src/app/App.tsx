@@ -126,6 +126,18 @@ export const App: React.FC = () => {
               >
                 {showGameOver ? 'CLOSE GAME OVER' : 'PREVIEW GAME OVER'}
               </TacticalButton>
+              <a
+                href="/"
+                style={{
+                  color: 'var(--text-secondary)',
+                  fontFamily: 'var(--font-condensed)',
+                  fontSize: '11px',
+                  textDecoration: 'underline',
+                  marginLeft: '8px',
+                }}
+              >
+                [BACK TO MAIN GAME]
+              </a>
             </div>
           </div>
         </TacticalFrame>
@@ -144,11 +156,27 @@ export const App: React.FC = () => {
               fontFamily: 'var(--font-condensed)',
             }}
           >
-            <div style={{ display: 'flex', gap: '24px' }}>
+            <div style={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
               <div>
                 <span style={{ color: 'var(--text-secondary)' }}>MODE: </span>
                 <span style={{ color: 'var(--text-primary)' }}>TACTICAL DEFENSE</span>
               </div>
+              {Boolean(import.meta.env.DEV) && (
+                <a
+                  href="/?preview=1"
+                  style={{
+                    color: 'var(--accent)',
+                    border: '1px solid var(--accent)',
+                    padding: '2px 8px',
+                    borderRadius: 'var(--radius-sm)',
+                    textDecoration: 'none',
+                    letterSpacing: '0.08em',
+                    fontSize: '11px',
+                  }}
+                >
+                  VIEW STEP 2 VISUAL PREVIEW &rarr;
+                </a>
+              )}
             </div>
           </div>
         </TacticalFrame>
