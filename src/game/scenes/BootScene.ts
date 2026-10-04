@@ -21,15 +21,14 @@ export class BootScene extends Phaser.Scene {
     this.load.audio('destroy', '/assets/audio/destroy.ogg');
     this.load.audio('wrong-input', '/assets/audio/wrong-input.ogg');
     this.load.audio('wave-complete', '/assets/audio/wave-complete.ogg');
-
-    // UI elements
-    this.load.image('icon-play', '/assets/ui/icon-play-outline.png');
-    this.load.image('icon-repeat', '/assets/ui/icon-repeat-outline.png');
-    this.load.image('input-rect', '/assets/ui/input-outline-rectangle.png');
-    this.load.image('button-rect', '/assets/ui/button-rectangle-line.png');
   }
 
   create(): void {
-    this.scene.start('GameScene');
+    const isPreview =
+      Boolean(import.meta.env.DEV) &&
+      typeof window !== 'undefined' &&
+      new URLSearchParams(window.location.search).get('preview') === '1';
+
+    this.scene.start(isPreview ? 'VisualPreviewScene' : 'GameScene');
   }
 }

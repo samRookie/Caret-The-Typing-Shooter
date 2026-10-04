@@ -1,4 +1,5 @@
 import { EnemyType } from './entities';
+import { Vector2 } from './geometry';
 
 export interface WordLengthRange {
   readonly min: number;
@@ -43,6 +44,7 @@ export interface RunConfig {
   };
   readonly targetFps: number;
   readonly difficulty: DifficultyPreset;
+  readonly playerStart: Vector2;
   readonly reducedMotion: boolean;
   readonly audioEnabled: boolean;
 }
