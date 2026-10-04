@@ -6,7 +6,31 @@ const ARTIFACT_DIR =
   'C:/Users/KENGUVA SAMEER/.gemini/antigravity/brain/1e48ab02-f018-4984-85a6-c1b9cc9c714a';
 
 test.describe('Tactical Console Smoke & Playwright Tests', () => {
-  test('smoke test: zero console errors and zero page errors on load', async ({ page }) => {
+  test('smoke test (root): zero console errors and zero page errors on root load', async ({
+    page,
+  }) => {
+    const consoleErrors: string[] = [];
+    page.on('console', (msg) => {
+      if (msg.type() === 'error') {
+        consoleErrors.push(msg.text());
+      }
+    });
+
+    const pageErrors: Error[] = [];
+    page.on('pageerror', (err) => {
+      pageErrors.push(err);
+    });
+
+    await page.goto('/');
+    await page.waitForSelector('canvas');
+
+    expect(consoleErrors).toHaveLength(0);
+    expect(pageErrors).toHaveLength(0);
+  });
+
+  test('smoke test (preview mode): zero console errors and zero page errors on preview load', async ({
+    page,
+  }) => {
     const consoleErrors: string[] = [];
     page.on('console', (msg) => {
       if (msg.type() === 'error') {
