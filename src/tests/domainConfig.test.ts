@@ -53,10 +53,29 @@ describe('Desktop Prototype Configuration Invariants', () => {
 
   it('configures the single drone archetype correctly', () => {
     expect(DRONE_ARCHETYPE.type).toBe('drone');
-    expect(DRONE_ARCHETYPE.baseHealth).toBe(1);
+    expect(DRONE_ARCHETYPE.healthPerLetter).toBe(1);
     expect(DRONE_ARCHETYPE.baseSpeed).toBeGreaterThan(0);
     expect(DRONE_ARCHETYPE.hitboxRadius).toBeGreaterThan(0);
     expect(DRONE_ARCHETYPE.baseScore).toBeGreaterThan(0);
+  });
+
+  it('validates simulation config parameters and thresholds', () => {
+    const sim = DEFAULT_RUN_CONFIG.simulation;
+    expect(sim.spawnY).toBe(40);
+    expect(sim.spawnMarginX).toBe(60);
+    expect(sim.hullRadius).toBe(28);
+    expect(sim.collisionDamage).toBe(20);
+    expect(sim.waveIntermissionSeconds).toBe(2);
+    expect(sim.labelCharWidthPx).toBe(14);
+    expect(sim.waveClearBonus).toBe(100);
+    expect(sim.spawnGapWindowSeconds).toBe(1.5);
+    expect(sim.ratingThresholds.S).toBe(97);
+    expect(sim.ratingThresholds.A).toBe(92);
+    expect(sim.ratingThresholds.B).toBe(85);
+    expect(sim.ratingThresholds.C).toBe(75);
+    expect(sim.waveScaling.quotaBase).toBe(6);
+    expect(sim.waveScaling.quotaPerWave).toBe(2);
+    expect(sim.waveScaling.quotaMax).toBe(30);
   });
 
   it('enforces monotonic multiplier progression in scoring rules', () => {
@@ -140,6 +159,10 @@ describe('GameEvent Discriminated Union Handling', () => {
         return `DESTROYED: +${event.scoreAwarded} pts via ${event.cause} @ tick ${event.tick}`;
       case 'PLAYER_DAMAGED':
         return `HULL: -${event.damage} @ tick ${event.tick}`;
+      case 'ENEMY_SPAWNED':
+        return `SPAWNED: ${event.enemyId} at (${event.position.x},${event.position.y}) @ tick ${event.tick}`;
+      case 'WAVE_STARTED':
+        return `WAVE ${event.waveNumber} STARTED (quota ${event.quota}) @ tick ${event.tick}`;
       case 'WAVE_COMPLETED':
         return `WAVE ${event.waveNumber} CLEAR @ tick ${event.tick}`;
       case 'GAME_OVER':
@@ -176,6 +199,22 @@ describe('GameEvent Discriminated Union Handling', () => {
       tick: 120,
     };
     expect(formatEventMessage(destroyCollisionEvent)).toBe('DESTROYED: +0 pts via collision @ tick 120');
+
+    const spawnEvent: GameEvent = {
+      type: 'ENEMY_SPAWNED',
+      enemyId: 'e1',
+      position: { x: 250, y: 40 },
+      tick: 1,
+    };
+    expect(formatEventMessage(spawnEvent)).toBe('SPAWNED: e1 at (250,40) @ tick 1');
+
+    const waveStartEvent: GameEvent = {
+      type: 'WAVE_STARTED',
+      waveNumber: 1,
+      quota: 6,
+      tick: 0,
+    };
+    expect(formatEventMessage(waveStartEvent)).toBe('WAVE 1 STARTED (quota 6) @ tick 0');
   });
 });
 

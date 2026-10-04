@@ -2,6 +2,7 @@ import {
   DifficultyPreset,
   DifficultyPresetId,
   EnemyArchetypeConfig,
+  GameplaySimulationConfig,
   RunConfig,
   ScoringRules,
   Vector2,
@@ -49,7 +50,7 @@ export const DIFFICULTY_PRESETS: Record<DifficultyPresetId, DifficultyPreset> = 
 
 export const DRONE_ARCHETYPE: EnemyArchetypeConfig = {
   type: 'drone',
-  baseHealth: 1,
+  healthPerLetter: 1,
   baseSpeed: 38,
   hitboxRadius: 24,
   baseScore: 100,
@@ -66,6 +67,34 @@ export const DEFAULT_SCORING_RULES: ScoringRules = {
   ],
 };
 
+export const DEFAULT_SIMULATION_CONFIG: GameplaySimulationConfig = {
+  spawnY: 40,
+  spawnMarginX: 60,
+  hullRadius: 28,
+  collisionDamage: 20,
+  waveIntermissionSeconds: 2,
+  labelCharWidthPx: 14,
+  waveClearBonus: 100,
+  spawnGapWindowSeconds: 1.5,
+  ratingThresholds: {
+    S: 97,
+    A: 92,
+    B: 85,
+    C: 75,
+  },
+  waveScaling: {
+    quotaBase: 6,
+    quotaPerWave: 2,
+    quotaMax: 30,
+    spawnIntervalMinRatio: 0.6,
+    spawnIntervalDecay: 0.94,
+    speedScalePerWave: 0.06,
+    speedScaleMaxRatio: 2.0,
+    wordLengthWaveStep: 3,
+    maxWordLengthCap: 8,
+  },
+};
+
 export const DEFAULT_RUN_CONFIG: RunConfig = {
   virtualResolution: DESKTOP_VIEWPORT,
   targetFps: 60,
@@ -75,4 +104,5 @@ export const DEFAULT_RUN_CONFIG: RunConfig = {
   playerStart: PLAYER_START,
   reducedMotion: false,
   audioEnabled: true,
+  simulation: DEFAULT_SIMULATION_CONFIG,
 };

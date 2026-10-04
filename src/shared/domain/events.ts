@@ -56,6 +56,24 @@ export type GameEvent =
       readonly tick: number;
     }
   | {
+      readonly type: 'ENEMY_SPAWNED';
+      /** Spawned enemy identifier. */
+      readonly enemyId: string;
+      /** World coordinate where enemy appeared. */
+      readonly position: Vector2;
+      /** Simulation tick index when event occurred (unit: ticks, range: >= 0). */
+      readonly tick: number;
+    }
+  | {
+      readonly type: 'WAVE_STARTED';
+      /** 1-based index of started wave. */
+      readonly waveNumber: number;
+      /** Total quota of enemies scheduled to spawn in this wave. */
+      readonly quota: number;
+      /** Simulation tick index when event occurred (unit: ticks, range: >= 0). */
+      readonly tick: number;
+    }
+  | {
       readonly type: 'TARGET_LOST';
       /** Identifier of the enemy that was unlocked. */
       readonly enemyId: string;

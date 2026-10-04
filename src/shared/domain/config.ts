@@ -42,14 +42,55 @@ export interface DifficultyPreset {
 export interface EnemyArchetypeConfig {
   /** Classification archetype identifier. */
   readonly type: EnemyType;
-  /** Base starting health points (unit: HP, range: >= 1). */
-  readonly baseHealth: number;
+  /** Health damage required per letter (unit: HP per character, range: >= 1). */
+  readonly healthPerLetter: number;
   /** Base speed multiplier (unit: pixels per second, range: > 0). */
   readonly baseSpeed: number;
   /** Circular collision radius for targeting and hull impacts (unit: pixels, range: > 0). */
   readonly hitboxRadius: number;
   /** Points awarded upon successful word completion (unit: points, range: > 0). */
   readonly baseScore: number;
+}
+
+/**
+ * Accuracy percentage thresholds for end-of-run rating evaluation.
+ */
+export interface RatingThresholds {
+  readonly S: number;
+  readonly A: number;
+  readonly B: number;
+  readonly C: number;
+}
+
+/**
+ * Parameters governing procedural wave progression and difficulty scaling.
+ */
+export interface WaveScalingConfig {
+  readonly quotaBase: number;
+  readonly quotaPerWave: number;
+  readonly quotaMax: number;
+  readonly spawnIntervalMinRatio: number;
+  readonly spawnIntervalDecay: number;
+  readonly speedScalePerWave: number;
+  readonly speedScaleMaxRatio: number;
+  readonly wordLengthWaveStep: number;
+  readonly maxWordLengthCap: number;
+}
+
+/**
+ * Pure simulation data parameters governing spawning, collisions, and gameplay rules.
+ */
+export interface GameplaySimulationConfig {
+  readonly spawnY: number;
+  readonly spawnMarginX: number;
+  readonly hullRadius: number;
+  readonly collisionDamage: number;
+  readonly waveIntermissionSeconds: number;
+  readonly labelCharWidthPx: number;
+  readonly waveClearBonus: number;
+  readonly spawnGapWindowSeconds: number;
+  readonly ratingThresholds: RatingThresholds;
+  readonly waveScaling: WaveScalingConfig;
 }
 
 /**
@@ -97,4 +138,6 @@ export interface RunConfig {
   readonly reducedMotion: boolean;
   /** Master audio toggle. */
   readonly audioEnabled: boolean;
+  /** Pure simulation parameters (geometry, wave pacing, collisions, thresholds). */
+  readonly simulation: GameplaySimulationConfig;
 }
