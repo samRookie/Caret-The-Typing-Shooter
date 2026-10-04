@@ -1,27 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import App from '../app/App';
-
-// Mock Phaser so JSDOM doesn't attempt to load WebGL/Canvas pipelines
-vi.mock('phaser', () => {
-  return {
-    default: {
-      AUTO: 'AUTO',
-      Scale: {
-        RESIZE: 'RESIZE',
-        FIT: 'FIT',
-        CENTER_BOTH: 'CENTER_BOTH',
-      },
-      BlendModes: {
-        ADD: 'ADD',
-      },
-      Scene: class MockScene {},
-      Game: class MockGame {
-        destroy = vi.fn();
-      },
-    },
-  };
-});
 
 describe('Tactical Command Console App Shell', () => {
   beforeEach(() => {

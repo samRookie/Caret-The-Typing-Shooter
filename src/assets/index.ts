@@ -15,10 +15,4 @@ export const ASSET_KEYS = {
     wrongInput: 'wrong-input',
     waveComplete: 'wave-complete',
   },
-  ui: {
-    iconPlay: 'icon-play',
-    iconRepeat: 'icon-repeat',
-    inputRect: 'input-rect',
-    buttonRect: 'button-rect',
-  },
 } as const;
