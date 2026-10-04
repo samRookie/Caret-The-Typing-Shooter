@@ -1,30 +1,37 @@
 import { describe, it, expect } from 'vitest';
 import {
-  GameEvent,
-  GameSnapshot,
-  GameStatus,
-  GameMode,
-  PlayerState,
-  EnemyState,
-  WaveState,
-  ScoringState,
-  Vector2,
-} from '@/shared/domain';
-import {
   DESKTOP_VIEWPORT,
   DIFFICULTY_PRESETS,
   DRONE_ARCHETYPE,
   DEFAULT_SCORING_RULES,
   DEFAULT_RUN_CONFIG,
+  PLAYER_START,
 } from '@/shared/config/defaultConfig';
+import {
+  ScoringState,
+  GameCommand,
+  CharacterInput,
+  GameEvent,
+  Vector2,
+  PlayerState,
+  EnemyState,
+  WaveState,
+  GameStatus,
+  GameMode,
+  GameSnapshot,
+} from '@/shared/domain';
 
-describe('Desktop Prototype Configuration', () => {
-  it('defines valid virtual desktop coordinate bounds', () => {
+describe('Desktop Prototype Configuration Invariants', () => {
+  it('defines valid virtual desktop coordinate bounds and run defaults', () => {
     expect(DESKTOP_VIEWPORT.width).toBe(1280);
     expect(DESKTOP_VIEWPORT.height).toBe(720);
     expect(DEFAULT_RUN_CONFIG.virtualResolution.width).toBe(1280);
     expect(DEFAULT_RUN_CONFIG.virtualResolution.height).toBe(720);
     expect(DEFAULT_RUN_CONFIG.targetFps).toBe(60);
+    expect(DEFAULT_RUN_CONFIG.tickRate).toBe(60);
+    expect(DEFAULT_RUN_CONFIG.seed).toBeGreaterThanOrEqual(0);
+    expect(DEFAULT_RUN_CONFIG.seed).toBeLessThanOrEqual(4294967295);
+    expect(DEFAULT_RUN_CONFIG.playerStart).toEqual(PLAYER_START);
   });
 
   it('validates all difficulty presets conform to gameplay bounds', () => {
@@ -69,57 +76,111 @@ describe('Desktop Prototype Configuration', () => {
       }
     }
   });
+
+  it('enforces accuracy contract: strictly 100% when hits + misses is 0', () => {
+    function computeAccuracy(hits: number, misses: number): number {
+      const total = hits + misses;
+      if (total === 0) return 100;
+      return Math.round((hits / total) * 100);
+    }
+
+    expect(computeAccuracy(0, 0)).toBe(100);
+    expect(computeAccuracy(10, 0)).toBe(100);
+    expect(computeAccuracy(9, 1)).toBe(90);
+    expect(computeAccuracy(0, 5)).toBe(0);
+
+    const initialScoring: ScoringState = {
+      score: 0,
+      streak: 0,
+      maxStreak: 0,
+      multiplier: 1,
+      accuracy: computeAccuracy(0, 0),
+      hits: 0,
+      misses: 0,
+      wordsCompleted: 0,
+      wpm: 0,
+    };
+
+    expect(initialScoring.accuracy).toBe(100);
+  });
+});
+
+describe('GameCommand & CharacterInput Contracts', () => {
+  it('correctly creates and discriminates GameCommand variants', () => {
+    const charCmd: CharacterInput = {
+      type: 'char',
+      char: 'z',
+    };
+    expect(charCmd.type).toBe('char');
+    expect(charCmd.char).toBe('z');
+
+    const releaseCmd: GameCommand = {
+      type: 'release-target',
+    };
+    expect(releaseCmd.type).toBe('release-target');
+  });
 });
 
 describe('GameEvent Discriminated Union Handling', () => {
   function formatEventMessage(event: GameEvent): string {
     switch (event.type) {
       case 'INPUT_MATCH':
-        return `MATCH: ${event.char} on ${event.enemyId}`;
+        return `MATCH: ${event.char} on ${event.enemyId} @ tick ${event.tick}`;
       case 'INPUT_MISMATCH':
-        return `MISMATCH: ${event.char}`;
+        return `MISMATCH: ${event.char} @ tick ${event.tick}`;
       case 'TARGET_LOCKED':
-        return `LOCKED: ${event.word}`;
+        return `LOCKED: ${event.word} @ tick ${event.tick}`;
       case 'TARGET_LOST':
-        return `LOST: ${event.enemyId}`;
+        return `LOST: ${event.enemyId} @ tick ${event.tick}`;
       case 'PROJECTILE_SPAWNED':
-        return `BOLT: to ${event.targetEnemyId}`;
+        return `BOLT: to ${event.targetEnemyId} @ tick ${event.tick}`;
       case 'ENEMY_HIT':
-        return `HIT: ${event.damage} dmg`;
+        return `HIT: ${event.damage} dmg @ tick ${event.tick}`;
       case 'ENEMY_DESTROYED':
-        return `DESTROYED: +${event.scoreAwarded} pts`;
+        return `DESTROYED: +${event.scoreAwarded} pts via ${event.cause} @ tick ${event.tick}`;
       case 'PLAYER_DAMAGED':
-        return `HULL: -${event.damage}`;
+        return `HULL: -${event.damage} @ tick ${event.tick}`;
       case 'WAVE_COMPLETED':
-        return `WAVE ${event.waveNumber} CLEAR`;
+        return `WAVE ${event.waveNumber} CLEAR @ tick ${event.tick}`;
       case 'GAME_OVER':
-        return `GAME OVER: ${event.result.outcome}`;
+        return `GAME OVER: ${event.result.outcome} @ tick ${event.tick}`;
     }
   }
 
-  it('correctly discriminates event variants without runtime errors', () => {
+  it('correctly discriminates event variants with tick timestamps and cause', () => {
     const matchEvent: GameEvent = {
       type: 'INPUT_MATCH',
       char: 'r',
       enemyId: 'drone-1',
       remainingWord: 'econ',
-      timestamp: 1000,
+      tick: 60,
     };
-    expect(formatEventMessage(matchEvent)).toBe('MATCH: r on drone-1');
+    expect(formatEventMessage(matchEvent)).toBe('MATCH: r on drone-1 @ tick 60');
 
-    const destroyEvent: GameEvent = {
+    const destroyWordEvent: GameEvent = {
       type: 'ENEMY_DESTROYED',
       enemyId: 'drone-1',
       scoreAwarded: 150,
       position: { x: 640, y: 200 },
-      timestamp: 1200,
+      cause: 'word',
+      tick: 72,
     };
-    expect(formatEventMessage(destroyEvent)).toBe('DESTROYED: +150 pts');
+    expect(formatEventMessage(destroyWordEvent)).toBe('DESTROYED: +150 pts via word @ tick 72');
+
+    const destroyCollisionEvent: GameEvent = {
+      type: 'ENEMY_DESTROYED',
+      enemyId: 'drone-2',
+      scoreAwarded: 0,
+      position: { x: 640, y: 620 },
+      cause: 'collision',
+      tick: 120,
+    };
+    expect(formatEventMessage(destroyCollisionEvent)).toBe('DESTROYED: +0 pts via collision @ tick 120');
   });
 });
 
 describe('GameSnapshot Contract Integrity', () => {
-  it('constructs a valid pure simulation snapshot', () => {
+  it('constructs a valid pure simulation snapshot with ticks and modes', () => {
     const playerPos: Vector2 = { x: 640, y: 620 };
     const player: PlayerState = {
       position: playerPos,
@@ -138,9 +199,8 @@ describe('GameSnapshot Contract Integrity', () => {
       remainingWord: 'RADAR',
       health: 1,
       maxHealth: 1,
-      targeted: false,
       alive: true,
-      spawnTimeMs: 500,
+      spawnTick: 30,
     };
 
     const wave: WaveState = {
@@ -171,14 +231,17 @@ describe('GameSnapshot Contract Integrity', () => {
       activeTargetId: null,
       wave,
       scoring,
-      elapsedTimeMs: 12500,
-      timestamp: Date.now(),
+      elapsedTicks: 750,
     };
 
     expect(snapshot.status).toBe('running');
+    expect(snapshot.mode).toBe('standard');
     expect(snapshot.player.alive).toBe(true);
     expect(snapshot.enemies.length).toBe(1);
     expect(snapshot.enemies[0]?.word).toBe('RADAR');
+    expect(snapshot.enemies[0]?.spawnTick).toBe(30);
     expect(snapshot.scoring.multiplier).toBe(2);
+    expect(snapshot.elapsedTicks).toBe(750);
   });
 });
+

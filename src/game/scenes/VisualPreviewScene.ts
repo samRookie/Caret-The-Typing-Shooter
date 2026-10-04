@@ -3,11 +3,9 @@ import { spawnTargetLock } from '../rendering/phase1-vfx';
 import { DESKTOP_VIEWPORT, PLAYER_START } from '@/shared/config/defaultConfig';
 
 export class VisualPreviewScene extends Phaser.Scene {
-  private playerShip!: Phaser.GameObjects.Image;
   private droneEnemy!: Phaser.GameObjects.Image;
   private projectile!: Phaser.GameObjects.Graphics;
   private wordContainer!: Phaser.GameObjects.Container;
-  private targetReticle?: Phaser.GameObjects.Graphics;
   private stars: { x: number; y: number; speed: number; alpha: number; size: number }[] = [];
   private starGraphics!: Phaser.GameObjects.Graphics;
   private gridGraphics!: Phaser.GameObjects.Graphics;
@@ -29,7 +27,7 @@ export class VisualPreviewScene extends Phaser.Scene {
     this.initStars(width, height);
 
     // 3. Player Ship Visual Placeholder (Read from PLAYER_START)
-    this.playerShip = this.add
+    this.add
       .image(PLAYER_START.x, PLAYER_START.y, 'player-ship')
       .setOrigin(0.5)
       .setScale(0.7)
@@ -70,7 +68,7 @@ export class VisualPreviewScene extends Phaser.Scene {
     });
 
     // 5. Target Reticle Placeholder around Drone
-    this.targetReticle = spawnTargetLock(this, enemyX, enemyY, {
+    spawnTargetLock(this, enemyX, enemyY, {
       accent: 0xffb84a,
       reducedMotion: false,
     });

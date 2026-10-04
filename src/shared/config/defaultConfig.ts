@@ -69,6 +69,8 @@ export const DEFAULT_SCORING_RULES: ScoringRules = {
 export const DEFAULT_RUN_CONFIG: RunConfig = {
   virtualResolution: DESKTOP_VIEWPORT,
   targetFps: 60,
+  tickRate: 60,
+  seed: 1337,
   difficulty: DIFFICULTY_PRESETS.normal,
   playerStart: PLAYER_START,
   reducedMotion: false,
