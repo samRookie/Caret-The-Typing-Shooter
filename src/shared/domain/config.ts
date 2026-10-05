@@ -1,5 +1,6 @@
 import { EnemyType } from './entities';
 import { Vector2 } from './geometry';
+import { GameMode } from './game';
 
 /**
  * Word character length boundary configuration.
@@ -44,12 +45,8 @@ export interface EnemyArchetypeConfig {
   readonly type: EnemyType;
   /** Health damage required per letter (unit: HP per character, range: >= 1). */
   readonly healthPerLetter: number;
-  /** Base speed multiplier (unit: pixels per second, range: > 0). */
-  readonly baseSpeed: number;
   /** Circular collision radius for targeting and hull impacts (unit: pixels, range: > 0). */
   readonly hitboxRadius: number;
-  /** Points awarded upon successful word completion (unit: points, range: > 0). */
-  readonly baseScore: number;
 }
 
 /**
@@ -85,6 +82,8 @@ export interface GameplaySimulationConfig {
   readonly spawnMarginX: number;
   readonly hullRadius: number;
   readonly collisionDamage: number;
+  /** Delay before the first spawn of a run (seconds). */
+  readonly initialSpawnDelaySeconds: number;
   readonly waveIntermissionSeconds: number;
   readonly labelCharWidthPx: number;
   readonly waveClearBonus: number;
@@ -140,4 +139,6 @@ export interface RunConfig {
   readonly audioEnabled: boolean;
   /** Pure simulation parameters (geometry, wave pacing, collisions, thresholds). */
   readonly simulation: GameplaySimulationConfig;
+  /** Gameplay mode (standard, endless, precision). Default is standard. */
+  readonly mode?: GameMode;
 }

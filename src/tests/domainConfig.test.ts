@@ -54,9 +54,7 @@ describe('Desktop Prototype Configuration Invariants', () => {
   it('configures the single drone archetype correctly', () => {
     expect(DRONE_ARCHETYPE.type).toBe('drone');
     expect(DRONE_ARCHETYPE.healthPerLetter).toBe(1);
-    expect(DRONE_ARCHETYPE.baseSpeed).toBeGreaterThan(0);
     expect(DRONE_ARCHETYPE.hitboxRadius).toBeGreaterThan(0);
-    expect(DRONE_ARCHETYPE.baseScore).toBeGreaterThan(0);
   });
 
   it('validates simulation config parameters and thresholds', () => {
@@ -65,6 +63,7 @@ describe('Desktop Prototype Configuration Invariants', () => {
     expect(sim.spawnMarginX).toBe(60);
     expect(sim.hullRadius).toBe(28);
     expect(sim.collisionDamage).toBe(20);
+    expect(sim.initialSpawnDelaySeconds).toBe(1.0);
     expect(sim.waveIntermissionSeconds).toBe(2);
     expect(sim.labelCharWidthPx).toBe(14);
     expect(sim.waveClearBonus).toBe(100);
