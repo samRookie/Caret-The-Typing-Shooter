@@ -18,6 +18,8 @@ export const PLAYER_START: Vector2 = {
   y: 620,
 };
 
+export const INPUT_QUEUE_CAPACITY = 64;
+
 export const DIFFICULTY_PRESETS: Record<DifficultyPresetId, DifficultyPreset> = {
   relaxed: {
     id: 'relaxed',
