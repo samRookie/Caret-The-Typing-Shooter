@@ -21,6 +21,12 @@ vi.mock('phaser', () => {
           READY: 'ready',
         },
       },
+      Scenes: {
+        Events: {
+          SHUTDOWN: 'shutdown',
+          DESTROY: 'destroy',
+        },
+      },
       Scene: class MockScene {},
       Game: class MockGame {
         events = {
