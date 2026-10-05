@@ -28,6 +28,10 @@ vi.mock('phaser', () => {
             callback();
           }),
         };
+        registry = {
+          set: vi.fn(),
+          get: vi.fn(),
+        };
         destroy = vi.fn();
       },
     },

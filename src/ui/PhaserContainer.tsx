@@ -1,15 +1,18 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Phaser from 'phaser';
 import { createGameConfig } from '@/game/config';
+import type { GameRuntime } from '@/game/controller';
 
 interface PhaserContainerProps {
   onGameReady?: (game: Phaser.Game) => void;
+  runtime?: GameRuntime | null;
 }
 
-export const PhaserContainer: React.FC<PhaserContainerProps> = ({ onGameReady }) => {
+export const PhaserContainer: React.FC<PhaserContainerProps> = ({ onGameReady, runtime }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const gameRef = useRef<Phaser.Game | null>(null);
   const onGameReadyRef = useRef(onGameReady);
+  const runtimeRef = useRef(runtime);
   const [isReady, setIsReady] = useState(false);
 
   // Keep latest onGameReady in ref without re-triggering the instantiation effect
@@ -17,12 +20,23 @@ export const PhaserContainer: React.FC<PhaserContainerProps> = ({ onGameReady })
     onGameReadyRef.current = onGameReady;
   }, [onGameReady]);
 
+  // Synchronize runtime instance to Phaser registry
+  useEffect(() => {
+    runtimeRef.current = runtime;
+    if (gameRef.current?.registry) {
+      gameRef.current.registry.set('runtime', runtime ?? null);
+    }
+  }, [runtime]);
+
   useEffect(() => {
     if (!containerRef.current || gameRef.current) return;
 
     const config = createGameConfig(containerRef.current);
     const game = new Phaser.Game(config);
     gameRef.current = game;
+    if (game.registry) {
+      game.registry.set('runtime', runtimeRef.current ?? null);
+    }
 
     // Listen for the engine READY event rather than setting ready immediately
     game.events.once(Phaser.Core.Events.READY, () => {

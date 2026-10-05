@@ -19,6 +19,10 @@ describe('PhaserContainer StrictMode Lifecycle', () => {
           callback();
         }),
       };
+      registry = {
+        set: vi.fn(),
+        get: vi.fn(),
+      };
       destroy = vi.fn();
       constructor() {
         createdInstances.push(this);
