@@ -20,6 +20,20 @@ export const PLAYER_START: Vector2 = {
 
 export const INPUT_QUEUE_CAPACITY = 64;
 
+export const RENDERER_CONFIG = {
+  projectileTravelMs: 90,
+  projectileCap: 12,
+  ghostDurationMs: 250,
+  ghostCap: 20,
+  playerDamageTintMs: 100,
+  backgroundStarCount: 45,
+  labelCharWidthPx: 14,
+  labelPaddingPx: 12,
+  labelFontSizePx: 18,
+  labelFontFamily: "Consolas, Monaco, 'Courier New', Courier, monospace",
+  plateHeightPx: 26,
+} as const;
+
 export const DIFFICULTY_PRESETS: Record<DifficultyPresetId, DifficultyPreset> = {
   relaxed: {
     id: 'relaxed',
