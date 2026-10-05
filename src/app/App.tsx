@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './app.css';
 import { PhaserContainer } from '@/ui/PhaserContainer';
 import { TacticalFrame } from '@/ui/components/TacticalFrame';
@@ -8,10 +8,17 @@ import { LoadingOverlay } from '@/ui/components/LoadingOverlay';
 import { PauseModal } from '@/ui/components/PauseModal';
 import { GameOverModal } from '@/ui/components/GameOverModal';
 import { TelemetryData } from '@/shared/types';
+import { GameRuntime } from '@/game/controller/GameRuntime';
+import { installDevCaretHook } from '@/game/controller/devCaretHook';
+import { KeyboardAdapter } from '@/game/input/keyboardAdapter';
+import { devIntentLog } from '@/game/input/devIntentLog';
+import { DEFAULT_RUN_CONFIG, DIFFICULTY_PRESETS } from '@/shared/config/defaultConfig';
+import { RunConfig } from '@/shared/domain';
+import type { GameScene } from '@/game/scenes/GameScene';
 
 // Gated strictly to dev mode: absent from production bundle
-const DebugInputPanel = import.meta.env.DEV
-  ? React.lazy(() => import('@/ui/components/DebugInputPanel'))
+const DebugOverlay = import.meta.env.DEV
+  ? React.lazy(() => import('@/ui/components/DebugOverlay'))
   : null;
 
 export const App: React.FC = () => {
@@ -25,6 +32,34 @@ export const App: React.FC = () => {
     Boolean(import.meta.env.DEV) &&
     typeof window !== 'undefined' &&
     new URLSearchParams(window.location.search).get('debug') === '1';
+
+  const isAutostart =
+    Boolean(import.meta.env.DEV) &&
+    typeof window !== 'undefined' &&
+    new URLSearchParams(window.location.search).get('autostart') === '1';
+
+  const seedParam =
+    Boolean(import.meta.env.DEV) &&
+    typeof window !== 'undefined'
+      ? new URLSearchParams(window.location.search).get('seed')
+      : null;
+
+  const gameInstanceRef = useRef<Phaser.Game | null>(null);
+
+  // Runtime instantiation for ?autostart=1 in dev
+  const [runtime] = useState<GameRuntime | null>(() => {
+    if (isAutostart) {
+      const parsedSeed = seedParam ? parseInt(seedParam, 10) : 1337;
+      const seed = Number.isFinite(parsedSeed) ? parsedSeed : 1337;
+      const config: RunConfig = {
+        ...DEFAULT_RUN_CONFIG,
+        seed,
+        difficulty: DIFFICULTY_PRESETS.normal,
+      };
+      return new GameRuntime(config);
+    }
+    return null;
+  });
 
   // Modal Preview States
   const [showLoading, setShowLoading] = useState(false);
@@ -55,6 +90,79 @@ export const App: React.FC = () => {
           activeTargetTypedIndex: 0,
         }
   );
+
+  // Keyboard Adapter binding to GameRuntime input queue
+  useEffect(() => {
+    if (!runtime) return;
+
+    let lastKey = '';
+    const rawKeyTracker = (e: KeyboardEvent) => {
+      lastKey = e.key;
+    };
+    window.addEventListener('keydown', rawKeyTracker, { capture: true });
+
+    const adapter = new KeyboardAdapter({
+      getState: () => ({ gameActive: runtime.status === 'running' }),
+      onIntent: (intent, preventDefault) => {
+        if (import.meta.env.DEV) {
+          devIntentLog.record(lastKey || 'unknown', intent, preventDefault);
+        }
+      },
+    });
+
+    adapter.attach(runtime.inputQueue);
+
+    return () => {
+      window.removeEventListener('keydown', rawKeyTracker, { capture: true });
+      adapter.detach();
+    };
+  }, [runtime]);
+
+  // Install dev inspection hook strictly in DEV
+  useEffect(() => {
+    if (import.meta.env.DEV && runtime) {
+      const unregister = installDevCaretHook(
+        () => runtime,
+        () => {
+          const game = gameInstanceRef.current;
+          return game?.scene?.getScene('GameScene') as GameScene | undefined;
+        }
+      );
+      return unregister;
+    }
+  }, [runtime]);
+
+  // Synchronize telemetry from live simulation
+  useEffect(() => {
+    if (!runtime || isPreview) return;
+
+    const interval = setInterval(() => {
+      const snapshot = runtime.getSnapshot();
+      const activeTargetEnemy = snapshot.activeTargetId
+        ? snapshot.enemies.find((e) => e.id === snapshot.activeTargetId)
+        : null;
+
+      const typedIndex = activeTargetEnemy
+        ? activeTargetEnemy.word.length - activeTargetEnemy.remainingWord.length
+        : 0;
+
+      setTelemetry({
+        score: snapshot.scoring.score,
+        wave: snapshot.wave.waveNumber,
+        streak: snapshot.scoring.streak,
+        multiplier: snapshot.scoring.multiplier,
+        accuracy: snapshot.scoring.accuracy,
+        activeTarget: activeTargetEnemy ? activeTargetEnemy.word : null,
+        activeTargetTypedIndex: typedIndex,
+      });
+
+      if (snapshot.status === 'game-over') {
+        setShowGameOver(true);
+      }
+    }, 50);
+
+    return () => clearInterval(interval);
+  }, [runtime, isPreview]);
 
   // Synchronize telemetry if preview mode changes
   useEffect(() => {
@@ -209,7 +317,12 @@ export const App: React.FC = () => {
         }}
       >
         {/* Live Phaser Viewport */}
-        <PhaserContainer />
+        <PhaserContainer
+          runtime={runtime}
+          onGameReady={(game) => {
+            gameInstanceRef.current = game;
+          }}
+        />
 
         {/* Tactical HUD Overlay */}
         <HUDOverlay
@@ -261,10 +374,10 @@ export const App: React.FC = () => {
           />
         )}
 
-        {/* Step 6 Dev Visibility: Normalized intent monitor (dev server only, ?debug=1) */}
-        {import.meta.env.DEV && isDebug && DebugInputPanel && (
+        {/* Step 7 Dev Visibility: Engine metrics and intent monitor (dev server only, ?debug=1) */}
+        {import.meta.env.DEV && isDebug && DebugOverlay && (
           <React.Suspense fallback={null}>
-            <DebugInputPanel />
+            <DebugOverlay />
           </React.Suspense>
         )}
       </div>
