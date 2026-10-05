@@ -11,7 +11,7 @@ import {
   DEFAULT_RUN_CONFIG,
   DIFFICULTY_PRESETS,
 } from '../src/shared/config/defaultConfig';
-import { DifficultyPresetId, RunConfig } from '../src/shared/domain';
+import { DifficultyPresetId, EnemyState, RunConfig } from '../src/shared/domain';
 
 interface BotConfig {
   readonly targetWpm: number;
@@ -34,6 +34,7 @@ interface RunStats {
   readonly wordsCompleted: number;
   readonly hits: number;
   readonly misses: number;
+  readonly fallbacks: number;
 }
 
 function runBotSimulation(
@@ -75,7 +76,7 @@ function runBotSimulation(
       const snap = sim.getSnapshot();
       if (snap.enemies.length > 0) {
         // Find target: active locked target or nearest alive enemy
-        let target = snap.enemies.find((e) => e.id === snap.activeTargetId && e.alive);
+        let target = snap.enemies.find((e: EnemyState) => e.id === snap.activeTargetId && e.alive);
 
         if (!target) {
           // Find nearest to player
@@ -133,6 +134,7 @@ function runBotSimulation(
     wordsCompleted: finalSnap.scoring.wordsCompleted,
     hits: finalSnap.scoring.hits,
     misses: finalSnap.scoring.misses,
+    fallbacks: sim.wordProviderStats.fallbacks,
   };
 }
 
@@ -202,6 +204,7 @@ function main(): void {
     console.log(`  Accuracy:        ${res.accuracy}% (${res.hits} hits, ${res.misses} misses)`);
     console.log(`  Simulated WPM:   ${res.wpm} WPM`);
     console.log(`  Score:           ${res.score} pts (${res.wordsCompleted} words cleared)`);
+    console.log(`  Word Fallbacks:  ${res.fallbacks}`);
   }
 
   console.log('\n========================================================================');
