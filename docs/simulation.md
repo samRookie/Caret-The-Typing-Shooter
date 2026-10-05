@@ -7,60 +7,42 @@ All time progression is quantized into discrete 60Hz simulation ticks (`tickRate
 
 ---
 
-## 2. Typing & Combat Rules
+## 2. Typing & Combat Rules (The 13 Canonical Rules)
 
-### Command Lifecycle
-- Game commands (`GameCommand`) are dispatched synchronously to the simulation.
-- Commands are strictly ignored unless the simulation status is `'running'`.
-- After `'game-over'`, all input commands and `tick()` calls are ignored.
+1. **Command Lifecycle:** Commands are strictly ignored unless simulation status is `'running'`. After `'game-over'`, `tick()` and `handleCommand()` perform no operations.
+2. **Health Per Letter:** At spawn, `maxHealth = health = word.length`. Each correct character keystroke inflicts exactly 1 damage. The word completes and the enemy is destroyed precisely when health reaches 0.
+3. **Target Acquisition & Tie-Breaking:** When no target is locked, typed character is matched against `remainingWord[0]` across all alive enemies. Tie-break: resolved by smallest squared Euclidean distance to player, then by lowest numeric entity ID (e.g. `e1` before `e2`, `e9` before `e10`). A match locks the target and emits `TARGET_LOCKED` before processing the hit.
+4. **Unlocked Mismatch Penalty:** Mismatch while unlocked emits `INPUT_MISMATCH` with `activeTargetId: null`, increments `misses`, resets `streak` to 0, and resets `multiplier` to 1.
+5. **Locked Mismatch Penalty:** Keystrokes must match `lockedEnemy.remainingWord[0]`. On mismatch, the same penalty applies (`misses++`, `streak = 0`, `multiplier = 1`), but the **target lock persists**.
+6. **Target Release (`release-target`):** Clears the active lock, retains partial typing progress on the enemy, emits `TARGET_LOST`, and applies no penalty. Calling `release-target` while unlocked is a no-op.
+7. **Event Dispatch Order for Correct Character:**
+   - Non-final character: `[TARGET_LOCKED if freshly acquired] -> INPUT_MATCH -> PROJECTILE_SPAWNED -> ENEMY_HIT`.
+   - Final character completing word: `[TARGET_LOCKED if freshly acquired] -> INPUT_MATCH -> PROJECTILE_SPAWNED -> ENEMY_HIT -> ENEMY_DESTROYED {cause: "word"} -> TARGET_LOST`.
+8. **Scoring & Multipliers:**
+   - Correct character: `streak++`, `multiplier = lookup(streak)`, `score += scorePerChar * multiplier`.
+   - Word completion: `score += enemyClearBonus * multiplier`. `ENEMY_DESTROYED.scoreAwarded` records the clear bonus only. `wordsCompleted++`; track `maxStreak`.
+9. **Accuracy & WPM Metrics:**
+   - $$\text{Accuracy} = 100 \times \frac{\text{hits}}{\text{hits} + \text{misses}}$$ (strictly 100% when $\text{hits} + \text{misses} = 0$).
+   - $$\text{WPM} = \frac{\text{hits} / 5}{\text{elapsedMinutes}}$$ (strictly 0 when $\text{elapsedTicks} = 0$).
+10. **Death Effect Anchor:** `ENEMY_DESTROYED` carries the enemy's physical position at the moment of kill so the renderer can play the explosion after entity snapshot eviction.
+11. **Hull Collision:**
+    - Collision threshold: $\text{distance}^2 \le (\text{enemy.hitboxRadius} + \text{hullRadius})^2$.
+    - Event order: `PLAYER_DAMAGED` -> `ENEMY_DESTROYED {cause: "collision", scoreAwarded: 0}` -> `TARGET_LOST` (if locked) -> `GAME_OVER` (if health $\le 0$).
+    - Collisions do not touch keystroke streak or accuracy metrics.
+12. **Game Over & Rating Debriefing:**
+    - Status transitions to `'game-over'`; `getResult()` compiles immutable `GameResult` (`outcome: "defeat"`, rating from accuracy thresholds, `durationMs` derived from ticks). After game over, `tick()` and commands do nothing. `start()` fully resets state.
+    - Rating thresholds: S ($\ge 97\%$), A ($\ge 92\%$), B ($\ge 85\%$), C ($\ge 75\%$), else D.
+13. **GameMode:** Accept `'standard'` | `'endless'` | `'precision'`. Standard behavior active; endless and precision carry `// TODO(phase2)` markers.
 
-### Target Acquisition & Locking
-1. **Unacquired State (No Active Lock):**
-   - When a character is typed, the simulation filters all alive enemies on screen whose `remainingWord[0]` matches the typed character.
-   - **Tie-Breaking:** If multiple enemies match, the target is chosen by:
-     1. Smallest squared Euclidean distance to the player (`distSq`).
-     2. Lowest numeric entity ID (e.g. `e1` before `e2`).
-   - The selected enemy becomes locked (`activeTargetId = enemy.id`), emitting `TARGET_LOCKED` before processing damage.
-2. **Locked State:**
-   - Keystrokes are tested exclusively against `lockedEnemy.remainingWord[0]`.
-   - If the keystroke matches: damage is dealt, word advances, and the lock persists.
-   - If the keystroke mismatches: mismatch penalties apply, but the **target lock stays locked**.
-3. **Target Release (`release-target`):**
-   - Dispatches a command to intentionally drop the active lock.
-   - Emits `TARGET_LOST`, sets `activeTargetId = null`, and leaves partial typing progress intact.
-   - Incurs no penalty to score, streak, or accuracy.
+### Tick Pipeline Execution Order
+Every tick executes in strictly specified, deterministic order:
+`[if not running return] -> tick++ -> wave state machine/spawns -> move enemies -> collisions in ascending numeric id -> game-over check -> wave-completion check`.
 
-### Health, Damage & Destruction
-- **Enemy Health:** At spawn, `maxHealth = word.length` and `health = word.length`.
-- **Damage per Char:** Each correct keystroke inflicts exactly 1 damage and slices 1 character from `remainingWord`.
-- **Destruction:** When `health <= 0` (or `remainingWord.length === 0`), the enemy is destroyed.
-- **Score Awarded:** The clear bonus (`enemyClearBonus * multiplier`) is awarded upon word completion and recorded in `ENEMY_DESTROYED.scoreAwarded`.
-
-### Scoring & Metrics Formulas
-- **Keystroke Score:** `scorePerChar (10) * multiplier`.
-- **Word Clear Bonus:** `enemyClearBonus (100) * multiplier`.
-- **Streak & Multipliers:**
-  - Monotonic thresholds: Streak 0–4: 1x, Streak 5–9: 2x, Streak 10–19: 3x, Streak 20+: 4x.
-  - Reset to 0 on any mismatch (`multiplier` resets to 1x).
-- **Accuracy:**
-  $$\text{Accuracy} = \begin{cases} 100\% & \text{if } \text{hits} + \text{misses} = 0 \\ \text{round}\left(\frac{\text{hits}}{\text{hits} + \text{misses}} \times 100\right) & \text{otherwise} \end{cases}$$
-- **Gross Words Per Minute (WPM):**
-  $$\text{WPM} = \begin{cases} 0 & \text{if } \text{elapsedTicks} = 0 \\ \text{round}\left(\frac{\text{hits} / 5}{\text{elapsedTicks} / (60 \times 60)}\right) & \text{otherwise} \end{cases}$$
-- **Rating Thresholds:**
-  Evaluated at run completion against final accuracy:
-  - **S Tier:** $\ge 97\%$
-  - **A Tier:** $\ge 92\%$
-  - **B Tier:** $\ge 85\%$
-  - **C Tier:** $\ge 75\%$
-  - **D Tier:** $< 75\%$
-
-### Hull Collisions
-- Collision threshold: $\text{distance}^2 \le (\text{enemy.hitboxRadius} + \text{hullRadius})^2$.
-- Inflicts `collisionDamage` (20 HP) to player vessel.
-- Destroys the colliding enemy with `cause: 'collision'` and `scoreAwarded: 0`.
-- If the colliding enemy was the locked target, active lock is cleared with `TARGET_LOST`.
-- Collisions do not touch keystroke streak or accuracy metrics.
-- If player hull reaches 0, the game immediately transitions to `'game-over'`.
+### Initial Spawn Delay & Wave Scaling
+- **Initial Spawn Delay:** Delay of `initialSpawnDelaySeconds` (default 1.0s = 60 ticks) before the first spawn of a run.
+- **Wave Pacing:** Quota $= \min(6 + 2 \times (\text{wave} - 1), 30)$. Spawn interval $= \max(0.6 \times \text{base}, \text{base} \times 0.94^{\text{wave} - 1})$. Speed $= \min(\text{base} \times (1 + 0.06 \times (\text{wave}-1)), 2 \times \text{base})$.
+- **Intermission:** Pause of `waveIntermissionSeconds` (default 2s) between waves without spawns.
+- **Concurrent Cap:** When active alive enemies reach `maxConcurrentEnemies`, the spawn is skipped (not queued) and the spawn countdown restarts.
 
 ---
 

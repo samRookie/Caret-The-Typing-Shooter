@@ -10,7 +10,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "sim:demo": "tsx scripts/simDemo.ts",
+    "sim:demo": "tsx scripts/sim-demo.ts",
     "lint": "eslint .",
     "format": "prettier --write \"src/**/*.{ts,tsx,css,json}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,css,json}\""
