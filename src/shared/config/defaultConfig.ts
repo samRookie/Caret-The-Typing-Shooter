@@ -75,6 +75,8 @@ export const DEFAULT_SIMULATION_CONFIG: GameplaySimulationConfig = {
   labelCharWidthPx: 14,
   waveClearBonus: 100,
   spawnGapWindowSeconds: 1.5,
+  commonalityStart: 0.35,
+  commonalityStep: 0.1,
   ratingThresholds: {
     S: 97,
     A: 92,

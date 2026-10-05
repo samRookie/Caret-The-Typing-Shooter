@@ -97,7 +97,7 @@ describe('Golden Run Deterministic Hash Verification', () => {
    * verify the emitted events match intended game mechanics, and update this constant.
    */
   const EXPECTED_GOLDEN_HASH =
-    '7002f0a85f1cf987fdad1bb963944d05a22bfc5e129e69cdf5f21c0cbdf5245d';
+    '3cd2a9fef55b96c3d9b1eacd5035569fbdd1ff9b17267e9dcf7a1d39b05c67bf';
 
   it('matches the golden SHA-256 hash of a deterministic scripted event log', () => {
     const sim = new GameSimulation({ ...DEFAULT_RUN_CONFIG, seed: 4242 });
@@ -149,6 +149,7 @@ describe('Target Acquisition and Typing Rules (4.C)', () => {
   it('enforces exact event order on correct character and word destruction', () => {
     const mockWordProvider: IWordProvider = {
       nextWord: () => 'arc',
+      stats: { fallbacks: 0 },
     };
 
     const sim = new GameSimulation(DEFAULT_RUN_CONFIG, mockWordProvider);
@@ -209,6 +210,7 @@ describe('Target Acquisition and Typing Rules (4.C)', () => {
         wordCounter++;
         return w;
       },
+      stats: { fallbacks: 0 },
     };
 
     const sim = new GameSimulation(
@@ -253,6 +255,7 @@ describe('Target Acquisition and Typing Rules (4.C)', () => {
   it('handles mismatch penalties and keeps target lock while locked', () => {
     const mockWordProvider: IWordProvider = {
       nextWord: () => 'beam',
+      stats: { fallbacks: 0 },
     };
     const sim = new GameSimulation(DEFAULT_RUN_CONFIG, mockWordProvider);
     sim.start();
@@ -298,6 +301,7 @@ describe('Target Acquisition and Typing Rules (4.C)', () => {
   it('release-target command clears the lock, emits TARGET_LOST, and leaves progress intact', () => {
     const mockWordProvider: IWordProvider = {
       nextWord: () => 'core',
+      stats: { fallbacks: 0 },
     };
     const sim = new GameSimulation(DEFAULT_RUN_CONFIG, mockWordProvider);
     sim.start();
@@ -331,6 +335,7 @@ describe('Target Acquisition and Typing Rules (4.C)', () => {
   it('collision removing the locked enemy clears the target lock with TARGET_LOST', () => {
     const mockWordProvider: IWordProvider = {
       nextWord: () => 'drone',
+      stats: { fallbacks: 0 },
     };
     const sim = new GameSimulation(
       {
@@ -365,6 +370,7 @@ describe('Target Acquisition and Typing Rules (4.C)', () => {
   it('evaluates scoring, streak progression, and multipliers accurately', () => {
     const mockWordProvider: IWordProvider = {
       nextWord: () => 'zap',
+      stats: { fallbacks: 0 },
     };
     const sim = new GameSimulation(DEFAULT_RUN_CONFIG, mockWordProvider);
     sim.start();
@@ -510,6 +516,7 @@ describe('Wave Progression, Intermission and Concurrent Cap (4.E)', () => {
   it('advances waves, awards wave clear bonus, and enters intermission', () => {
     const mockWordProvider: IWordProvider = {
       nextWord: () => 'pod',
+      stats: { fallbacks: 0 },
     };
     const sim = new GameSimulation(
       {

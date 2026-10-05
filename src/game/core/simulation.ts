@@ -65,7 +65,12 @@ import {
   DRONE_ARCHETYPE,
 } from '@/shared/config/defaultConfig';
 import { RngStreams, createRngStreams } from './prng';
-import { DefaultWordProvider, IWordProvider } from './words';
+import {
+  createWordProvider,
+  DefaultWordProvider,
+  IWordProvider,
+  WordProviderStats,
+} from './words';
 import { EntityIdGenerator, compareEntityIds } from './entityId';
 
 export interface InternalEnemy extends EnemyState {
@@ -130,7 +135,7 @@ export class GameSimulation {
     this.scoringRules = DEFAULT_SCORING_RULES;
     this.rngStreams = customStreams ?? createRngStreams(config.seed);
     this.wordProvider =
-      customWordProvider ?? new DefaultWordProvider(this.rngStreams.wordRng);
+      customWordProvider ?? createWordProvider(this.rngStreams.wordRng);
 
     this.player = {
       position: { ...config.playerStart },
@@ -174,7 +179,7 @@ export class GameSimulation {
     if (customWordProvider) {
       this.wordProvider = customWordProvider;
     } else if (!this.wordProvider || this.wordProvider instanceof DefaultWordProvider) {
-      this.wordProvider = new DefaultWordProvider(this.rngStreams.wordRng);
+      this.wordProvider = createWordProvider(this.rngStreams.wordRng);
     }
 
     // Initialize player
@@ -234,6 +239,10 @@ export class GameSimulation {
 
   get tickCount(): number {
     return this.tickIndex;
+  }
+
+  get wordProviderStats(): WordProviderStats {
+    return this.wordProvider.stats;
   }
 
   // --------------------------------------------------------------------------
@@ -567,11 +576,18 @@ export class GameSimulation {
       }
     }
 
+    const commonality = Math.min(
+      1,
+      simConfig.commonalityStart +
+        simConfig.commonalityStep * (this.waveNumber - 1)
+    );
+
     const assignedWord = this.wordProvider.nextWord({
       minLen: minWordLen,
       maxLen: maxWordLen,
       excludeFirstLetters: activeFirstChars,
       excludeWords: activeWords,
+      commonality,
     });
 
     // Horizontal Spawning with Gap Window Retries

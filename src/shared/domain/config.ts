@@ -88,6 +88,8 @@ export interface GameplaySimulationConfig {
   readonly labelCharWidthPx: number;
   readonly waveClearBonus: number;
   readonly spawnGapWindowSeconds: number;
+  readonly commonalityStart: number;
+  readonly commonalityStep: number;
   readonly ratingThresholds: RatingThresholds;
   readonly waveScaling: WaveScalingConfig;
 }

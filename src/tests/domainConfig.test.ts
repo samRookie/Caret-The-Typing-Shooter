@@ -68,6 +68,8 @@ describe('Desktop Prototype Configuration Invariants', () => {
     expect(sim.labelCharWidthPx).toBe(14);
     expect(sim.waveClearBonus).toBe(100);
     expect(sim.spawnGapWindowSeconds).toBe(1.5);
+    expect(sim.commonalityStart).toBe(0.35);
+    expect(sim.commonalityStep).toBe(0.1);
     expect(sim.ratingThresholds.S).toBe(97);
     expect(sim.ratingThresholds.A).toBe(92);
     expect(sim.ratingThresholds.B).toBe(85);

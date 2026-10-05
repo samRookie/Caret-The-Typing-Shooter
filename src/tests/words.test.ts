@@ -112,6 +112,7 @@ describe('DefaultWordProvider Fallback Policy', () => {
   it('deterministic provider with mock yields predictable sequence', () => {
     const fakeProvider: IWordProvider = {
       nextWord: (query: WordQuery) => `mock${query.minLen}`,
+      stats: { fallbacks: 0 },
     };
 
     expect(
