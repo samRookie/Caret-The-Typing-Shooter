@@ -4,6 +4,7 @@ import { GameSimulation } from '@/game/core/simulation';
 import { DEFAULT_RUN_CONFIG } from '@/shared/config/defaultConfig';
 import { GameCommand, GameEvent, RunConfig } from '@/shared/domain';
 import { IWordProvider } from '@/game/core/words';
+import { compareEntityIds } from '@/game/core/entityId';
 
 describe('GameSimulation Determinism & Reproducibility', () => {
   it('produces identical state snapshots and event logs over 20,000 ticks for identical seeds and inputs', () => {
@@ -87,11 +88,17 @@ describe('GameSimulation Determinism & Reproducibility', () => {
 
 describe('Golden Run Deterministic Hash Verification', () => {
   /**
+   * EXPECTED GOLDEN HASH FOR SEED 4242 ACROSS 500 TICKS:
+   * Computed via SHA-256 over JSON.stringify(events).
+   * 
    * GOLDEN HASH UPDATE PROCEDURE:
-   * If simulation gameplay rules or default configurations are intentionally modified,
-   * run this test, verify the new event log matches intended game mechanics, and update
-   * EXPECTED_GOLDEN_HASH with the new SHA-256 hash value.
+   * If simulation gameplay rules, event structures, or default configurations are
+   * intentionally modified in subsequent steps, compute the new event log hash,
+   * verify the emitted events match intended game mechanics, and update this constant.
    */
+  const EXPECTED_GOLDEN_HASH =
+    '7002f0a85f1cf987fdad1bb963944d05a22bfc5e129e69cdf5f21c0cbdf5245d';
+
   it('matches the golden SHA-256 hash of a deterministic scripted event log', () => {
     const sim = new GameSimulation({ ...DEFAULT_RUN_CONFIG, seed: 4242 });
     sim.start();
@@ -113,32 +120,33 @@ describe('Golden Run Deterministic Hash Verification', () => {
     const json = JSON.stringify(allEvents);
     const hash = crypto.createHash('sha256').update(json).digest('hex');
 
-    // Deterministic hash computed from golden run of seed 4242
-    expect(hash).toBeDefined();
-    expect(hash.length).toBe(64);
-
-    // Verify consistency: running the exact same scenario in another instance yields the identical hash
-    const simRepeat = new GameSimulation({ ...DEFAULT_RUN_CONFIG, seed: 4242 });
-    simRepeat.start();
-    const repeatEvents: GameEvent[] = [];
-    for (let t = 1; t <= 500; t++) {
-      if (t === 10) simRepeat.handleCommand({ type: 'char', char: 'a' });
-      if (t === 11) simRepeat.handleCommand({ type: 'char', char: 'b' });
-      if (t === 12) simRepeat.handleCommand({ type: 'char', char: 'c' });
-      if (t === 50) simRepeat.handleCommand({ type: 'release-target' });
-      if (t === 100) simRepeat.handleCommand({ type: 'char', char: 'd' });
-
-      simRepeat.tick();
-      repeatEvents.push(...simRepeat.drainEvents());
-    }
-    const repeatHash = crypto.createHash('sha256').update(JSON.stringify(repeatEvents)).digest('hex');
-    expect(hash).toBe(repeatHash);
+    expect(hash).toBe(EXPECTED_GOLDEN_HASH);
   });
 });
 
-describe('Target Acquisition and Typing Rules (B2)', () => {
+describe('Initial Spawn Delay (4.A)', () => {
+  it('enforces initialSpawnDelaySeconds before the first enemy spawns', () => {
+    const sim = new GameSimulation(DEFAULT_RUN_CONFIG);
+    sim.start();
+
+    // During ticks 1 to 60 (1.0s delay at 60Hz), no enemy spawns
+    for (let t = 1; t <= 60; t++) {
+      sim.tick();
+      expect(sim.getSnapshot().enemies.length).toBe(0);
+    }
+
+    // At tick 61, initial delay expires and first enemy spawns
+    sim.tick();
+    expect(sim.getSnapshot().enemies.length).toBe(1);
+    const events = sim.drainEvents();
+    const spawnEvent = events.find((e) => e.type === 'ENEMY_SPAWNED');
+    expect(spawnEvent).toBeDefined();
+    expect(spawnEvent?.tick).toBe(61);
+  });
+});
+
+describe('Target Acquisition and Typing Rules (4.C)', () => {
   it('enforces exact event order on correct character and word destruction', () => {
-    // Custom word provider providing "arc"
     const mockWordProvider: IWordProvider = {
       nextWord: () => 'arc',
     };
@@ -146,8 +154,10 @@ describe('Target Acquisition and Typing Rules (B2)', () => {
     const sim = new GameSimulation(DEFAULT_RUN_CONFIG, mockWordProvider);
     sim.start();
 
-    // Step 1 tick to spawn first enemy with word "arc"
-    sim.tick();
+    // Advance past initial spawn delay (60 ticks) to tick 61 where first enemy spawns
+    for (let t = 0; t < 61; t++) {
+      sim.tick();
+    }
     sim.drainEvents(); // Clear spawn event
 
     // Keystroke 1: 'a' acquires target and damages enemy
@@ -189,7 +199,8 @@ describe('Target Acquisition and Typing Rules (B2)', () => {
     }
   });
 
-  it('tie-breaks target acquisition: smallest squared distance to player, then lowest numeric entity ID', () => {
+  it('tie-breaks target acquisition: smallest squared distance to player, then lowest numeric entity ID (including e9 vs e10)', () => {
+    // 1. Distance tie-break:
     let wordCounter = 0;
     const mockWords = ['aim', 'arc'];
     const mockWordProvider: IWordProvider = {
@@ -200,22 +211,43 @@ describe('Target Acquisition and Typing Rules (B2)', () => {
       },
     };
 
-    const sim = new GameSimulation(DEFAULT_RUN_CONFIG, mockWordProvider);
+    const sim = new GameSimulation(
+      {
+        ...DEFAULT_RUN_CONFIG,
+        difficulty: {
+          ...DEFAULT_RUN_CONFIG.difficulty,
+          spawnIntervalMs: 500, // 30 ticks
+        },
+        simulation: {
+          ...DEFAULT_RUN_CONFIG.simulation,
+          initialSpawnDelaySeconds: 0,
+        },
+      },
+      mockWordProvider
+    );
     sim.start();
 
-    // Spawn 2 enemies
-    sim.tick(); // Spawns e1 ("aim")
-    sim.tick(); // Second tick
+    // Tick 1: Spawns e1 ("aim")
+    sim.tick();
+    // Advance 31 ticks (interval countdown 30 -> 0) to spawn e2 ("arc")
+    for (let i = 0; i < 31; i++) {
+      sim.tick();
+    }
 
     const snapshot = sim.getSnapshot();
-    expect(snapshot.enemies.length).toBeGreaterThanOrEqual(1);
+    expect(snapshot.enemies.length).toBe(2);
 
-    // When typing 'a', if multiple enemies start with 'a', it targets the closer one
+    const e1 = snapshot.enemies.find((e) => e.id === 'e1')!;
+    const e2 = snapshot.enemies.find((e) => e.id === 'e2')!;
+    expect(e1.position.y).toBeGreaterThan(e2.position.y);
+
+    // Typing 'a' locks onto e1 because e1 is closer to the player
     sim.handleCommand({ type: 'char', char: 'a' });
-    const events = sim.drainEvents();
-    const lockEvent = events.find((e) => e.type === 'TARGET_LOCKED');
-    expect(lockEvent).toBeDefined();
-    expect(lockEvent?.type).toBe('TARGET_LOCKED');
+    expect(sim.getSnapshot().activeTargetId).toBe('e1');
+
+    // 2. Numeric ID tie-break contract: verify numeric comparison prioritizes e9 over e10
+    expect(compareEntityIds('e9', 'e10')).toBeLessThan(0); // 9 < 10
+    expect('e9' > 'e10').toBe(true); // Lexicographical sort is inverted ("e10" < "e9")
   });
 
   it('handles mismatch penalties and keeps target lock while locked', () => {
@@ -224,7 +256,11 @@ describe('Target Acquisition and Typing Rules (B2)', () => {
     };
     const sim = new GameSimulation(DEFAULT_RUN_CONFIG, mockWordProvider);
     sim.start();
-    sim.tick(); // Spawns "beam"
+
+    // Advance past initial spawn delay to spawn "beam"
+    for (let t = 0; t < 61; t++) {
+      sim.tick();
+    }
     sim.drainEvents();
 
     // 1. Unlocked mismatch: typing 'z'
@@ -265,7 +301,11 @@ describe('Target Acquisition and Typing Rules (B2)', () => {
     };
     const sim = new GameSimulation(DEFAULT_RUN_CONFIG, mockWordProvider);
     sim.start();
-    sim.tick();
+
+    // Advance past initial spawn delay to spawn "core"
+    for (let t = 0; t < 61; t++) {
+      sim.tick();
+    }
     sim.drainEvents();
 
     // Type 'c' to lock and hit
@@ -288,13 +328,51 @@ describe('Target Acquisition and Typing Rules (B2)', () => {
     expect(sim.drainEvents()).toEqual([]);
   });
 
+  it('collision removing the locked enemy clears the target lock with TARGET_LOST', () => {
+    const mockWordProvider: IWordProvider = {
+      nextWord: () => 'drone',
+    };
+    const sim = new GameSimulation(
+      {
+        ...DEFAULT_RUN_CONFIG,
+        simulation: {
+          ...DEFAULT_RUN_CONFIG.simulation,
+          initialSpawnDelaySeconds: 0,
+        },
+      },
+      mockWordProvider
+    );
+    sim.start();
+    sim.tick(); // Spawns e1
+
+    // Lock e1 with 'd'
+    sim.handleCommand({ type: 'char', char: 'd' });
+    expect(sim.getSnapshot().activeTargetId).toBe('e1');
+    sim.drainEvents();
+
+    // Advance until e1 collides with player hull
+    while (sim.getSnapshot().enemies.length > 0 && sim.getSnapshot().status === 'running') {
+      sim.tick();
+    }
+
+    // Active lock must be cleared
+    expect(sim.getSnapshot().activeTargetId).toBeNull();
+    const events = sim.drainEvents();
+    expect(events.some((e) => e.type === 'TARGET_LOST' && e.enemyId === 'e1')).toBe(true);
+    expect(events.some((e) => e.type === 'PLAYER_DAMAGED')).toBe(true);
+  });
+
   it('evaluates scoring, streak progression, and multipliers accurately', () => {
     const mockWordProvider: IWordProvider = {
       nextWord: () => 'zap',
     };
     const sim = new GameSimulation(DEFAULT_RUN_CONFIG, mockWordProvider);
     sim.start();
-    sim.tick();
+
+    // Advance past initial spawn delay
+    for (let t = 0; t < 61; t++) {
+      sim.tick();
+    }
 
     // 1 char deal 10 pts * 1x multiplier = 10 pts
     sim.handleCommand({ type: 'char', char: 'z' });
@@ -310,9 +388,20 @@ describe('Target Acquisition and Typing Rules (B2)', () => {
     expect(sim.getSnapshot().scoring.score).toBe(130);
     expect(sim.getSnapshot().scoring.wordsCompleted).toBe(1);
   });
+
+  it('evaluates accuracy 100% at zero attempts and WPM 0 at zero elapsed ticks', () => {
+    const sim = new GameSimulation(DEFAULT_RUN_CONFIG);
+    sim.start();
+
+    const snapshot = sim.getSnapshot();
+    expect(snapshot.scoring.accuracy).toBe(100);
+    expect(snapshot.scoring.wpm).toBe(0);
+    expect(snapshot.scoring.hits).toBe(0);
+    expect(snapshot.scoring.misses).toBe(0);
+  });
 });
 
-describe('Hull Collision and Game Over (B2)', () => {
+describe('Hull Collision and Game Over (4.C)', () => {
   it('triggers collision damage, destroys enemy, and emits GAME_OVER on lethal hull impact', () => {
     const sim = new GameSimulation({
       ...DEFAULT_RUN_CONFIG,
@@ -323,7 +412,6 @@ describe('Hull Collision and Game Over (B2)', () => {
     });
 
     sim.start();
-    sim.tick(); // Spawns e1
 
     // Step simulation until drone collides with player at bottom
     let gameOverOccurred = false;
@@ -360,13 +448,13 @@ describe('Hull Collision and Game Over (B2)', () => {
     }
 
     sim.drainEvents();
-    const ticksAtGameOver = sim.tickCount;
+    const ticksAtGameOver = sim.currentTick;
 
     // Further commands and ticks should be ignored
     sim.handleCommand({ type: 'char', char: 'a' });
     sim.tick();
 
-    expect(sim.tickCount).toBe(ticksAtGameOver);
+    expect(sim.currentTick).toBe(ticksAtGameOver);
     expect(sim.drainEvents()).toEqual([]);
   });
 
@@ -392,35 +480,34 @@ describe('Hull Collision and Game Over (B2)', () => {
     expect(sim.getSnapshot().player.health).toBe(20);
     expect(sim.getSnapshot().player.alive).toBe(true);
     expect(sim.getSnapshot().scoring.score).toBe(0);
-    expect(sim.tickCount).toBe(0);
+    expect(sim.currentTick).toBe(0);
   });
 });
 
-describe('Pause and Resume Controls', () => {
+describe('Pause and Resume Controls (4.B)', () => {
   it('freezes simulation progression and ignores commands while paused', () => {
     const sim = new GameSimulation(DEFAULT_RUN_CONFIG);
     sim.start();
     sim.tick();
     sim.tick();
 
-    const tickBeforePause = sim.tickCount;
+    const tickBeforePause = sim.currentTick;
     sim.pause();
     expect(sim.getSnapshot().status).toBe('paused');
 
     sim.tick();
     sim.handleCommand({ type: 'char', char: 'a' });
-    expect(sim.tickCount).toBe(tickBeforePause);
+    expect(sim.currentTick).toBe(tickBeforePause);
 
     sim.resume();
     expect(sim.getSnapshot().status).toBe('running');
     sim.tick();
-    expect(sim.tickCount).toBe(tickBeforePause + 1);
+    expect(sim.currentTick).toBe(tickBeforePause + 1);
   });
 });
 
-describe('Wave Progression & Intermission (B4)', () => {
+describe('Wave Progression, Intermission and Concurrent Cap (4.E)', () => {
   it('advances waves, awards wave clear bonus, and enters intermission', () => {
-    // Inject mock words
     const mockWordProvider: IWordProvider = {
       nextWord: () => 'pod',
     };
@@ -429,6 +516,7 @@ describe('Wave Progression & Intermission (B4)', () => {
         ...DEFAULT_RUN_CONFIG,
         simulation: {
           ...DEFAULT_RUN_CONFIG.simulation,
+          initialSpawnDelaySeconds: 0,
           waveIntermissionSeconds: 1, // 60 ticks
           waveScaling: {
             ...DEFAULT_RUN_CONFIG.simulation.waveScaling,
@@ -472,13 +560,42 @@ describe('Wave Progression & Intermission (B4)', () => {
       expect(nextWaveStart.waveNumber).toBe(2);
     }
   });
+
+  it('skips spawn when active enemies reach concurrent cap and restarts countdown', () => {
+    const sim = new GameSimulation({
+      ...DEFAULT_RUN_CONFIG,
+      difficulty: {
+        ...DEFAULT_RUN_CONFIG.difficulty,
+        maxConcurrentEnemies: 1,
+        spawnIntervalMs: 500, // 30 ticks
+      },
+      simulation: {
+        ...DEFAULT_RUN_CONFIG.simulation,
+        initialSpawnDelaySeconds: 0,
+      },
+    });
+
+    sim.start();
+    sim.tick(); // Spawns e1 (alive = 1, cap = 1)
+    expect(sim.getSnapshot().enemies.length).toBe(1);
+
+    // Advance 60 ticks (2 spawn intervals) without typing; cap is reached so no new enemies spawn
+    for (let i = 0; i < 60; i++) {
+      sim.tick();
+    }
+    expect(sim.getSnapshot().enemies.length).toBe(1);
+  });
 });
 
 describe('Snapshot Isolation Security', () => {
   it('mutating a returned snapshot does not corrupt simulation state', () => {
     const sim = new GameSimulation(DEFAULT_RUN_CONFIG);
     sim.start();
-    sim.tick();
+
+    // Advance past initial spawn delay to have an active enemy
+    for (let t = 0; t < 61; t++) {
+      sim.tick();
+    }
 
     const snapshot = sim.getSnapshot();
     // Force mutation past readonly
