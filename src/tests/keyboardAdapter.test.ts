@@ -5,7 +5,6 @@ import {
   createKeyboardAdapter,
 } from '@/game/input/keyboardAdapter';
 import { InputQueue } from '@/game/input/inputQueue';
-import { GameCommand } from '@/shared/domain';
 
 describe('KeyboardAdapter (6.C)', () => {
   let queue: InputQueue;
@@ -72,8 +71,8 @@ describe('KeyboardAdapter (6.C)', () => {
       expect(addedKeydown.length).toBe(1);
       expect(addedBlur.length).toBe(1);
 
-      const keydownHandler = addedKeydown[0][1];
-      const blurHandler = addedBlur[0][1];
+      const keydownHandler = addedKeydown[0]![1];
+      const blurHandler = addedBlur[0]![1];
 
       adapter.detach();
       expect(adapter.isAttached).toBe(false);
@@ -84,8 +83,8 @@ describe('KeyboardAdapter (6.C)', () => {
       expect(removedKeydown.length).toBe(1);
       expect(removedBlur.length).toBe(1);
 
-      expect(removedKeydown[0][1]).toBe(keydownHandler);
-      expect(removedBlur[0][1]).toBe(blurHandler);
+      expect(removedKeydown[0]![1]).toBe(keydownHandler);
+      expect(removedBlur[0]![1]).toBe(blurHandler);
 
       // Net active listeners added by adapter is zero
       expect(addSpy.mock.calls.length).toBe(removeSpy.mock.calls.length);
@@ -215,9 +214,6 @@ describe('KeyboardAdapter (6.C)', () => {
 
     it('triggers onUIIntent pause-toggle when Escape is pressed', () => {
       const onUIIntent = vi.fn();
-      const adapter = new KeyboardAdapter({
-        getState: () => gameActiveState,
-      });
       const adapterWithOptions = new KeyboardAdapter({
         getState: () => gameActiveState,
         onUIIntent,

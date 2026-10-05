@@ -9,12 +9,22 @@ import { PauseModal } from '@/ui/components/PauseModal';
 import { GameOverModal } from '@/ui/components/GameOverModal';
 import { TelemetryData } from '@/shared/types';
 
+// Gated strictly to dev mode: absent from production bundle
+const DebugInputPanel = import.meta.env.DEV
+  ? React.lazy(() => import('@/ui/components/DebugInputPanel'))
+  : null;
+
 export const App: React.FC = () => {
   // Gated dynamically in dev mode; in production import.meta.env.DEV is false
   const isPreview =
     Boolean(import.meta.env.DEV) &&
     typeof window !== 'undefined' &&
     new URLSearchParams(window.location.search).get('preview') === '1';
+
+  const isDebug =
+    Boolean(import.meta.env.DEV) &&
+    typeof window !== 'undefined' &&
+    new URLSearchParams(window.location.search).get('debug') === '1';
 
   // Modal Preview States
   const [showLoading, setShowLoading] = useState(false);
@@ -249,6 +259,13 @@ export const App: React.FC = () => {
               });
             }}
           />
+        )}
+
+        {/* Step 6 Dev Visibility: Normalized intent monitor (dev server only, ?debug=1) */}
+        {import.meta.env.DEV && isDebug && DebugInputPanel && (
+          <React.Suspense fallback={null}>
+            <DebugInputPanel />
+          </React.Suspense>
         )}
       </div>
 
