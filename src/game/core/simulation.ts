@@ -3,56 +3,42 @@
  * DETERMINISTIC TYPING SHOOTING SIMULATION ENGINE
  * ============================================================================
  * 
- * CORE TYPING & GAMEPLAY RULES:
- * 1. COMMAND LIFECYCLE:
- *    - Commands are strictly ignored unless game status is 'running'.
- *    - After 'game-over', tick() and handleCommand() perform no operations.
+ * CORE TYPING & GAMEPLAY RULES (4.C):
+ * 1. Commands are ignored unless status === "running".
+ * 2. Health per letter: at spawn maxHealth = health = word.length; each correct char
+ *    deals 1 damage; the word completes exactly when health reaches 0.
+ * 3. Acquire a target (no lock): among alive enemies, match the typed char against
+ *    remainingWord[0]. Tie-break: smallest squared distance to the player, then lowest
+ *    numeric id. A match locks the target.
+ * 4. No match while unlocked: INPUT_MISMATCH (activeTargetId: null), misses +1,
+ *    streak 0, multiplier 1.
+ * 5. While locked: char must equal the locked enemy's remainingWord[0]. A mismatch
+ *    applies the same penalty and the lock stays.
+ * 6. release-target: clears the lock, keeps typed progress, emits TARGET_LOST,
+ *    no penalty. No-op when unlocked.
+ * 7. Event order for a correct char: [TARGET_LOCKED only if this char acquired the lock],
+ *    INPUT_MATCH, PROJECTILE_SPAWNED, ENEMY_HIT. On the final char additionally
+ *    ENEMY_DESTROYED{cause:"word"}, then TARGET_LOST.
+ * 8. Scoring: on a correct char: streak +1; multiplier = lookup(streak); score +=
+ *    scorePerChar * multiplier. On word completion: score += enemyClearBonus * multiplier.
+ *    ENEMY_DESTROYED.scoreAwarded = the clear bonus only. wordsCompleted +1; track maxStreak.
+ * 9. accuracy = 100 * hits / (hits + misses), and 100 when hits + misses = 0.
+ *    wpm = (hits / 5) / minutes, 0 when elapsed ticks = 0.
+ * 10. ENEMY_DESTROYED carries the enemy's position at the moment of the kill
+ *     (the renderer plays the death effect after the entity leaves the snapshot).
+ * 11. Collision: squared distance <= (enemy.hitboxRadius + hullRadius)^2. Events in order:
+ *     PLAYER_DAMAGED, ENEMY_DESTROYED{cause:"collision", scoreAwarded:0}, TARGET_LOST
+ *     (if it was the locked enemy), then GAME_OVER if health <= 0. Collisions do not touch
+ *     streak or accuracy.
+ * 12. Game over: status = "game-over"; getResult() builds GameResult (outcome "defeat",
+ *     rating from accuracy thresholds, durationMs derived from ticks). After game-over,
+ *     tick() and commands do nothing. start() fully resets state.
+ * 13. GameMode: accept "standard" | "endless" | "precision"; only standard behavior exists
+ *     (TODO(phase2) for the others).
  * 
- * 2. HEALTH & DAMAGE CONTRACT:
- *    - At spawn, an enemy's maxHealth equals word.length, and health equals word.length.
- *    - Each correct character keystroke deals exactly 1 damage.
- *    - The word is complete and the enemy destroyed precisely when health reaches 0.
- * 
- * 3. TARGET ACQUISITION & TIE-BREAKING:
- *    - When no target is locked: typed char is matched against remainingWord[0]
- *      across all alive enemies.
- *    - Tie-breaking: resolved by smallest squared Euclidean distance to player,
- *      then by lowest numeric entity ID (e.g. e1 before e2).
- *    - A match locks the target and emits TARGET_LOCKED before processing the hit.
- * 
- * 4. MISMATCH PENALTIES:
- *    - Unlocked mismatch: emits INPUT_MISMATCH with activeTargetId = null;
- *      increments misses; resets streak to 0; resets multiplier to 1.
- *    - Locked mismatch: char must match locked enemy remainingWord[0]. On mismatch,
- *      same penalty applies (misses++, streak=0, multiplier=1), but the LOCK PERSISTS.
- * 
- * 5. TARGET RELEASE:
- *    - GameCommand { type: 'release-target' } clears the lock, keeps typed progress,
- *      and emits TARGET_LOST without penalty. No-op if unlocked.
- * 
- * 6. EVENT DISPATCH ORDER:
- *    - Correct keystroke (non-final):
- *      [TARGET_LOCKED if freshly acquired] -> INPUT_MATCH -> PROJECTILE_SPAWNED -> ENEMY_HIT.
- *    - Correct keystroke (final character completing word):
- *      [TARGET_LOCKED if freshly acquired] -> INPUT_MATCH -> PROJECTILE_SPAWNED -> ENEMY_HIT
- *      -> ENEMY_DESTROYED { cause: 'word' } -> TARGET_LOST.
- * 
- * 7. SCORING & METRICS:
- *    - Correct char: streak++, multiplier = lookup(streak), score += scorePerChar * multiplier.
- *    - Word clear: score += enemyClearBonus * multiplier.
- *    - ENEMY_DESTROYED.scoreAwarded records the clear bonus only.
- *    - accuracy = 100 * hits / (hits + misses); strictly 100 when hits + misses is 0.
- *    - wpm = (hits / 5) / minutes (0 if elapsed ticks is 0).
- * 
- * 8. HULL COLLISION:
- *    - Triggered when squared distance <= (enemy.hitboxRadius + hullRadius)^2.
- *    - Event order: PLAYER_DAMAGED -> ENEMY_DESTROYED { cause: 'collision', scoreAwarded: 0 }
- *      -> TARGET_LOST (if locked) -> GAME_OVER (if player health <= 0).
- *    - Collisions do NOT modify typing streak or accuracy.
- * 
- * 9. GAME OVER & RATINGS:
- *    - Status transitions to 'game-over'; getResult() compiles immutable GameResult.
- *    - Rating evaluated by final accuracy: S >= 97%, A >= 92%, B >= 85%, C >= 75%, else D.
+ * TICK PIPELINE ORDER:
+ * [if not running return] -> tick++ -> wave state machine/spawns -> move enemies ->
+ * collisions in ascending numeric id -> game-over check -> wave-completion check.
  * ============================================================================
  */
 
@@ -101,7 +87,7 @@ export class GameSimulation {
   private scoringRules: ScoringRules;
   private status: GameStatus = 'idle';
   private mode: GameMode = 'standard';
-  private currentTick: number = 0;
+  private tickIndex: number = 0;
 
   // RNG Streams
   private rngStreams: RngStreams;
@@ -163,9 +149,14 @@ export class GameSimulation {
     if (config) {
       this.config = config;
     }
-    this.currentTick = 0;
+    this.tickIndex = 0;
     this.status = 'running';
-    this.mode = 'standard';
+    this.mode = this.config.mode ?? 'standard';
+    if (this.mode === 'endless') {
+      // TODO(phase2): Implement endless mode progression
+    } else if (this.mode === 'precision') {
+      // TODO(phase2): Implement precision mode restrictions
+    }
     this.gameResult = null;
     this.eventQueue = [];
     this.enemies = [];
@@ -211,8 +202,10 @@ export class GameSimulation {
     this.intermissionCountdownTicks = 0;
     this.calculateWaveParams();
 
-    // Initial countdown set to immediately spawn or standard interval
-    this.spawnCountdownTicks = 0;
+    // Initial spawn delay: delay before the first spawn of a run
+    this.spawnCountdownTicks = Math.round(
+      this.config.simulation.initialSpawnDelaySeconds * this.config.tickRate
+    );
 
     // Emit initial WAVE_STARTED
     this.emit({
@@ -235,12 +228,18 @@ export class GameSimulation {
     }
   }
 
+  get currentTick(): number {
+    return this.tickIndex;
+  }
+
   get tickCount(): number {
-    return this.currentTick;
+    return this.tickIndex;
   }
 
   // --------------------------------------------------------------------------
   // FIXED STEP UPDATE (60Hz)
+  // Pipeline: [if not running return] -> tick++ -> wave state machine/spawns ->
+  // move enemies -> collisions in ascending numeric id -> game-over check -> wave-completion check
   // --------------------------------------------------------------------------
 
   tick(): void {
@@ -248,7 +247,7 @@ export class GameSimulation {
       return;
     }
 
-    this.currentTick++;
+    this.tickIndex++;
     this.player = { ...this.player, isDamaged: false };
 
     // 1. Advance Wave Spawning or Intermission
@@ -263,10 +262,15 @@ export class GameSimulation {
       };
     }
 
-    // 3. Check Hull Collisions
+    // 3. Check Hull Collisions in ascending numeric id
     this.checkCollisions();
 
-    // 4. Check Wave Clear
+    // 4. Game-Over Check
+    if ((this.status as GameStatus) === 'game-over') {
+      return;
+    }
+
+    // 5. Check Wave Clear
     this.checkWaveCompletion();
   }
 
@@ -677,13 +681,17 @@ export class GameSimulation {
     const collisionThreshold = DRONE_ARCHETYPE.hitboxRadius + simConfig.hullRadius;
     const thresholdSq = collisionThreshold * collisionThreshold;
 
-    for (const enemy of this.enemies) {
+    const aliveEnemies = this.enemies
+      .filter((e) => e.alive)
+      .sort((a, b) => compareEntityIds(a.id, b.id));
+
+    for (const enemy of aliveEnemies) {
       if (!enemy.alive) continue;
 
       const distSq = this.squaredDist(enemy.position, this.player.position);
       if (distSq <= thresholdSq) {
         this.handleHullCollision(enemy);
-        if (this.status === 'game-over') {
+        if ((this.status as GameStatus) === 'game-over') {
           break;
         }
       }
