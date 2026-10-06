@@ -44,6 +44,12 @@ export class PlayerView {
     return this.sprite.y;
   }
 
+  reset(): void {
+    this.damageTimer = 0;
+    this.sprite.clearTint();
+    this.sprite.setPosition(PLAYER_START.x, PLAYER_START.y);
+  }
+
   destroy(): void {
     this.sprite.destroy();
   }

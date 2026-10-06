@@ -20,23 +20,34 @@ export const HUDOverlay: React.FC<HUDOverlayProps> = ({
   reducedMotion = false,
   onToggleReducedMotion,
 }) => {
-  const activeHud: HudState = hud ?? {
-    score: telemetry?.score ?? 0,
-    wave: telemetry?.wave ?? 1,
-    streak: telemetry?.streak ?? 0,
-    multiplier: telemetry?.multiplier ?? 1,
-    accuracy: telemetry?.accuracy ?? 100,
-    hull: 100,
-    maxHull: 100,
-    target: telemetry?.activeTarget
-      ? {
-          id: 'target',
-          word: telemetry.activeTarget,
-          remainingWord: telemetry.activeTarget.slice(telemetry.activeTargetTypedIndex ?? 0),
-          typedIndex: telemetry.activeTargetTypedIndex ?? 0,
-        }
-      : null,
-  };
+  const activeHud: HudState = telemetry
+    ? {
+        score: telemetry.score,
+        wave: telemetry.wave,
+        streak: telemetry.streak,
+        multiplier: telemetry.multiplier,
+        accuracy: telemetry.accuracy,
+        hull: 100,
+        maxHull: 100,
+        target: telemetry.activeTarget
+          ? {
+              id: 'target',
+              word: telemetry.activeTarget,
+              remainingWord: telemetry.activeTarget.slice(telemetry.activeTargetTypedIndex ?? 0),
+              typedIndex: telemetry.activeTargetTypedIndex ?? 0,
+            }
+          : null,
+      }
+    : (hud ?? {
+        score: 0,
+        wave: 1,
+        streak: 0,
+        multiplier: 1,
+        accuracy: 100,
+        hull: 100,
+        maxHull: 100,
+        target: null,
+      });
 
   const hullRatio = activeHud.maxHull > 0 ? activeHud.hull / activeHud.maxHull : 0;
   const hullPercent = Math.min(100, Math.max(0, Math.round(hullRatio * 100)));

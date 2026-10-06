@@ -1,18 +1,24 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Phaser from 'phaser';
 import { createGameConfig } from '@/game/config';
-import type { GameRuntime } from '@/game/controller';
+import type { GameRuntime, GameController } from '@/game/controller';
 
 interface PhaserContainerProps {
   onGameReady?: (game: Phaser.Game) => void;
   runtime?: GameRuntime | null;
+  controller?: GameController | null;
 }
 
-export const PhaserContainer: React.FC<PhaserContainerProps> = ({ onGameReady, runtime }) => {
+export const PhaserContainer: React.FC<PhaserContainerProps> = ({
+  onGameReady,
+  runtime,
+  controller,
+}) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const gameRef = useRef<Phaser.Game | null>(null);
   const onGameReadyRef = useRef(onGameReady);
   const runtimeRef = useRef(runtime);
+  const controllerRef = useRef(controller);
   const [isReady, setIsReady] = useState(false);
 
   // Keep latest onGameReady in ref without re-triggering the instantiation effect
@@ -20,13 +26,15 @@ export const PhaserContainer: React.FC<PhaserContainerProps> = ({ onGameReady, r
     onGameReadyRef.current = onGameReady;
   }, [onGameReady]);
 
-  // Synchronize runtime instance to Phaser registry
+  // Synchronize runtime and controller instances to Phaser registry
   useEffect(() => {
     runtimeRef.current = runtime;
+    controllerRef.current = controller;
     if (gameRef.current?.registry) {
-      gameRef.current.registry.set('runtime', runtime ?? null);
+      gameRef.current.registry.set('controller', controller ?? null);
+      gameRef.current.registry.set('runtime', runtime ?? controller?.runtime ?? null);
     }
-  }, [runtime]);
+  }, [runtime, controller]);
 
   useEffect(() => {
     if (!containerRef.current || gameRef.current) return;
@@ -35,7 +43,8 @@ export const PhaserContainer: React.FC<PhaserContainerProps> = ({ onGameReady, r
     const game = new Phaser.Game(config);
     gameRef.current = game;
     if (game.registry) {
-      game.registry.set('runtime', runtimeRef.current ?? null);
+      game.registry.set('controller', controllerRef.current ?? null);
+      game.registry.set('runtime', runtimeRef.current ?? controllerRef.current?.runtime ?? null);
     }
 
     // Listen for the engine READY event rather than setting ready immediately
@@ -43,6 +52,12 @@ export const PhaserContainer: React.FC<PhaserContainerProps> = ({ onGameReady, r
       setIsReady(true);
       if (onGameReadyRef.current) {
         onGameReadyRef.current(game);
+      }
+      // If controller is in loading screen and mock Phaser does not execute BootScene
+      if (controllerRef.current && controllerRef.current.getState().screen === 'loading') {
+        if (!game.scene || !game.scene.getScene) {
+          controllerRef.current.setBootComplete();
+        }
       }
     });
 

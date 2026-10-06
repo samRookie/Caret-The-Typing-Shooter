@@ -6,6 +6,13 @@ export class BootScene extends Phaser.Scene {
   }
 
   preload(): void {
+    this.load.on('progress', (value: number) => {
+      const controller = this.registry.get('controller');
+      if (controller && typeof controller.setLoadingProgress === 'function') {
+        controller.setLoadingProgress(value * 100);
+      }
+    });
+
     // Sprites
     this.load.svg('player-ship', '/assets/vfx/player-ship-original.svg');
     this.load.svg('drone', '/assets/vfx/drone-original.svg');
@@ -24,6 +31,11 @@ export class BootScene extends Phaser.Scene {
   }
 
   create(): void {
+    const controller = this.registry.get('controller');
+    if (controller && typeof controller.setBootComplete === 'function') {
+      controller.setBootComplete();
+    }
+
     const isPreview =
       Boolean(import.meta.env.DEV) &&
       typeof window !== 'undefined' &&

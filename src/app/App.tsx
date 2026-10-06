@@ -1,19 +1,16 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useSyncExternalStore } from 'react';
 import './app.css';
 import { PhaserContainer } from '@/ui/PhaserContainer';
 import { TacticalFrame } from '@/ui/components/TacticalFrame';
 import { TacticalButton } from '@/ui/components/TacticalButton';
 import { HUDOverlay } from '@/ui/components/HUDOverlay';
 import { LoadingOverlay } from '@/ui/components/LoadingOverlay';
+import { MenuScreen } from '@/ui/components/MenuScreen';
 import { PauseModal } from '@/ui/components/PauseModal';
 import { GameOverModal } from '@/ui/components/GameOverModal';
-import { TelemetryData } from '@/shared/types';
-import { GameRuntime } from '@/game/controller/GameRuntime';
+import { GameController } from '@/game/controller/GameController';
 import { installDevCaretHook } from '@/game/controller/devCaretHook';
-import { KeyboardAdapter } from '@/game/input/keyboardAdapter';
-import { devIntentLog } from '@/game/input/devIntentLog';
-import { DEFAULT_RUN_CONFIG, DIFFICULTY_PRESETS } from '@/shared/config/defaultConfig';
-import { RunConfig } from '@/shared/domain';
+import { DifficultyPresetId } from '@/shared/domain';
 import type { GameScene } from '@/game/scenes/GameScene';
 
 // Gated strictly to dev mode: absent from production bundle
@@ -38,91 +35,44 @@ export const App: React.FC = () => {
     typeof window !== 'undefined' &&
     new URLSearchParams(window.location.search).get('autostart') === '1';
 
-  const seedParam =
-    Boolean(import.meta.env.DEV) &&
-    typeof window !== 'undefined'
-      ? new URLSearchParams(window.location.search).get('seed')
-      : null;
-
   const gameInstanceRef = useRef<Phaser.Game | null>(null);
 
-  // Runtime instantiation for ?autostart=1 in dev
-  const [runtime] = useState<GameRuntime | null>(() => {
-    if (isAutostart) {
-      const parsedSeed = seedParam ? parseInt(seedParam, 10) : 1337;
-      const seed = Number.isFinite(parsedSeed) ? parsedSeed : 1337;
-      const config: RunConfig = {
-        ...DEFAULT_RUN_CONFIG,
-        seed,
-        difficulty: DIFFICULTY_PRESETS.normal,
-      };
-      return new GameRuntime(config);
-    }
-    return null;
+  // Framework-free GameController instance
+  const [controller] = useState<GameController>(() => {
+    return new GameController({
+      initialScreen: isPreview ? 'menu' : 'loading',
+      defaultDifficulty: 'normal',
+    });
   });
 
-  // Modal Preview States
-  const [showLoading, setShowLoading] = useState(false);
-  const [showPause, setShowPause] = useState(false);
-  const [showGameOver, setShowGameOver] = useState(false);
-  const [reducedMotion, setReducedMotion] = useState(false);
-
-  // Telemetry: in preview mode we provide mock telemetry for visual verification,
-  // in normal/production mode we start with initial clean baseline state
-  const [telemetry, setTelemetry] = useState<TelemetryData>(() =>
-    isPreview
-      ? {
-          score: 1450,
-          wave: 1,
-          streak: 8,
-          multiplier: 2,
-          accuracy: 94,
-          activeTarget: 'RECON',
-          activeTargetTypedIndex: 2,
-        }
-      : {
-          score: 0,
-          wave: 1,
-          streak: 0,
-          multiplier: 1,
-          accuracy: 100,
-          activeTarget: null,
-          activeTargetTypedIndex: 0,
-        }
+  // State synchronized with external store contract
+  const gameState = useSyncExternalStore(
+    controller.subscribe.bind(controller),
+    controller.getState.bind(controller)
   );
 
-  // Keyboard Adapter binding to GameRuntime input queue
+  const [selectedDifficulty, setSelectedDifficulty] = useState<DifficultyPresetId>(
+    gameState.difficulty
+  );
+  const [reducedMotion, setReducedMotion] = useState(false);
+
+  // Modal Preview States for preview switchboard (DEV and preview=1 only)
+  const [showPreviewLoading, setShowPreviewLoading] = useState(false);
+  const [showPreviewPause, setShowPreviewPause] = useState(false);
+  const [showPreviewGameOver, setShowPreviewGameOver] = useState(false);
+
+  // Dev autostart: automatically start the simulation when autostart=1
   useEffect(() => {
-    if (!runtime) return;
-
-    let lastKey = '';
-    const rawKeyTracker = (e: KeyboardEvent) => {
-      lastKey = e.key;
-    };
-    window.addEventListener('keydown', rawKeyTracker, { capture: true });
-
-    const adapter = new KeyboardAdapter({
-      getState: () => ({ gameActive: runtime.status === 'running' }),
-      onIntent: (intent, preventDefault) => {
-        if (import.meta.env.DEV) {
-          devIntentLog.record(lastKey || 'unknown', intent, preventDefault);
-        }
-      },
-    });
-
-    adapter.attach(runtime.inputQueue);
-
-    return () => {
-      window.removeEventListener('keydown', rawKeyTracker, { capture: true });
-      adapter.detach();
-    };
-  }, [runtime]);
+    if (isAutostart && gameState.screen === 'menu') {
+      controller.start({ difficulty: 'normal' });
+    }
+  }, [isAutostart, gameState.screen, controller]);
 
   // Install dev inspection hook strictly in DEV
   useEffect(() => {
-    if (import.meta.env.DEV && runtime) {
+    if (import.meta.env.DEV) {
       const unregister = installDevCaretHook(
-        () => runtime,
+        () => controller.runtime,
         () => {
           const game = gameInstanceRef.current;
           return game?.scene?.getScene('GameScene') as GameScene | undefined;
@@ -130,56 +80,16 @@ export const App: React.FC = () => {
       );
       return unregister;
     }
-  }, [runtime]);
+  }, [controller]);
 
-  // Synchronize telemetry from live simulation
+  // Cleanup controller on unmount
   useEffect(() => {
-    if (!runtime || isPreview) return;
+    return () => {
+      controller.destroy();
+    };
+  }, [controller]);
 
-    const interval = setInterval(() => {
-      const snapshot = runtime.getSnapshot();
-      const activeTargetEnemy = snapshot.activeTargetId
-        ? snapshot.enemies.find((e) => e.id === snapshot.activeTargetId)
-        : null;
-
-      const typedIndex = activeTargetEnemy
-        ? activeTargetEnemy.word.length - activeTargetEnemy.remainingWord.length
-        : 0;
-
-      setTelemetry({
-        score: snapshot.scoring.score,
-        wave: snapshot.wave.waveNumber,
-        streak: snapshot.scoring.streak,
-        multiplier: snapshot.scoring.multiplier,
-        accuracy: snapshot.scoring.accuracy,
-        activeTarget: activeTargetEnemy ? activeTargetEnemy.word : null,
-        activeTargetTypedIndex: typedIndex,
-      });
-
-      if (snapshot.status === 'game-over') {
-        setShowGameOver(true);
-      }
-    }, 50);
-
-    return () => clearInterval(interval);
-  }, [runtime, isPreview]);
-
-  // Synchronize telemetry if preview mode changes
-  useEffect(() => {
-    if (isPreview) {
-      setTelemetry({
-        score: 1450,
-        wave: 1,
-        streak: 8,
-        multiplier: 2,
-        accuracy: 94,
-        activeTarget: 'RECON',
-        activeTargetTypedIndex: 2,
-      });
-    }
-  }, [isPreview]);
-
-  // Apply data-reduced-motion attribute to document root
+  // Reduced motion toggle on document element
   useEffect(() => {
     if (reducedMotion) {
       document.documentElement.setAttribute('data-reduced-motion', 'true');
@@ -223,26 +133,26 @@ export const App: React.FC = () => {
               </span>
               <TacticalButton
                 size="sm"
-                variant={showLoading ? 'primary' : 'default'}
-                onClick={() => setShowLoading((prev) => !prev)}
+                variant={showPreviewLoading ? 'primary' : 'default'}
+                onClick={() => setShowPreviewLoading((prev) => !prev)}
               >
-                {showLoading ? 'CLOSE LOADING' : 'PREVIEW LOADING'}
+                {showPreviewLoading ? 'CLOSE LOADING' : 'PREVIEW LOADING'}
               </TacticalButton>
 
               <TacticalButton
                 size="sm"
-                variant={showPause ? 'primary' : 'default'}
-                onClick={() => setShowPause((prev) => !prev)}
+                variant={showPreviewPause ? 'primary' : 'default'}
+                onClick={() => setShowPreviewPause((prev) => !prev)}
               >
-                {showPause ? 'CLOSE PAUSE' : 'PREVIEW PAUSE'}
+                {showPreviewPause ? 'CLOSE PAUSE' : 'PREVIEW PAUSE'}
               </TacticalButton>
 
               <TacticalButton
                 size="sm"
-                variant={showGameOver ? 'primary' : 'default'}
-                onClick={() => setShowGameOver((prev) => !prev)}
+                variant={showPreviewGameOver ? 'primary' : 'default'}
+                onClick={() => setShowPreviewGameOver((prev) => !prev)}
               >
-                {showGameOver ? 'CLOSE GAME OVER' : 'PREVIEW GAME OVER'}
+                {showPreviewGameOver ? 'CLOSE GAME OVER' : 'PREVIEW GAME OVER'}
               </TacticalButton>
               <a
                 href="/"
@@ -279,22 +189,12 @@ export const App: React.FC = () => {
                 <span style={{ color: 'var(--text-secondary)' }}>MODE: </span>
                 <span style={{ color: 'var(--text-primary)' }}>TACTICAL DEFENSE</span>
               </div>
-              {Boolean(import.meta.env.DEV) && (
-                <a
-                  href="/?preview=1"
-                  style={{
-                    color: 'var(--accent)',
-                    border: '1px solid var(--accent)',
-                    padding: '2px 8px',
-                    borderRadius: 'var(--radius-sm)',
-                    textDecoration: 'none',
-                    letterSpacing: '0.08em',
-                    fontSize: '11px',
-                  }}
-                >
-                  VIEW STEP 2 VISUAL PREVIEW &rarr;
-                </a>
-              )}
+              <div>
+                <span style={{ color: 'var(--text-secondary)' }}>STATUS: </span>
+                <span style={{ color: 'var(--accent-bright)' }}>
+                  {gameState.screen.toUpperCase()}
+                </span>
+              </div>
             </div>
           </div>
         </TacticalFrame>
@@ -318,59 +218,98 @@ export const App: React.FC = () => {
       >
         {/* Live Phaser Viewport */}
         <PhaserContainer
-          runtime={runtime}
+          controller={controller}
+          runtime={controller.runtime}
           onGameReady={(game) => {
             gameInstanceRef.current = game;
           }}
         />
 
-        {/* Tactical HUD Overlay */}
-        <HUDOverlay
-          telemetry={telemetry}
-          onPause={() => setShowPause(true)}
-          reducedMotion={reducedMotion}
-          onToggleReducedMotion={handleToggleReducedMotion}
-        />
-
-        {/* Modal Overlays for Previewing and Verification (DEV and preview=1 only) */}
-        {import.meta.env.DEV && isPreview && showLoading && (
-          <LoadingOverlay
-            progress={78}
-            statusMessage="ALLOCATING CANVAS BUFFERS // LOADING ORIGINAL SVGS"
-            onDismiss={() => setShowLoading(false)}
-          />
-        )}
-
-        {showPause && (
-          <PauseModal
-            onResume={() => setShowPause(false)}
-            onRestart={() => {
-              setShowPause(false);
-              setTelemetry((t) => ({ ...t, score: 0, streak: 0 }));
-            }}
+        {/* Tactical HUD Overlay (rendered during active or paused gameplay, or in preview mode) */}
+        {(gameState.screen === 'running' ||
+          gameState.screen === 'paused' ||
+          (Boolean(import.meta.env.DEV) && isPreview)) && (
+          <HUDOverlay
+            hud={gameState.hud}
+            telemetry={
+              isPreview
+                ? {
+                    score: 1450,
+                    wave: 1,
+                    streak: 8,
+                    multiplier: 2,
+                    accuracy: 94,
+                    activeTarget: 'RECON',
+                    activeTargetTypedIndex: 2,
+                  }
+                : undefined
+            }
+            onPause={() => controller.pause()}
             reducedMotion={reducedMotion}
             onToggleReducedMotion={handleToggleReducedMotion}
           />
         )}
 
-        {import.meta.env.DEV && isPreview && showGameOver && (
+        {/* Tactical Screens & Modals */}
+        {gameState.screen === 'loading' && (
+          <LoadingOverlay progress={gameState.loadingProgress} />
+        )}
+
+        {!isPreview && gameState.screen === 'menu' && (
+          <MenuScreen
+            difficulty={selectedDifficulty}
+            onSelectDifficulty={setSelectedDifficulty}
+            onPlay={() => controller.start({ difficulty: selectedDifficulty })}
+          />
+        )}
+
+        {gameState.screen === 'paused' && (
+          <PauseModal
+            onResume={() => controller.resume()}
+            onRestart={() => controller.restart()}
+            onQuitToMenu={() => controller.quitToMenu()}
+            reducedMotion={reducedMotion}
+            onToggleReducedMotion={handleToggleReducedMotion}
+          />
+        )}
+
+        {gameState.screen === 'game-over' && (
           <GameOverModal
-            score={telemetry.score}
-            wave={telemetry.wave}
-            streak={telemetry.streak}
-            accuracy={telemetry.accuracy}
-            onRestart={() => {
-              setShowGameOver(false);
-              setTelemetry({
-                score: 0,
-                wave: 1,
-                streak: 0,
-                multiplier: 1,
-                accuracy: 100,
-                activeTarget: 'DRONE',
-                activeTargetTypedIndex: 0,
-              });
-            }}
+            score={gameState.hud.score}
+            wave={gameState.hud.wave}
+            streak={gameState.hud.streak}
+            accuracy={gameState.hud.accuracy}
+            result={gameState.result}
+            seed={gameState.seed}
+            onRestart={() => controller.restart()}
+            onQuitToMenu={() => controller.quitToMenu()}
+          />
+        )}
+
+        {/* Modal Overlays for Previewing and Verification (DEV and preview=1 only) */}
+        {import.meta.env.DEV && isPreview && showPreviewLoading && (
+          <LoadingOverlay progress={78} />
+        )}
+
+        {import.meta.env.DEV && isPreview && showPreviewPause && (
+          <PauseModal
+            onResume={() => setShowPreviewPause(false)}
+            onRestart={() => setShowPreviewPause(false)}
+            onQuitToMenu={() => setShowPreviewPause(false)}
+            reducedMotion={reducedMotion}
+            onToggleReducedMotion={handleToggleReducedMotion}
+          />
+        )}
+
+        {import.meta.env.DEV && isPreview && showPreviewGameOver && (
+          <GameOverModal
+            score={1450}
+            wave={1}
+            streak={8}
+            accuracy={94}
+            seed={1337}
+            onRestart={() => setShowPreviewGameOver(false)}
+            onQuitToMenu={() => setShowPreviewGameOver(false)}
           />
         )}
 

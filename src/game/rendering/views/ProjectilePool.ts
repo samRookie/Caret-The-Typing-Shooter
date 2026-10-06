@@ -106,6 +106,15 @@ export class ProjectilePool {
     return this.pool.filter((p) => p.active).length;
   }
 
+  clear(): void {
+    for (const proj of this.pool) {
+      proj.active = false;
+      proj.elapsedMs = 0;
+      proj.graphics.clear();
+      proj.graphics.setVisible(false);
+    }
+  }
+
   destroy(): void {
     for (const proj of this.pool) {
       proj.graphics.destroy();

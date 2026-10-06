@@ -111,6 +111,17 @@ export class GameRenderer {
     return this.projectiles.activeCount;
   }
 
+  clear(): void {
+    for (const view of this.enemies.values()) {
+      view.destroy();
+    }
+    this.enemies.clear();
+    this.ghosts.clear();
+    this.projectiles.clear();
+    this.reticle.hide();
+    this.player.reset();
+  }
+
   destroy(): void {
     this.background.destroy();
     this.player.destroy();

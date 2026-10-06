@@ -66,6 +66,10 @@ export class GhostPool {
     return this.activeGhosts.length;
   }
 
+  clear(): void {
+    this.destroy();
+  }
+
   destroy(): void {
     for (const g of this.activeGhosts) {
       g.tween.stop();
