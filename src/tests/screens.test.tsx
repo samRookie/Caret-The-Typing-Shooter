@@ -1,6 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import React from 'react';
 import { LoadingOverlay } from '@/ui/components/LoadingOverlay';
 import { MenuScreen } from '@/ui/components/MenuScreen';
 import { PauseModal } from '@/ui/components/PauseModal';
@@ -137,7 +136,7 @@ describe('8.B React Screens & Modals Tests', () => {
       expect(screen.getByText('GRADE S')).toBeInTheDocument();
       expect(screen.getByText('1337')).toBeInTheDocument();
 
-      const restartBtn = screen.getByRole('button', { name: /RESTART SIMULATION/i });
+      const restartBtn = screen.getByRole('button', { name: /RESTART/i });
       const quitBtn = screen.getByRole('button', { name: /RETURN TO COMMAND MENU/i });
 
       fireEvent.click(restartBtn);

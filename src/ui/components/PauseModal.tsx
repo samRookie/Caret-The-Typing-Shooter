@@ -5,8 +5,8 @@ import { useFocusTrap } from '../hooks/useFocusTrap';
 
 export interface PauseModalProps {
   onResume: () => void;
-  onRestart: () => void;
-  onQuitToMenu: () => void;
+  onRestart?: () => void;
+  onQuitToMenu?: () => void;
   reducedMotion?: boolean;
   onToggleReducedMotion?: () => void;
 }
@@ -63,13 +63,17 @@ export const PauseModal: React.FC<PauseModalProps> = ({
                 RESUME ENGAGEMENT [ESC]
               </TacticalButton>
 
-              <TacticalButton variant="default" size="md" onClick={onRestart}>
-                RESTART RUN
-              </TacticalButton>
+              {onRestart && (
+                <TacticalButton variant="default" size="md" onClick={onRestart}>
+                  RESTART RUN
+                </TacticalButton>
+              )}
 
-              <TacticalButton variant="default" size="md" onClick={onQuitToMenu}>
-                QUIT TO MENU
-              </TacticalButton>
+              {onQuitToMenu && (
+                <TacticalButton variant="default" size="md" onClick={onQuitToMenu}>
+                  QUIT TO MENU
+                </TacticalButton>
+              )}
 
               {onToggleReducedMotion && (
                 <TacticalButton

@@ -108,7 +108,7 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
                 data-autofocus="true"
                 style={{ width: '100%' }}
               >
-                RESTART SIMULATION [ENTER]
+                RESTART / INITIALIZE NEW RUN [ENTER]
               </TacticalButton>
 
               <TacticalButton
