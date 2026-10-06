@@ -1,22 +1,28 @@
 import React from 'react';
 import { TacticalFrame } from './TacticalFrame';
+import { GAME_TITLE, GAME_SUBTITLE } from '@/shared/config/branding';
 
 export interface LoadingOverlayProps {
-  progress?: number; // 0 to 100
+  progress: number; // 0 to 100
   statusMessage?: string;
-  onDismiss?: () => void;
 }
 
 export const LoadingOverlay: React.FC<LoadingOverlayProps> = ({
-  progress = 85,
-  statusMessage = 'SYNCHRONIZING TACTICAL TELEMETRY & ASSET BUFFERS...',
-  onDismiss,
+  progress = 0,
+  statusMessage = 'SYNCHRONIZING TACTICAL ASSETS & SHADER BUFFERS...',
 }) => {
+  const clampedProgress = Math.min(100, Math.max(0, Math.round(progress)));
+
   return (
-    <div className="tactical-modal-backdrop">
+    <div
+      className="tactical-modal-backdrop"
+      role="status"
+      aria-live="polite"
+      aria-label="Loading tactical simulation"
+    >
       <TacticalFrame
         title="SYSTEM BOOTSTRAP"
-        subtitle="VERIFYING PROTOCOLS"
+        subtitle="INITIALIZING ENGINE"
         style={{
           width: '90%',
           maxWidth: '520px',
@@ -36,7 +42,7 @@ export const LoadingOverlay: React.FC<LoadingOverlayProps> = ({
                 textShadow: 'var(--glow-accent)',
               }}
             >
-              FUTURISTIC TYPING SHOOTER
+              {GAME_TITLE}
             </h1>
             <p
               style={{
@@ -46,7 +52,7 @@ export const LoadingOverlay: React.FC<LoadingOverlayProps> = ({
                 letterSpacing: '0.08em',
               }}
             >
-              TACTICAL COMBAT CONSOLE // PHASE 1
+              {GAME_SUBTITLE}
             </p>
           </div>
 
@@ -62,11 +68,16 @@ export const LoadingOverlay: React.FC<LoadingOverlayProps> = ({
             >
               <span style={{ color: 'var(--text-secondary)' }}>BUFFER STATUS</span>
               <span style={{ color: 'var(--accent-bright)', fontWeight: 'bold' }}>
-                {Math.round(progress)}%
+                {clampedProgress}%
               </span>
             </div>
 
             <div
+              role="progressbar"
+              aria-valuenow={clampedProgress}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-label="Asset preload progress"
               style={{
                 position: 'relative',
                 width: '100%',
@@ -80,11 +91,11 @@ export const LoadingOverlay: React.FC<LoadingOverlayProps> = ({
               <div
                 style={{
                   height: '100%',
-                  width: `${Math.min(100, Math.max(0, progress))}%`,
+                  width: `${clampedProgress}%`,
                   background:
                     'linear-gradient(90deg, var(--accent-dim), var(--accent-bright))',
                   boxShadow: '0 0 10px var(--accent)',
-                  transition: 'width 0.3s ease-out',
+                  transition: 'width 0.15s ease-out',
                 }}
               />
             </div>
@@ -102,18 +113,6 @@ export const LoadingOverlay: React.FC<LoadingOverlayProps> = ({
           >
             {statusMessage}
           </div>
-
-          {onDismiss && (
-            <div style={{ display: 'flex', justifyContent: 'center', marginTop: '6px' }}>
-              <button
-                className="tactical-button primary"
-                onClick={onDismiss}
-                style={{ width: '100%' }}
-              >
-                PROCEED TO CONSOLE
-              </button>
-            </div>
-          )}
         </div>
       </TacticalFrame>
     </div>
