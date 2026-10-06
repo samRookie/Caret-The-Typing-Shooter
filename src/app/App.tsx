@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useSyncExternalStore } from 'react';
+import React, { useState, useEffect, useRef, useSyncExternalStore, useCallback } from 'react';
 import './app.css';
 import { PhaserContainer } from '@/ui/PhaserContainer';
 import { TacticalFrame } from '@/ui/components/TacticalFrame';
@@ -45,11 +45,14 @@ export const App: React.FC = () => {
     });
   });
 
-  // State synchronized with external store contract
-  const gameState = useSyncExternalStore(
-    controller.subscribe.bind(controller),
-    controller.getState.bind(controller)
+  // State synchronized with external store contract with stable callbacks
+  const subscribe = useCallback(
+    (callback: () => void) => controller.subscribe(callback),
+    [controller]
   );
+  const getSnapshot = useCallback(() => controller.getState(), [controller]);
+
+  const gameState = useSyncExternalStore(subscribe, getSnapshot);
 
   const [selectedDifficulty, setSelectedDifficulty] = useState<DifficultyPresetId>(
     gameState.difficulty
@@ -60,6 +63,17 @@ export const App: React.FC = () => {
   const [showPreviewLoading, setShowPreviewLoading] = useState(false);
   const [showPreviewPause, setShowPreviewPause] = useState(false);
   const [showPreviewGameOver, setShowPreviewGameOver] = useState(false);
+
+  // Cleanup controller on window unload
+  useEffect(() => {
+    const handleUnload = () => {
+      controller.destroy();
+    };
+    window.addEventListener('beforeunload', handleUnload);
+    return () => {
+      window.removeEventListener('beforeunload', handleUnload);
+    };
+  }, [controller]);
 
   // Dev autostart: automatically start the simulation when autostart=1
   useEffect(() => {
@@ -80,13 +94,6 @@ export const App: React.FC = () => {
       );
       return unregister;
     }
-  }, [controller]);
-
-  // Cleanup controller on unmount
-  useEffect(() => {
-    return () => {
-      controller.destroy();
-    };
   }, [controller]);
 
   // Reduced motion toggle on document element

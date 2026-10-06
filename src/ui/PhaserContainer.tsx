@@ -39,7 +39,19 @@ export const PhaserContainer: React.FC<PhaserContainerProps> = ({
   useEffect(() => {
     if (!containerRef.current || gameRef.current) return;
 
-    const config = createGameConfig(containerRef.current);
+    const baseConfig = createGameConfig(containerRef.current);
+    const config: Phaser.Types.Core.GameConfig = {
+      ...baseConfig,
+      callbacks: {
+        preBoot: (game: Phaser.Game) => {
+          if (game.registry) {
+            game.registry.set('controller', controllerRef.current ?? null);
+            game.registry.set('runtime', runtimeRef.current ?? controllerRef.current?.runtime ?? null);
+          }
+        },
+      },
+    };
+
     const game = new Phaser.Game(config);
     gameRef.current = game;
     if (game.registry) {
@@ -53,11 +65,9 @@ export const PhaserContainer: React.FC<PhaserContainerProps> = ({
       if (onGameReadyRef.current) {
         onGameReadyRef.current(game);
       }
-      // If controller is in loading screen and mock Phaser does not execute BootScene
+      // Guarantee transition from loading screen to menu when Phaser is ready
       if (controllerRef.current && controllerRef.current.getState().screen === 'loading') {
-        if (!game.scene || !game.scene.getScene) {
-          controllerRef.current.setBootComplete();
-        }
+        controllerRef.current.setBootComplete();
       }
     });
 

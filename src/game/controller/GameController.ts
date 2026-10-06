@@ -144,6 +144,10 @@ export class GameController {
   private throttleTimerMs: number = 0;
   private destroyed: boolean = false;
 
+  get isDestroyed(): boolean {
+    return this.destroyed;
+  }
+
   private readonly boundVisibilityChange: () => void;
   private readonly boundBlur: () => void;
 

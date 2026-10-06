@@ -100,6 +100,7 @@ describe('GameOverModal Component', () => {
         streak={14}
         accuracy={96}
         onRestart={handleRestart}
+        onQuitToMenu={vi.fn()}
       />
     );
     expect(screen.getByText(/VESSEL DESTROYED/i)).toBeInTheDocument();

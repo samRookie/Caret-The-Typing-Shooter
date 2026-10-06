@@ -13,7 +13,7 @@ export interface GameOverModalProps {
   result?: GameResult | null;
   seed?: number;
   onRestart: () => void;
-  onQuitToMenu: () => void;
+  onQuitToMenu?: () => void;
 }
 
 export const GameOverModal: React.FC<GameOverModalProps> = ({
