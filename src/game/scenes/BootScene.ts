@@ -13,21 +13,23 @@ export class BootScene extends Phaser.Scene {
       }
     });
 
+    const baseUrl = (import.meta.env.BASE_URL ?? '/').replace(/\/$/, '') + '/';
+
     // Sprites
-    this.load.svg('player-ship', '/assets/vfx/player-ship-original.svg');
-    this.load.svg('drone', '/assets/vfx/drone-original.svg');
+    this.load.svg('player-ship', `${baseUrl}assets/vfx/player-ship-original.svg`);
+    this.load.svg('drone', `${baseUrl}assets/vfx/drone-original.svg`);
     this.load.svg(
       'projectile-reticle',
-      '/assets/vfx/projectile-and-reticle-original.svg'
+      `${baseUrl}assets/vfx/projectile-and-reticle-original.svg`
     );
 
     // Audio cues
-    this.load.audio('ui-click', '/assets/audio/ui-click.ogg');
-    this.load.audio('laser', '/assets/audio/laser.ogg');
-    this.load.audio('hit', '/assets/audio/hit.ogg');
-    this.load.audio('destroy', '/assets/audio/destroy.ogg');
-    this.load.audio('wrong-input', '/assets/audio/wrong-input.ogg');
-    this.load.audio('wave-complete', '/assets/audio/wave-complete.ogg');
+    this.load.audio('ui-click', `${baseUrl}assets/audio/ui-click.ogg`);
+    this.load.audio('laser', `${baseUrl}assets/audio/laser.ogg`);
+    this.load.audio('hit', `${baseUrl}assets/audio/hit.ogg`);
+    this.load.audio('destroy', `${baseUrl}assets/audio/destroy.ogg`);
+    this.load.audio('wrong-input', `${baseUrl}assets/audio/wrong-input.ogg`);
+    this.load.audio('wave-complete', `${baseUrl}assets/audio/wave-complete.ogg`);
   }
 
   create(): void {
