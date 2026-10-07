@@ -72,6 +72,10 @@ import {
   WordProviderStats,
 } from './words';
 import { EntityIdGenerator, compareEntityIds } from './entityId';
+import {
+  computeFlooredAccuracy,
+  computeGrossWpm,
+} from './metrics/typingMetrics';
 
 export interface InternalEnemy extends EnemyState {
   health: number;
@@ -812,17 +816,15 @@ export class GameSimulation {
   // --------------------------------------------------------------------------
 
   private computeAccuracy(): number {
-    const total = this.hits + this.misses;
-    if (total === 0) return 100;
-    return Math.round((this.hits / total) * 100);
+    return computeFlooredAccuracy(this.hits, this.misses);
   }
 
   private computeWpm(): number {
-    if (this.currentTick === 0) return 0;
-    const elapsedMinutes = this.currentTick / (this.config.tickRate * 60);
-    if (elapsedMinutes <= 0) return 0;
-    const standardWords = this.hits / 5;
-    return Math.round(standardWords / elapsedMinutes);
+    return computeGrossWpm(
+      this.hits + this.misses,
+      this.currentTick,
+      this.config.tickRate
+    );
   }
 
   private evaluateRating(accuracy: number): PerformanceRating {

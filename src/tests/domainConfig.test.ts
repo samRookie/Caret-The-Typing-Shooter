@@ -21,6 +21,8 @@ import {
   GameSnapshot,
 } from '@/shared/domain';
 
+import { computeAccuracy } from '@/game/core/metrics/typingMetrics';
+
 describe('Desktop Prototype Configuration Invariants', () => {
   it('defines valid virtual desktop coordinate bounds and run defaults', () => {
     expect(DESKTOP_VIEWPORT.width).toBe(1280);
@@ -83,12 +85,6 @@ describe('Desktop Prototype Configuration Invariants', () => {
   });
 
   it('enforces accuracy contract: strictly 100% when hits + misses is 0', () => {
-    function computeAccuracy(hits: number, misses: number): number {
-      const total = hits + misses;
-      if (total === 0) return 100;
-      return Math.round((hits / total) * 100);
-    }
-
     expect(computeAccuracy(0, 0)).toBe(100);
     expect(computeAccuracy(10, 0)).toBe(100);
     expect(computeAccuracy(9, 1)).toBe(90);
