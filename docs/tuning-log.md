@@ -27,9 +27,9 @@ This document tracks all balance and difficulty adjustments made based on playte
 
 ## 2. Changes
 
-| Iteration # | Config Key | Old Value | New Value | Reason / Hypothesis | Observed Evidence (`npm run sim:demo` & test results) |
+| Iteration # | Config Key / Component | Old Value | New Value | Reason / Hypothesis | Observed Evidence (`npm run sim:demo` & test results) |
 |---|---|---|---|---|---|
-| *Example* | *normal.spawnIntervalSeconds* | *3.0* | *3.5* | *Typists under 40 WPM overwhelmed by wave 2 backlog* | *Normal bot survival increased from 2:10 to 3:45, wave 3 reached* |
+| R1-Golden | Golden Hash (`simulation.test.ts`) | `3cd2a9fef55b...` | `b385fead8084...` | Update deterministic replay event hash for R1 scoring (+1/char), 3 lives (1 dmg/collision), and headroom/derived radii (`spawnY: 64`, `hitboxRadius: 18`, `hullRadius: 24`). | Golden hash matches `b385fead8084b313760d08badf31085f74cc99f49903f2720f31a9fdb85ef1f3`. All 202 vitest unit tests pass. `npm run sim:demo` verifies clean 3-life progression. |
 
 ---
 

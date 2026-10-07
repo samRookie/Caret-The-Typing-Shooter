@@ -97,7 +97,7 @@ describe('Golden Run Deterministic Hash Verification', () => {
    * verify the emitted events match intended game mechanics, and update this constant.
    */
   const EXPECTED_GOLDEN_HASH =
-    '3cd2a9fef55b96c3d9b1eacd5035569fbdd1ff9b17267e9dcf7a1d39b05c67bf';
+    'b385fead8084b313760d08badf31085f74cc99f49903f2720f31a9fdb85ef1f3';
 
   it('matches the golden SHA-256 hash of a deterministic scripted event log', () => {
     const sim = new GameSimulation({ ...DEFAULT_RUN_CONFIG, seed: 4242 });
