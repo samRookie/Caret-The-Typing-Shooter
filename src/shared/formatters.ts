@@ -53,3 +53,17 @@ export function formatElapsed(totalSeconds: number): string {
   }
   return `${mm}:${ss}`;
 }
+
+/**
+ * Formats a numeric count with comma thousands separators.
+ * Handles non-finite values safely with "0" fallback.
+ *
+ * @param count Numeric value (e.g. 1250, 1000000).
+ * @returns Formatted string (e.g. "1,250", "1,000,000", "0").
+ */
+export function formatCount(count: number): string {
+  if (!Number.isFinite(count) || Number.isNaN(count)) {
+    return '0';
+  }
+  return Math.floor(count).toLocaleString('en-US');
+}
