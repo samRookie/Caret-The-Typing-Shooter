@@ -83,9 +83,10 @@ export const PauseModal: React.FC<PauseModalProps> = ({
                   style={{
                     borderColor: reducedMotion ? 'var(--accent)' : 'var(--border)',
                     color: reducedMotion ? 'var(--accent-bright)' : 'var(--text-secondary)',
+                    letterSpacing: '0.06em',
                   }}
                 >
-                  ACCESSIBILITY: REDUCED MOTION [{reducedMotion ? 'ENABLED' : 'DISABLED'}]
+                  REDUCED MOTION [{reducedMotion ? 'ENABLED' : 'DISABLED'}]
                 </TacticalButton>
               )}
             </div>
