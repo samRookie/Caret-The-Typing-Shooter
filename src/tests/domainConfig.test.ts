@@ -1,7 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
   DESKTOP_VIEWPORT,
-  DIFFICULTY_PRESETS,
   DRONE_ARCHETYPE,
   DEFAULT_SCORING_RULES,
   DEFAULT_RUN_CONFIG,
@@ -39,23 +38,6 @@ describe('Desktop Prototype Configuration Invariants', () => {
     expect(DEFAULT_RUN_CONFIG.playerStart).toEqual(PLAYER_START);
   });
 
-  it('validates all difficulty presets conform to gameplay bounds', () => {
-    const presetKeys = Object.keys(DIFFICULTY_PRESETS) as (keyof typeof DIFFICULTY_PRESETS)[];
-    expect(presetKeys).toContain('relaxed');
-    expect(presetKeys).toContain('normal');
-    expect(presetKeys).toContain('intense');
-
-    for (const key of presetKeys) {
-      const preset = DIFFICULTY_PRESETS[key];
-      expect(preset.enemySpeed).toBeGreaterThan(0);
-      expect(preset.spawnIntervalMs).toBeGreaterThanOrEqual(1000);
-      expect(preset.maxConcurrentEnemies).toBeGreaterThanOrEqual(1);
-      expect(preset.wordLengthRange.min).toBeGreaterThanOrEqual(2);
-      expect(preset.wordLengthRange.max).toBeGreaterThanOrEqual(preset.wordLengthRange.min);
-      expect(preset.playerMaxHealth).toBe(3);
-    }
-  });
-
   it('configures the single drone archetype correctly', () => {
     expect(DRONE_ARCHETYPE.type).toBe('drone');
     expect(DRONE_ARCHETYPE.healthPerLetter).toBe(1);
@@ -68,6 +50,7 @@ describe('Desktop Prototype Configuration Invariants', () => {
     expect(sim.spawnMarginX).toBe(60);
     expect(sim.hullRadius).toBe(24);
     expect(sim.collisionDamage).toBe(1);
+    expect(sim.playerMaxHealth).toBe(3);
     expect(sim.initialSpawnDelaySeconds).toBe(1.0);
     expect(sim.waveIntermissionSeconds).toBe(2);
     expect(sim.labelCharWidthPx).toBe(14);

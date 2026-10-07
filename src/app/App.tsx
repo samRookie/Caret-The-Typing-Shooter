@@ -10,7 +10,6 @@ import { PauseModal } from '@/ui/components/PauseModal';
 import { GameOverModal } from '@/ui/components/GameOverModal';
 import { GameController } from '@/game/controller/GameController';
 import { installDevCaretHook } from '@/game/controller/devCaretHook';
-import { DifficultyPresetId } from '@/shared/domain';
 import type { GameScene } from '@/game/scenes/GameScene';
 
 // Gated strictly to dev mode: absent from production bundle
@@ -41,7 +40,6 @@ export const App: React.FC = () => {
   const [controller] = useState<GameController>(() => {
     return new GameController({
       initialScreen: isPreview ? 'menu' : 'loading',
-      defaultDifficulty: 'normal',
     });
   });
 
@@ -54,9 +52,6 @@ export const App: React.FC = () => {
 
   const gameState = useSyncExternalStore(subscribe, getSnapshot);
 
-  const [selectedDifficulty, setSelectedDifficulty] = useState<DifficultyPresetId>(
-    gameState.difficulty
-  );
   const [reducedMotion, setReducedMotion] = useState(false);
 
   // Modal Preview States for preview switchboard (DEV and preview=1 only)
@@ -78,7 +73,7 @@ export const App: React.FC = () => {
   // Dev autostart: automatically start the simulation when autostart=1
   useEffect(() => {
     if (isAutostart && gameState.screen === 'menu') {
-      controller.start({ difficulty: 'normal' });
+      controller.start();
     }
   }, [isAutostart, gameState.screen, controller]);
 
@@ -263,9 +258,7 @@ export const App: React.FC = () => {
 
         {!isPreview && gameState.screen === 'menu' && (
           <MenuScreen
-            difficulty={selectedDifficulty}
-            onSelectDifficulty={setSelectedDifficulty}
-            onPlay={() => controller.start({ difficulty: selectedDifficulty })}
+            onPlay={() => controller.start()}
           />
         )}
 

@@ -65,6 +65,12 @@ import {
   DEFAULT_SCORING_RULES,
   DRONE_ARCHETYPE,
 } from '@/shared/config/defaultConfig';
+import {
+  concurrentCapForWave,
+  quotaForWave,
+  spawnIntervalSeconds,
+  speedForWave,
+} from '@/shared/config/progression';
 import { RngStreams, createRngStreams } from './prng';
 import {
   createWordProvider,
@@ -145,8 +151,8 @@ export class GameSimulation {
 
     this.player = {
       position: { ...config.playerStart },
-      health: config.difficulty.playerMaxHealth,
-      maxHealth: config.difficulty.playerMaxHealth,
+      health: config.simulation.playerMaxHealth,
+      maxHealth: config.simulation.playerMaxHealth,
       alive: true,
       isDamaged: false,
     };
@@ -192,8 +198,8 @@ export class GameSimulation {
     // Initialize player
     this.player = {
       position: { ...this.config.playerStart },
-      health: this.config.difficulty.playerMaxHealth,
-      maxHealth: this.config.difficulty.playerMaxHealth,
+      health: this.config.simulation.playerMaxHealth,
+      maxHealth: this.config.simulation.playerMaxHealth,
       alive: true,
       isDamaged: false,
     };
@@ -472,42 +478,17 @@ export class GameSimulation {
   // --------------------------------------------------------------------------
 
   private calculateWaveParams(): void {
-    const wave = this.waveNumber;
-    const scaling = this.config.simulation.waveScaling;
-
-    // Quota formula: min(6 + 2*(wave-1), 30)
-    this.waveQuota = Math.min(
-      scaling.quotaBase + scaling.quotaPerWave * (wave - 1),
-      scaling.quotaMax
-    );
+    this.waveQuota = quotaForWave(this.waveNumber);
   }
 
   private getWaveSpawnIntervalTicks(): number {
-    const wave = this.waveNumber;
-    const scaling = this.config.simulation.waveScaling;
-    const baseMs = this.config.difficulty.spawnIntervalMs;
-
-    // interval = max(60% of base, base * 0.94^(wave-1))
-    const scaledMs = Math.max(
-      scaling.spawnIntervalMinRatio * baseMs,
-      baseMs * Math.pow(scaling.spawnIntervalDecay, wave - 1)
-    );
-
-    return Math.round((scaledMs / 1000) * this.config.tickRate);
+    const intervalSec = spawnIntervalSeconds(this.waveNumber);
+    return Math.round(intervalSec * this.config.tickRate);
   }
 
   private getWaveSpeedPerTick(): number {
-    const wave = this.waveNumber;
-    const scaling = this.config.simulation.waveScaling;
-    const baseSpeed = this.config.difficulty.enemySpeed;
-
-    // speed = min(base * (1 + 0.06*(wave-1)), 2 * base)
-    const scaledSpeed = Math.min(
-      baseSpeed * (1 + scaling.speedScalePerWave * (wave - 1)),
-      scaling.speedScaleMaxRatio * baseSpeed
-    );
-
-    return scaledSpeed / this.config.tickRate;
+    const speed = speedForWave(this.waveNumber);
+    return speed / this.config.tickRate;
   }
 
   private updateWavePacing(): void {
@@ -542,7 +523,7 @@ export class GameSimulation {
 
     // Concurrent enemy cap check
     const aliveCount = this.enemies.filter((e) => e.alive).length;
-    if (aliveCount >= this.config.difficulty.maxConcurrentEnemies) {
+    if (aliveCount >= concurrentCapForWave(this.waveNumber)) {
       // Skip spawn, restart countdown
       this.spawnCountdownTicks = this.getWaveSpawnIntervalTicks();
       return;
@@ -556,16 +537,11 @@ export class GameSimulation {
 
   private spawnEnemy(): void {
     const simConfig = this.config.simulation;
-    const diff = this.config.difficulty;
-    const scaling = simConfig.waveScaling;
     const width = this.config.virtualResolution.width;
 
     // Word Length Bounds
-    const maxWordLen = Math.min(
-      diff.wordLengthRange.max + Math.floor((this.waveNumber - 1) / scaling.wordLengthWaveStep),
-      scaling.maxWordLengthCap
-    );
-    const minWordLen = diff.wordLengthRange.min;
+    const minWordLen = 3;
+    const maxWordLen = this.waveNumber <= 2 ? 4 : 8;
 
     // Exclusions for word selection
     const activeFirstChars = new Set<string>();

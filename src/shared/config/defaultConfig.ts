@@ -1,6 +1,4 @@
 import {
-  DifficultyPreset,
-  DifficultyPresetId,
   EnemyArchetypeConfig,
   GameplaySimulationConfig,
   RunConfig,
@@ -34,36 +32,6 @@ export const RENDERER_CONFIG = {
   plateHeightPx: 26,
 } as const;
 
-export const DIFFICULTY_PRESETS: Record<DifficultyPresetId, DifficultyPreset> = {
-  relaxed: {
-    id: 'relaxed',
-    name: 'RELAXED CADENCE',
-    enemySpeed: 26,
-    spawnIntervalMs: 3200,
-    maxConcurrentEnemies: 3,
-    wordLengthRange: { min: 3, max: 5 },
-    playerMaxHealth: 3,
-  },
-  normal: {
-    id: 'normal',
-    name: 'STANDARD DEFENSE',
-    enemySpeed: 38,
-    spawnIntervalMs: 2400,
-    maxConcurrentEnemies: 4,
-    wordLengthRange: { min: 3, max: 6 },
-    playerMaxHealth: 3,
-  },
-  intense: {
-    id: 'intense',
-    name: 'HIGH THREAT INVASION',
-    enemySpeed: 52,
-    spawnIntervalMs: 1700,
-    maxConcurrentEnemies: 6,
-    wordLengthRange: { min: 4, max: 8 },
-    playerMaxHealth: 3,
-  },
-};
-
 export const TARGET_DRONE_WIDTH = 44;
 export const TARGET_SHIP_SIZE = {
   width: 60,
@@ -87,6 +55,7 @@ export const DEFAULT_SIMULATION_CONFIG: GameplaySimulationConfig = {
   spawnMarginX: 60,
   hullRadius: Math.round(0.8 * (TARGET_SHIP_SIZE.width / 2)),
   collisionDamage: 1,
+  playerMaxHealth: 3,
   initialSpawnDelaySeconds: 1.0,
   waveIntermissionSeconds: 2,
   labelCharWidthPx: 14,
@@ -117,7 +86,6 @@ export const DEFAULT_RUN_CONFIG: RunConfig = {
   targetFps: 60,
   tickRate: 60,
   seed: 1337,
-  difficulty: DIFFICULTY_PRESETS.normal,
   playerStart: PLAYER_START,
   reducedMotion: false,
   audioEnabled: true,

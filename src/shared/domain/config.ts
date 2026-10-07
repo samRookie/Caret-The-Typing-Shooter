@@ -12,30 +12,6 @@ export interface WordLengthRange {
   readonly max: number;
 }
 
-/**
- * Supported difficulty preset identifiers.
- */
-export type DifficultyPresetId = 'relaxed' | 'normal' | 'intense';
-
-/**
- * Difficulty parameters governing enemy movement, spawn pacing, and word complexity.
- */
-export interface DifficultyPreset {
-  /** Identifier of the difficulty tier. */
-  readonly id: DifficultyPresetId;
-  /** Human-readable tactical designation. */
-  readonly name: string;
-  /** Enemy approach speed (unit: pixels per second, range: > 0). */
-  readonly enemySpeed: number;
-  /** Spawn interval cadence between enemies (unit: milliseconds, range: >= 500). */
-  readonly spawnIntervalMs: number;
-  /** Upper cap on simultaneously active enemies on screen (range: >= 1). */
-  readonly maxConcurrentEnemies: number;
-  /** Allowed word length boundaries for assigned targets. */
-  readonly wordLengthRange: WordLengthRange;
-  /** Starting and maximum player hull integrity (unit: HP, range: > 0). */
-  readonly playerMaxHealth: number;
-}
 
 /**
  * Archetype configuration parameters for enemy drone variants.
@@ -82,6 +58,7 @@ export interface GameplaySimulationConfig {
   readonly spawnMarginX: number;
   readonly hullRadius: number;
   readonly collisionDamage: number;
+  readonly playerMaxHealth: number;
   /** Delay before the first spawn of a run (seconds). */
   readonly initialSpawnDelaySeconds: number;
   readonly waveIntermissionSeconds: number;
@@ -116,8 +93,6 @@ export interface RunConfig {
   readonly targetFps: number;
   /** 32-bit unsigned integer seed for the PRNG (range: 0..4294967295). */
   readonly seed: number;
-  /** Difficulty preset governing enemy speeds and word lengths. */
-  readonly difficulty: DifficultyPreset;
   /** Starting world coordinate for the player vessel. */
   readonly playerStart: Vector2;
   /** Accessibility flag to suppress rapid screen shakes and high-frequency animations. */

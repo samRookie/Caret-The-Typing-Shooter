@@ -106,7 +106,7 @@ describe('8.A GameController Unit Tests', () => {
       controller.setBootComplete();
       expect(controller.getState().screen).toBe('menu');
 
-      controller.start({ difficulty: 'normal', seed: 1337 });
+      controller.start({ seed: 1337 });
       expect(controller.getState().screen).toBe('running');
       expect(controller.getState().seed).toBe(1337);
       expect(controller.runtime).not.toBeNull();
@@ -138,7 +138,7 @@ describe('8.A GameController Unit Tests', () => {
       controller.resume();
       expect(controller.getState().screen).toBe('menu');
 
-      controller.start({ difficulty: 'normal' });
+      controller.start();
       expect(controller.getState().screen).toBe('running');
 
       // Illegal: cannot resume while already running
@@ -156,7 +156,7 @@ describe('8.A GameController Unit Tests', () => {
         targetDocument: mockDocument,
       });
       controller.setBootComplete();
-      controller.start({ difficulty: 'normal' });
+      controller.start();
       expect(controller.getState().screen).toBe('running');
 
       // Simulate document becoming hidden
@@ -180,7 +180,7 @@ describe('8.A GameController Unit Tests', () => {
         targetDocument: mockDocument,
       });
       controller.setBootComplete();
-      controller.start({ difficulty: 'normal' });
+      controller.start();
       expect(controller.getState().screen).toBe('running');
 
       const blurHandlers = windowListeners.get('blur') ?? [];
@@ -196,7 +196,7 @@ describe('8.A GameController Unit Tests', () => {
         targetDocument: mockDocument,
       });
       controller.setBootComplete();
-      controller.start({ difficulty: 'normal' });
+      controller.start();
 
       // Advance partial tick accumulator
       controller.runtime!.stepper.advance(0.01);
@@ -215,7 +215,7 @@ describe('8.A GameController Unit Tests', () => {
         targetDocument: mockDocument,
       });
       controller.setBootComplete();
-      controller.start({ difficulty: 'normal' });
+      controller.start();
 
       const state1 = controller.getState();
       const listenerSpy = vi.fn();
@@ -246,7 +246,7 @@ describe('8.A GameController Unit Tests', () => {
         targetDocument: mockDocument,
       });
       controller.setBootComplete();
-      controller.start({ difficulty: 'normal', seed: 1337 });
+      controller.start({ seed: 1337 });
 
       const listenerSpy = vi.fn();
       controller.subscribe(listenerSpy);
@@ -290,7 +290,7 @@ describe('8.A GameController Unit Tests', () => {
         onSceneClear: sceneClearSpy,
       });
       controller.setBootComplete();
-      controller.start({ difficulty: 'normal', seed: 1337 });
+      controller.start({ seed: 1337 });
 
       const runtime1 = controller.runtime;
       expect(runtime1).not.toBeNull();

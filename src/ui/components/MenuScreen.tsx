@@ -1,19 +1,13 @@
 import React, { useEffect, useRef } from 'react';
 import { TacticalFrame } from './TacticalFrame';
 import { TacticalButton } from './TacticalButton';
-import { DifficultyPresetId } from '@/shared/domain';
-import { DIFFICULTY_PRESETS } from '@/shared/config/defaultConfig';
 import { GAME_TITLE, GAME_SUBTITLE, HOW_TO_PLAY_TEXT } from '@/shared/config/branding';
 
 export interface MenuScreenProps {
-  difficulty: DifficultyPresetId;
-  onSelectDifficulty: (difficulty: DifficultyPresetId) => void;
   onPlay: () => void;
 }
 
 export const MenuScreen: React.FC<MenuScreenProps> = ({
-  difficulty,
-  onSelectDifficulty,
   onPlay,
 }) => {
   const playButtonRef = useRef<HTMLButtonElement | null>(null);
@@ -34,8 +28,6 @@ export const MenuScreen: React.FC<MenuScreenProps> = ({
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [onPlay]);
-
-  const presetIds: DifficultyPresetId[] = ['relaxed', 'normal', 'intense'];
 
   return (
     <div
@@ -81,97 +73,6 @@ export const MenuScreen: React.FC<MenuScreenProps> = ({
               {GAME_SUBTITLE}
             </p>
           </div>
-
-          {/* Difficulty Preset Selector */}
-          <fieldset
-            style={{
-              border: '1px solid var(--border)',
-              borderRadius: 'var(--radius-sm)',
-              padding: '12px 16px',
-              margin: 0,
-            }}
-          >
-            <legend
-              style={{
-                fontFamily: 'var(--font-condensed)',
-                fontSize: '11px',
-                color: 'var(--accent)',
-                letterSpacing: '0.1em',
-                padding: '0 6px',
-              }}
-            >
-              SELECT THREAT INTENSITY
-            </legend>
-
-            <div
-              role="radiogroup"
-              aria-label="Threat Intensity"
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '8px',
-                marginTop: '4px',
-              }}
-            >
-              {presetIds.map((id) => {
-                const preset = DIFFICULTY_PRESETS[id];
-                const isSelected = difficulty === id;
-
-                return (
-                  <label
-                    key={id}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '10px',
-                      padding: '8px 10px',
-                      borderRadius: 'var(--radius-sm)',
-                      background: isSelected ? 'var(--accent-glow)' : 'transparent',
-                      border: isSelected
-                        ? '1px solid var(--accent)'
-                        : '1px solid transparent',
-                      cursor: 'pointer',
-                      transition: 'all 0.15s ease',
-                    }}
-                  >
-                    <input
-                      type="radio"
-                      name="difficulty"
-                      value={id}
-                      checked={isSelected}
-                      onChange={() => onSelectDifficulty(id)}
-                      style={{
-                        accentColor: 'var(--accent)',
-                        cursor: 'pointer',
-                      }}
-                    />
-                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                      <span
-                        style={{
-                          fontFamily: 'var(--font-condensed)',
-                          fontSize: '13px',
-                          color: isSelected ? 'var(--accent-bright)' : 'var(--text-primary)',
-                          fontWeight: isSelected ? 'bold' : 'normal',
-                          letterSpacing: '0.05em',
-                        }}
-                      >
-                        {preset.name}
-                      </span>
-                      <span
-                        style={{
-                          fontFamily: 'var(--font-condensed)',
-                          fontSize: '11px',
-                          color: 'var(--text-secondary)',
-                        }}
-                      >
-                        Speed {preset.enemySpeed} px/s &bull; Max {preset.maxConcurrentEnemies} Drones &bull; Words {preset.wordLengthRange.min}-{preset.wordLengthRange.max} chars
-                      </span>
-                    </div>
-                  </label>
-                );
-              })}
-            </div>
-          </fieldset>
 
           {/* Action Button */}
           <div style={{ display: 'flex', justifyContent: 'center' }}>

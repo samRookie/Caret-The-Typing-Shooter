@@ -27,14 +27,11 @@ describe('8.B React Screens & Modals Tests', () => {
   });
 
   describe('MenuScreen', () => {
-    it('renders title, subtitle, difficulty radio group, how-to-play text, and handles Enter', () => {
-      const onSelectDifficulty = vi.fn();
+    it('renders title, subtitle, how-to-play text, and handles Enter', () => {
       const onPlay = vi.fn();
 
       render(
         <MenuScreen
-          difficulty="normal"
-          onSelectDifficulty={onSelectDifficulty}
           onPlay={onPlay}
         />
       );
@@ -42,17 +39,6 @@ describe('8.B React Screens & Modals Tests', () => {
       expect(screen.getByText(GAME_TITLE)).toBeInTheDocument();
       expect(screen.getByText(GAME_SUBTITLE)).toBeInTheDocument();
       expect(screen.getByText(HOW_TO_PLAY_TEXT)).toBeInTheDocument();
-
-      // Check radio group
-      const relaxedRadio = screen.getByDisplayValue('relaxed');
-      const normalRadio = screen.getByDisplayValue('normal');
-      const intenseRadio = screen.getByDisplayValue('intense');
-
-      expect(normalRadio).toBeChecked();
-      expect(relaxedRadio).not.toBeChecked();
-
-      fireEvent.click(intenseRadio);
-      expect(onSelectDifficulty).toHaveBeenCalledWith('intense');
 
       // Click play
       const playBtn = screen.getByRole('button', { name: /INITIATE ENGAGEMENT/i });

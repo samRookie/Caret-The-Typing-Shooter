@@ -287,8 +287,8 @@ describe('20,000-Tick Simulation Run with Real Data (5.E)', () => {
     const sim = new GameSimulation({
       ...DEFAULT_RUN_CONFIG,
       seed: 8888,
-      difficulty: {
-        ...DEFAULT_RUN_CONFIG.difficulty,
+      simulation: {
+        ...DEFAULT_RUN_CONFIG.simulation,
         playerMaxHealth: 999999, // Infinite hull to sustain continuous 20,000 ticks
       },
     });

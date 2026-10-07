@@ -221,10 +221,6 @@ describe('Target Acquisition and Typing Rules (4.C)', () => {
     const sim = new GameSimulation(
       {
         ...DEFAULT_RUN_CONFIG,
-        difficulty: {
-          ...DEFAULT_RUN_CONFIG.difficulty,
-          spawnIntervalMs: 500, // 30 ticks
-        },
         simulation: {
           ...DEFAULT_RUN_CONFIG.simulation,
           initialSpawnDelaySeconds: 0,
@@ -236,8 +232,8 @@ describe('Target Acquisition and Typing Rules (4.C)', () => {
 
     // Tick 1: Spawns e1 ("aim")
     sim.tick();
-    // Advance 31 ticks (interval countdown 30 -> 0) to spawn e2 ("arc")
-    for (let i = 0; i < 31; i++) {
+    // Advance 169 ticks (interval countdown 168 -> 0) to spawn e2 ("arc")
+    for (let i = 0; i <= 168; i++) {
       sim.tick();
     }
 
@@ -558,15 +554,20 @@ describe('Wave Progression, Intermission and Concurrent Cap (4.E)', () => {
     );
 
     sim.start();
-    sim.tick(); // Spawns the 1 enemy quota for wave 1
 
-    // Type out "pod" to destroy the enemy
-    sim.handleCommand({ type: 'char', char: 'p' });
-    sim.handleCommand({ type: 'char', char: 'o' });
-    sim.handleCommand({ type: 'char', char: 'd' });
-
-    // Step 1 tick to evaluate wave completion
-    sim.tick();
+    // Clear wave 1 quota (5 enemies)
+    for (let q = 1; q <= 5; q++) {
+      sim.tick(); // Spawn enemy
+      sim.handleCommand({ type: 'char', char: 'p' });
+      sim.handleCommand({ type: 'char', char: 'o' });
+      sim.handleCommand({ type: 'char', char: 'd' });
+      sim.tick(); // Destroy enemy
+      if (q < 5) {
+        for (let i = 0; i <= 168; i++) {
+          sim.tick();
+        }
+      }
+    }
 
     const events = sim.drainEvents();
     const waveClearEvent = events.find((e) => e.type === 'WAVE_COMPLETED');
@@ -593,11 +594,6 @@ describe('Wave Progression, Intermission and Concurrent Cap (4.E)', () => {
   it('skips spawn when active enemies reach concurrent cap and restarts countdown', () => {
     const sim = new GameSimulation({
       ...DEFAULT_RUN_CONFIG,
-      difficulty: {
-        ...DEFAULT_RUN_CONFIG.difficulty,
-        maxConcurrentEnemies: 1,
-        spawnIntervalMs: 500, // 30 ticks
-      },
       simulation: {
         ...DEFAULT_RUN_CONFIG.simulation,
         initialSpawnDelaySeconds: 0,
@@ -605,14 +601,20 @@ describe('Wave Progression, Intermission and Concurrent Cap (4.E)', () => {
     });
 
     sim.start();
-    sim.tick(); // Spawns e1 (alive = 1, cap = 1)
+    sim.tick(); // Spawns e1 (alive = 1, cap = 2 in wave 1)
     expect(sim.getSnapshot().enemies.length).toBe(1);
 
-    // Advance 60 ticks (2 spawn intervals) without typing; cap is reached so no new enemies spawn
-    for (let i = 0; i < 60; i++) {
+    // Advance until second enemy spawns (interval is 2.8s = 168 ticks)
+    for (let i = 0; i <= 168; i++) {
       sim.tick();
     }
-    expect(sim.getSnapshot().enemies.length).toBe(1);
+    expect(sim.getSnapshot().enemies.length).toBe(2);
+
+    // Advance 200 more ticks without typing; cap is 2 so no new enemies spawn
+    for (let i = 0; i < 200; i++) {
+      sim.tick();
+    }
+    expect(sim.getSnapshot().enemies.length).toBe(2);
   });
 });
 
@@ -634,7 +636,7 @@ describe('Snapshot Isolation Security', () => {
 
     // Fresh snapshot should retain uncorrupted internal state
     const freshSnapshot = sim.getSnapshot();
-    expect(freshSnapshot.player.health).toBe(DEFAULT_RUN_CONFIG.difficulty.playerMaxHealth);
+    expect(freshSnapshot.player.health).toBe(DEFAULT_RUN_CONFIG.simulation.playerMaxHealth);
     expect(freshSnapshot.player.position.x).toBe(DEFAULT_RUN_CONFIG.playerStart.x);
     expect(freshSnapshot.enemies.length).toBeGreaterThanOrEqual(1);
   });

@@ -1,12 +1,10 @@
 import {
-  DifficultyPresetId,
   GameResult,
   GameSnapshot,
   RunConfig,
 } from '@/shared/domain';
 import {
   DEFAULT_RUN_CONFIG,
-  DIFFICULTY_PRESETS,
 } from '@/shared/config/defaultConfig';
 import { GameRuntime, FrameResult } from './GameRuntime';
 import { KeyboardAdapter } from '@/game/input/keyboardAdapter';
@@ -35,13 +33,11 @@ export interface AppGameState {
   readonly hud: HudState;
   readonly result: GameResult | null;
   readonly seed: number;
-  readonly difficulty: DifficultyPresetId;
   readonly loadingProgress: number;
 }
 
 export interface GameControllerOptions {
   readonly initialScreen?: Screen;
-  readonly defaultDifficulty?: DifficultyPresetId;
   readonly targetWindow?: Window | null;
   readonly targetDocument?: Document | null;
   readonly onSceneClear?: () => void;
@@ -165,7 +161,6 @@ export class GameController {
 
     this.onSceneClear = options.onSceneClear;
 
-    const initialDifficulty = options.defaultDifficulty ?? 'normal';
     const initialSeed = resolveSeed(this.targetWindow);
 
     this._state = {
@@ -173,7 +168,6 @@ export class GameController {
       hud: INITIAL_HUD_STATE,
       result: null,
       seed: initialSeed,
-      difficulty: initialDifficulty,
       loadingProgress: 0,
     };
 
@@ -262,16 +256,14 @@ export class GameController {
     }
   }
 
-  start(opts: { difficulty: DifficultyPresetId; seed?: number }): void {
+  start(opts?: { seed?: number }): void {
     if (this.destroyed) return;
 
-    const chosenDifficulty = opts.difficulty;
-    const chosenSeed = resolveSeed(this.targetWindow, opts.seed);
+    const chosenSeed = resolveSeed(this.targetWindow, opts?.seed);
 
     const config: RunConfig = {
       ...DEFAULT_RUN_CONFIG,
       seed: chosenSeed,
-      difficulty: DIFFICULTY_PRESETS[chosenDifficulty],
     };
 
     // Create fresh runtime
@@ -291,7 +283,6 @@ export class GameController {
     this.emit({
       ...this._state,
       screen: 'running',
-      difficulty: chosenDifficulty,
       seed: chosenSeed,
       hud: initialHud,
       result: null,
@@ -332,14 +323,12 @@ export class GameController {
     // Reset scene views if callback registered
     this.onSceneClear?.();
 
-    // Re-start with existing difficulty and freshly resolved seed
+    // Re-start with freshly resolved seed
     const chosenSeed = resolveSeed(this.targetWindow);
-    const chosenDifficulty = this._state.difficulty;
 
     const config: RunConfig = {
       ...DEFAULT_RUN_CONFIG,
       seed: chosenSeed,
-      difficulty: DIFFICULTY_PRESETS[chosenDifficulty],
     };
 
     this._runtime = new GameRuntime(config);
