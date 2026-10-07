@@ -1,17 +1,15 @@
 /**
- * Headless Simulation Verification & Automated Bot Playtest
+ * Headless Simulation Verification & Automated Bot Playtest (Revision R1, Sub-section 2.E)
  * 
- * Runs a deterministic bot simulation without DOM, Phaser, or browser globals.
- * Bot simulates human typing mechanics at configurable WPM and error rates across all difficulty tiers.
+ * Runs deterministic bot simulations without DOM, Phaser, or browser globals.
+ * Benchmarks single progressive campaign with seeded bots at 30, 50, and 70 WPM
+ * (4% error rate) for 5 simulated minutes, plus a no-input baseline run.
  */
 
 import { GameSimulation } from '../src/game/core/simulation';
 import { Mulberry32 } from '../src/game/core/prng';
-import {
-  DEFAULT_RUN_CONFIG,
-  DIFFICULTY_PRESETS,
-} from '../src/shared/config/defaultConfig';
-import { DifficultyPresetId, EnemyState, RunConfig } from '../src/shared/domain';
+import { DEFAULT_RUN_CONFIG } from '../src/shared/config/defaultConfig';
+import { EnemyState, RunConfig } from '../src/shared/domain';
 
 interface BotConfig {
   readonly targetWpm: number;
@@ -21,30 +19,23 @@ interface BotConfig {
 }
 
 interface RunStats {
-  readonly presetId: DifficultyPresetId;
-  readonly presetName: string;
+  readonly targetWpm: number;
   readonly survived: boolean;
   readonly timeToGameOverSec: number;
+  readonly elapsedTimeSec: number;
   readonly wavesReached: number;
-  readonly finalHealth: number;
-  readonly maxHealth: number;
-  readonly accuracy: number;
-  readonly wpm: number;
-  readonly score: number;
-  readonly wordsCompleted: number;
   readonly hits: number;
   readonly misses: number;
-  readonly fallbacks: number;
+  readonly accuracy: number;
+  readonly grossWpm: number;
+  readonly netWpm: number;
+  readonly score: number;
+  readonly wordsCompleted: number;
 }
 
-function runBotSimulation(
-  presetId: DifficultyPresetId,
-  botConfig: BotConfig
-): RunStats {
-  const preset = DIFFICULTY_PRESETS[presetId];
+function runBotSimulation(botConfig: BotConfig): RunStats {
   const runConfig: RunConfig = {
     ...DEFAULT_RUN_CONFIG,
-    difficulty: preset,
     seed: 1337,
   };
 
@@ -117,35 +108,32 @@ function runBotSimulation(
   }
 
   const finalSnap = sim.getSnapshot();
+  const res = sim.getResult();
   const survived = finalSnap.status !== 'game-over';
   const timeToGameOverSec = elapsedTicks / tickRate;
 
   return {
-    presetId,
-    presetName: preset.name,
+    targetWpm: botConfig.targetWpm,
     survived,
     timeToGameOverSec,
+    elapsedTimeSec: elapsedTicks / tickRate,
     wavesReached: finalSnap.wave.waveNumber,
-    finalHealth: finalSnap.player.health,
-    maxHealth: finalSnap.player.maxHealth,
-    accuracy: finalSnap.scoring.accuracy,
-    wpm: finalSnap.scoring.wpm,
-    score: finalSnap.scoring.score,
-    wordsCompleted: finalSnap.scoring.wordsCompleted,
     hits: finalSnap.scoring.hits,
     misses: finalSnap.scoring.misses,
-    fallbacks: sim.wordProviderStats.fallbacks,
+    accuracy: finalSnap.scoring.accuracy,
+    grossWpm: res?.grossWpm ?? 0,
+    netWpm: res?.netWpm ?? 0,
+    score: finalSnap.scoring.score,
+    wordsCompleted: finalSnap.scoring.wordsCompleted,
   };
 }
 
-function runNoInputSimulation(presetId: DifficultyPresetId): {
-  presetName: string;
+function runNoInputSimulation(): {
   timeToGameOverSec: number;
+  wavesReached: number;
 } {
-  const preset = DIFFICULTY_PRESETS[presetId];
   const runConfig: RunConfig = {
     ...DEFAULT_RUN_CONFIG,
-    difficulty: preset,
     seed: 1337,
   };
 
@@ -160,51 +148,48 @@ function runNoInputSimulation(presetId: DifficultyPresetId): {
     ticks++;
   }
 
+  const snap = sim.getSnapshot();
   return {
-    presetName: preset.name,
     timeToGameOverSec: ticks / runConfig.tickRate,
+    wavesReached: snap.wave.waveNumber,
   };
 }
 
 function main(): void {
-  const botConfig: BotConfig = {
-    targetWpm: 40,
-    errorRate: 0.04, // 4% error rate
-    durationMinutes: 3, // 3 minutes per preset
-    botSeed: 7777,
-  };
-
   console.log('========================================================================');
-  console.log('CARET: THE TYPING SHOOTER - HEADLESS SIMULATION VERIFICATION (B6)');
-  console.log(`Config: ${botConfig.targetWpm} Target WPM | ${(botConfig.errorRate * 100).toFixed(1)}% Error Rate | ${botConfig.durationMinutes} Minutes Duration`);
+  console.log('CARET: THE TYPING SHOOTER - HEADLESS SIMULATION BENCHMARK (2.E)');
+  console.log('Single Progressive Campaign | 5 Simulated Minutes | 4% Error Rate');
   console.log('========================================================================\n');
 
-  console.log('--- TEST 1: NO-INPUT RUNS (IDLE HULL SURVIVAL BENCHMARK) ---');
-  const presets: DifficultyPresetId[] = ['relaxed', 'normal', 'intense'];
+  console.log('--- TEST 1: NO-INPUT RUN (IDLE HULL DEFEAT BENCHMARK) ---');
+  const noInput = runNoInputSimulation();
+  console.log(`• Time to Game Over: ${noInput.timeToGameOverSec.toFixed(2)}s`);
+  console.log(`• Waves Reached:     Wave ${noInput.wavesReached}\n`);
 
-  for (const pid of presets) {
-    const res = runNoInputSimulation(pid);
-    console.log(
-      `• [${pid.toUpperCase().padEnd(7)}] ${res.presetName.padEnd(20)} -> Time to Game Over: ${res.timeToGameOverSec.toFixed(2)}s`
-    );
-  }
+  console.log('--- TEST 2: SEEDED BOT PLAYTESTS (30, 50, 70 WPM) ---');
+  const targetWpms = [30, 50, 70];
 
-  console.log('\n--- TEST 2: AUTOMATED BOT PLAYTEST (40 WPM, 4% ERRORS, 3 MINUTES) ---');
+  for (const wpm of targetWpms) {
+    const res = runBotSimulation({
+      targetWpm: wpm,
+      errorRate: 0.04,
+      durationMinutes: 5,
+      botSeed: 4242 + wpm,
+    });
 
-  for (const pid of presets) {
-    const res = runBotSimulation(pid, botConfig);
     const statusStr = res.survived
-      ? `SURVIVED (${res.timeToGameOverSec.toFixed(1)}s full)`
+      ? `SURVIVED (${res.elapsedTimeSec.toFixed(1)}s full)`
       : `DEFEAT @ ${res.timeToGameOverSec.toFixed(2)}s`;
 
-    console.log(`\nPRESET: ${res.presetId.toUpperCase()} (${res.presetName})`);
-    console.log(`  Outcome:         ${statusStr}`);
-    console.log(`  Waves Reached:   Wave ${res.wavesReached}`);
-    console.log(`  Final Hull:      ${res.finalHealth} / ${res.maxHealth} HP`);
-    console.log(`  Accuracy:        ${res.accuracy}% (${res.hits} hits, ${res.misses} misses)`);
-    console.log(`  Simulated WPM:   ${res.wpm} WPM`);
-    console.log(`  Score:           ${res.score} pts (${res.wordsCompleted} words cleared)`);
-    console.log(`  Word Fallbacks:  ${res.fallbacks}`);
+    console.log(`\nBOT TARGET: ${res.targetWpm} WPM`);
+    console.log(`  Outcome:           ${statusStr}`);
+    console.log(`  Waves Reached:     Wave ${res.wavesReached}`);
+    console.log(`  Hits / Misses:     ${res.hits} hits / ${res.misses} misses`);
+    console.log(`  Accuracy:          ${res.accuracy.toFixed(1)}%`);
+    console.log(`  Net WPM:           ${res.netWpm.toFixed(1)} WPM (Gross: ${res.grossWpm.toFixed(1)})`);
+    console.log(`  Elapsed Time:      ${res.elapsedTimeSec.toFixed(1)}s`);
+    console.log(`  Time to Game Over: ${res.survived ? 'N/A (survived)' : `${res.timeToGameOverSec.toFixed(2)}s`}`);
+    console.log(`  Score:             ${res.score} pts (${res.wordsCompleted} words cleared)`);
   }
 
   console.log('\n========================================================================');
