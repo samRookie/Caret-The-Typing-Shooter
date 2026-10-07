@@ -94,7 +94,7 @@ export function computeStats(runs: readonly RunRecord[]): AggregateStats {
   }
 
   const lastRun = runs[runs.length - 1] ?? null;
-  const previousRun = runs.length >= 2 ? runs[runs.length - 2] : null;
+  const previousRun = (runs.length >= 2 ? runs[runs.length - 2] : null) ?? null;
 
   return {
     bestScore,
