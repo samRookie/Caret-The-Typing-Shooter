@@ -30,6 +30,7 @@ This document tracks all balance and difficulty adjustments made based on playte
 | Iteration # | Config Key / Component | Old Value | New Value | Reason / Hypothesis | Observed Evidence (`npm run sim:demo` & test results) |
 |---|---|---|---|---|---|
 | R1-Golden | Golden Hash (`simulation.test.ts`) | `3cd2a9fef55b...` | `b385fead8084...` | Update deterministic replay event hash for R1 scoring (+1/char), 3 lives (1 dmg/collision), and headroom/derived radii (`spawnY: 64`, `hitboxRadius: 18`, `hullRadius: 24`). | Golden hash matches `b385fead8084b313760d08badf31085f74cc99f49903f2720f31a9fdb85ef1f3`. All 202 vitest unit tests pass. `npm run sim:demo` verifies clean 3-life progression. |
+| R1-P2-Golden | Golden Hash (`simulation.test.ts`) | `b385fead8084...` | `bfec60ed5a90...` | Update deterministic replay event hash for R1 P2: wave 1 progression curves (`spawnIntervalSeconds(1) = 2.8s`, `speedForWave(1) = 30`), start intermission `WAVE_INTERMISSION(1)` (150 ticks = 2.5s), and two-draw word selection algorithm. | Golden hash matches `bfec60ed5a90af31cef6a11766ebeecd5705b63376c8092b2dedb0e4abb51027`. All 208 vitest unit tests pass. `npm run sim:demo` demonstrates single campaign progression. |
 
 ---
 

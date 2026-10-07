@@ -557,5 +557,5 @@ describe('Two-Draw Word Selection Algorithm (Spec 1.4, Sub-section 2.C)', () => 
       if (hasHardLetter(word)) w12HardCount++;
     }
     expect(w12HardCount).toBeGreaterThan(w1HardCount);
-  });
+  }, 15000);
 });

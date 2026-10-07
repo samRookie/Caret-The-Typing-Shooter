@@ -144,6 +144,8 @@ describe('GameEvent Discriminated Union Handling', () => {
         return `WAVE ${event.waveNumber} STARTED (quota ${event.quota}) @ tick ${event.tick}`;
       case 'WAVE_COMPLETED':
         return `WAVE ${event.waveNumber} CLEAR @ tick ${event.tick}`;
+      case 'WAVE_INTERMISSION':
+        return `INTERMISSION: nextWave ${event.nextWave} (${event.durationTicks} ticks) @ tick ${event.tick}`;
       case 'GAME_OVER':
         return `GAME OVER: ${event.result.outcome} @ tick ${event.tick}`;
     }
