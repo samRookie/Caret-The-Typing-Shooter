@@ -39,6 +39,8 @@ export interface ScoringState {
   /** Total count of incorrect character inputs (range: >= 0). */
   readonly misses: number;
   /** Total count of fully typed and destroyed words (range: >= 0). */
+  readonly wordsDestroyed: number;
+  /** Total count of fully typed and destroyed words (range: >= 0). */
   readonly wordsCompleted: number;
   /** Gross words per minute based on total character hits / 5 over elapsed minutes (range: >= 0). */
   readonly wpm: number;

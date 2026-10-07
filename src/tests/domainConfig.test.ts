@@ -97,6 +97,7 @@ describe('Desktop Prototype Configuration Invariants', () => {
       accuracy: computeAccuracy(0, 0),
       hits: 0,
       misses: 0,
+      wordsDestroyed: 0,
       wordsCompleted: 0,
       wpm: 0,
     };
@@ -237,6 +238,7 @@ describe('GameSnapshot Contract Integrity', () => {
       accuracy: 100,
       hits: 5,
       misses: 0,
+      wordsDestroyed: 1,
       wordsCompleted: 1,
       wpm: 62,
     };

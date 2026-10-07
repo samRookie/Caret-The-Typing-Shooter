@@ -56,6 +56,7 @@ import {
   RatingThresholds,
   RunConfig,
   ScoringRules,
+  ScoringState,
   Vector2,
   WaveState,
 } from '@/shared/domain';
@@ -75,6 +76,7 @@ import { EntityIdGenerator, compareEntityIds } from './entityId';
 import {
   computeFlooredAccuracy,
   computeGrossWpm,
+  computeNetWpm,
 } from './metrics/typingMetrics';
 
 export interface InternalEnemy extends EnemyState {
@@ -97,6 +99,7 @@ export class GameSimulation {
   private status: GameStatus = 'idle';
   private mode: GameMode = 'standard';
   private tickIndex: number = 0;
+  private elapsedTicks: number = 0;
 
   // RNG Streams
   private rngStreams: RngStreams;
@@ -158,6 +161,7 @@ export class GameSimulation {
       this.config = config;
     }
     this.tickIndex = 0;
+    this.elapsedTicks = 0;
     this.status = 'running';
     this.mode = this.config.mode ?? 'standard';
     if (this.mode === 'endless') {
@@ -259,6 +263,7 @@ export class GameSimulation {
     }
 
     this.tickIndex++;
+    this.elapsedTicks++;
     this.player = { ...this.player, isDamaged: false };
 
     // 1. Advance Wave Spawning or Intermission
@@ -793,19 +798,39 @@ export class GameSimulation {
 
   private compileResult(outcome: 'defeat' | 'victory'): GameResult {
     const accuracy = this.computeAccuracy();
+    const durationSeconds = Math.floor(this.elapsedTicks / this.config.tickRate);
     const durationMs = Math.round(
-      (this.currentTick / this.config.tickRate) * 1000
+      (this.elapsedTicks / this.config.tickRate) * 1000
     );
     const rating = this.evaluateRating(accuracy);
+    const entries = this.hits + this.misses;
+    const grossWpm = computeGrossWpm(
+      entries,
+      this.elapsedTicks,
+      this.config.tickRate
+    );
+    const netWpm = computeNetWpm(
+      entries,
+      this.misses,
+      this.elapsedTicks,
+      this.config.tickRate
+    );
 
     return {
       outcome,
       score: this.score,
+      wave: this.waveNumber,
       wavesCompleted: Math.max(0, this.waveNumber - 1),
       maxStreak: this.maxStreak,
-      accuracy,
+      wordsDestroyed: this.wordsCompleted,
       wordsCompleted: this.wordsCompleted,
-      wpm: this.computeWpm(),
+      hits: this.hits,
+      misses: this.misses,
+      accuracy,
+      grossWpm,
+      netWpm,
+      wpm: grossWpm,
+      durationSeconds,
       durationMs,
       rating,
     };
@@ -822,7 +847,7 @@ export class GameSimulation {
   private computeWpm(): number {
     return computeGrossWpm(
       this.hits + this.misses,
-      this.currentTick,
+      this.elapsedTicks,
       this.config.tickRate
     );
   }
@@ -857,7 +882,13 @@ export class GameSimulation {
   }
 
   getResult(): GameResult | null {
-    return this.gameResult ? { ...this.gameResult } : null;
+    if (this.gameResult) {
+      return { ...this.gameResult };
+    }
+    if (this.status === 'running' || this.status === 'paused') {
+      return this.compileResult('defeat');
+    }
+    return null;
   }
 
   getSnapshot(): GameSnapshot {
@@ -889,13 +920,14 @@ export class GameSimulation {
       isCompleted: this.isIntermission,
     };
 
-    const scoring = {
+    const scoring: ScoringState = {
       score: this.score,
       streak: this.streak,
       maxStreak: this.maxStreak,
       accuracy: this.computeAccuracy(),
       hits: this.hits,
       misses: this.misses,
+      wordsDestroyed: this.wordsCompleted,
       wordsCompleted: this.wordsCompleted,
       wpm: this.computeWpm(),
     };
@@ -914,7 +946,7 @@ export class GameSimulation {
       activeTargetId: this.activeTargetId,
       wave,
       scoring,
-      elapsedTicks: this.currentTick,
+      elapsedTicks: this.elapsedTicks,
     };
   }
 }

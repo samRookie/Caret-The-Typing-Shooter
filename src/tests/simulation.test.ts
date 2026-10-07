@@ -631,3 +631,88 @@ describe('Snapshot Isolation Security', () => {
     expect(freshSnapshot.enemies.length).toBeGreaterThanOrEqual(1);
   });
 });
+
+describe('1.C Result Data & Snapshot Metrics', () => {
+  it('increments elapsedTicks strictly while running and freezes while paused', () => {
+    const sim = new GameSimulation(DEFAULT_RUN_CONFIG);
+    sim.start();
+
+    for (let t = 0; t < 50; t++) {
+      sim.tick();
+    }
+    expect(sim.getSnapshot().elapsedTicks).toBe(50);
+
+    // Pause simulation
+    sim.pause();
+    expect(sim.getSnapshot().status).toBe('paused');
+    for (let t = 0; t < 30; t++) {
+      sim.tick();
+    }
+    // elapsedTicks must remain frozen at 50
+    expect(sim.getSnapshot().elapsedTicks).toBe(50);
+
+    // Resume simulation
+    sim.resume();
+    expect(sim.getSnapshot().status).toBe('running');
+    for (let t = 0; t < 20; t++) {
+      sim.tick();
+    }
+    expect(sim.getSnapshot().elapsedTicks).toBe(70);
+  });
+
+  it('exposes all 1.C metrics on snapshot and getResult()', () => {
+    const mockWordProvider: IWordProvider = {
+      nextWord: () => 'ace',
+      stats: { fallbacks: 0 },
+    };
+    const sim = new GameSimulation(DEFAULT_RUN_CONFIG, mockWordProvider);
+    sim.start();
+
+    // Advance 61 ticks to spawn first enemy
+    for (let t = 0; t < 61; t++) {
+      sim.tick();
+    }
+
+    // Type 2 hits: 'a', 'c'
+    sim.handleCommand({ type: 'char', char: 'a' });
+    sim.handleCommand({ type: 'char', char: 'c' });
+
+    // 1 miss: 'x'
+    sim.handleCommand({ type: 'char', char: 'x' });
+
+    // Complete word: 'e'
+    sim.handleCommand({ type: 'char', char: 'e' });
+
+    // Advance 59 more ticks -> total elapsed ticks = 120 (2 seconds)
+    for (let t = 0; t < 59; t++) {
+      sim.tick();
+    }
+
+    const snap = sim.getSnapshot();
+    expect(snap.scoring.hits).toBe(3);
+    expect(snap.scoring.misses).toBe(1);
+    expect(snap.scoring.accuracy).toBe(75); // 3 / 4 * 100
+    expect(snap.scoring.streak).toBe(1);
+    expect(snap.scoring.maxStreak).toBe(2);
+    expect(snap.scoring.wordsDestroyed).toBe(1);
+    expect(snap.scoring.score).toBe(3);
+    expect(snap.wave.waveNumber).toBe(1);
+    expect(snap.elapsedTicks).toBe(120);
+
+    const result = sim.getResult();
+    expect(result).not.toBeNull();
+    if (result) {
+      expect(result.score).toBe(3);
+      expect(result.wave).toBe(1);
+      expect(result.maxStreak).toBe(2);
+      expect(result.wordsDestroyed).toBe(1);
+      expect(result.hits).toBe(3);
+      expect(result.misses).toBe(1);
+      expect(result.accuracy).toBe(75.0);
+      expect(result.grossWpm).toBeGreaterThan(0);
+      expect(result.netWpm).toBeGreaterThanOrEqual(0);
+      expect(result.durationSeconds).toBe(2);
+    }
+  });
+});
+

@@ -439,6 +439,7 @@ export class GameController {
           accuracy: 100,
           hits: 0,
           misses: 0,
+          wordsDestroyed: 0,
           wordsCompleted: 0,
           wpm: 0,
         },
