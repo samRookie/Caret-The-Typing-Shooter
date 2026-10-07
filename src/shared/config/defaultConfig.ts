@@ -42,7 +42,7 @@ export const DIFFICULTY_PRESETS: Record<DifficultyPresetId, DifficultyPreset> = 
     spawnIntervalMs: 3200,
     maxConcurrentEnemies: 3,
     wordLengthRange: { min: 3, max: 5 },
-    playerMaxHealth: 100,
+    playerMaxHealth: 3,
   },
   normal: {
     id: 'normal',
@@ -51,7 +51,7 @@ export const DIFFICULTY_PRESETS: Record<DifficultyPresetId, DifficultyPreset> = 
     spawnIntervalMs: 2400,
     maxConcurrentEnemies: 4,
     wordLengthRange: { min: 3, max: 6 },
-    playerMaxHealth: 100,
+    playerMaxHealth: 3,
   },
   intense: {
     id: 'intense',
@@ -60,7 +60,7 @@ export const DIFFICULTY_PRESETS: Record<DifficultyPresetId, DifficultyPreset> = 
     spawnIntervalMs: 1700,
     maxConcurrentEnemies: 6,
     wordLengthRange: { min: 4, max: 8 },
-    playerMaxHealth: 100,
+    playerMaxHealth: 3,
   },
 };
 
@@ -78,7 +78,7 @@ export const DEFAULT_SIMULATION_CONFIG: GameplaySimulationConfig = {
   spawnY: 40,
   spawnMarginX: 60,
   hullRadius: 28,
-  collisionDamage: 20,
+  collisionDamage: 1,
   initialSpawnDelaySeconds: 1.0,
   waveIntermissionSeconds: 2,
   labelCharWidthPx: 14,

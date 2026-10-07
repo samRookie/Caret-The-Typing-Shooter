@@ -422,29 +422,48 @@ describe('Target Acquisition and Typing Rules (4.C)', () => {
   });
 });
 
-describe('Hull Collision and Game Over (4.C)', () => {
-  it('triggers collision damage, destroys enemy, and emits GAME_OVER on lethal hull impact', () => {
-    const sim = new GameSimulation({
-      ...DEFAULT_RUN_CONFIG,
-      difficulty: {
-        ...DEFAULT_RUN_CONFIG.difficulty,
-        playerMaxHealth: 20, // 1 collision of 20 damage will destroy player
-      },
-    });
-
+describe('Hull Collision and 3-Life Defeat Flow (1.D, D2)', () => {
+  it('enforces 3 lives: exactly three collisions end the run with correct event sequence', () => {
+    const sim = new GameSimulation(DEFAULT_RUN_CONFIG);
     sim.start();
 
-    // Step simulation until drone collides with player at bottom
-    let gameOverOccurred = false;
-    for (let t = 0; t < 2000; t++) {
+    expect(sim.getSnapshot().player.health).toBe(3);
+    expect(sim.getSnapshot().player.maxHealth).toBe(3);
+
+    let collisionsCount = 0;
+
+    // Step simulation until game over (expecting 3 collisions)
+    for (let t = 0; t < 3000; t++) {
       sim.tick();
-      if (sim.getSnapshot().status === 'game-over') {
-        gameOverOccurred = true;
-        break;
+      const events = sim.drainEvents();
+      const damageEvent = events.find((e) => e.type === 'PLAYER_DAMAGED');
+      if (damageEvent && damageEvent.type === 'PLAYER_DAMAGED') {
+        collisionsCount++;
+        expect(damageEvent.damage).toBe(1);
+        expect(damageEvent.currentHealth).toBe(3 - collisionsCount);
+
+        const destroyEvent = events.find((e) => e.type === 'ENEMY_DESTROYED');
+        expect(destroyEvent).toBeDefined();
+        if (destroyEvent && destroyEvent.type === 'ENEMY_DESTROYED') {
+          expect(destroyEvent.cause).toBe('collision');
+        }
+
+        if (collisionsCount === 3) {
+          const gameOverEvent = events.find((e) => e.type === 'GAME_OVER');
+          expect(gameOverEvent).toBeDefined();
+          // Verify dispatch order: PLAYER_DAMAGED -> ENEMY_DESTROYED -> GAME_OVER
+          const damageIdx = events.findIndex((e) => e.type === 'PLAYER_DAMAGED');
+          const destroyIdx = events.findIndex((e) => e.type === 'ENEMY_DESTROYED');
+          const gameOverIdx = events.findIndex((e) => e.type === 'GAME_OVER');
+          expect(damageIdx).toBeLessThan(destroyIdx);
+          expect(destroyIdx).toBeLessThan(gameOverIdx);
+          break;
+        }
       }
     }
 
-    expect(gameOverOccurred).toBe(true);
+    expect(collisionsCount).toBe(3);
+    expect(sim.getSnapshot().status).toBe('game-over');
     expect(sim.getSnapshot().player.health).toBe(0);
     expect(sim.getSnapshot().player.alive).toBe(false);
 
@@ -455,15 +474,9 @@ describe('Hull Collision and Game Over (4.C)', () => {
   });
 
   it('ignores commands and ticks after game over', () => {
-    const sim = new GameSimulation({
-      ...DEFAULT_RUN_CONFIG,
-      difficulty: {
-        ...DEFAULT_RUN_CONFIG.difficulty,
-        playerMaxHealth: 20,
-      },
-    });
-
+    const sim = new GameSimulation(DEFAULT_RUN_CONFIG);
     sim.start();
+
     while (sim.getSnapshot().status !== 'game-over') {
       sim.tick();
     }
@@ -479,16 +492,10 @@ describe('Hull Collision and Game Over (4.C)', () => {
     expect(sim.drainEvents()).toEqual([]);
   });
 
-  it('start() after game-over completely resets simulation state', () => {
-    const sim = new GameSimulation({
-      ...DEFAULT_RUN_CONFIG,
-      difficulty: {
-        ...DEFAULT_RUN_CONFIG.difficulty,
-        playerMaxHealth: 20,
-      },
-    });
-
+  it('start() after game-over completely resets simulation state to 3 lives', () => {
+    const sim = new GameSimulation(DEFAULT_RUN_CONFIG);
     sim.start();
+
     while (sim.getSnapshot().status !== 'game-over') {
       sim.tick();
     }
@@ -498,7 +505,8 @@ describe('Hull Collision and Game Over (4.C)', () => {
     // Restart
     sim.start();
     expect(sim.getSnapshot().status).toBe('running');
-    expect(sim.getSnapshot().player.health).toBe(20);
+    expect(sim.getSnapshot().player.health).toBe(3);
+    expect(sim.getSnapshot().player.maxHealth).toBe(3);
     expect(sim.getSnapshot().player.alive).toBe(true);
     expect(sim.getSnapshot().scoring.score).toBe(0);
     expect(sim.currentTick).toBe(0);

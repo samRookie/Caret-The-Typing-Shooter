@@ -49,7 +49,7 @@ describe('Desktop Prototype Configuration Invariants', () => {
       expect(preset.maxConcurrentEnemies).toBeGreaterThanOrEqual(1);
       expect(preset.wordLengthRange.min).toBeGreaterThanOrEqual(2);
       expect(preset.wordLengthRange.max).toBeGreaterThanOrEqual(preset.wordLengthRange.min);
-      expect(preset.playerMaxHealth).toBeGreaterThan(0);
+      expect(preset.playerMaxHealth).toBe(3);
     }
   });
 
@@ -64,7 +64,7 @@ describe('Desktop Prototype Configuration Invariants', () => {
     expect(sim.spawnY).toBe(40);
     expect(sim.spawnMarginX).toBe(60);
     expect(sim.hullRadius).toBe(28);
-    expect(sim.collisionDamage).toBe(20);
+    expect(sim.collisionDamage).toBe(1);
     expect(sim.initialSpawnDelaySeconds).toBe(1.0);
     expect(sim.waveIntermissionSeconds).toBe(2);
     expect(sim.labelCharWidthPx).toBe(14);
