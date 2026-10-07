@@ -6,6 +6,9 @@ import {
   DEFAULT_SCORING_RULES,
   DEFAULT_RUN_CONFIG,
   PLAYER_START,
+  TARGET_DRONE_WIDTH,
+  TARGET_SHIP_SIZE,
+  SHOW_LOCK_RETICLE,
 } from '@/shared/config/defaultConfig';
 import {
   ScoringState,
@@ -61,9 +64,9 @@ describe('Desktop Prototype Configuration Invariants', () => {
 
   it('validates simulation config parameters and thresholds', () => {
     const sim = DEFAULT_RUN_CONFIG.simulation;
-    expect(sim.spawnY).toBe(40);
+    expect(sim.spawnY).toBe(64);
     expect(sim.spawnMarginX).toBe(60);
-    expect(sim.hullRadius).toBe(28);
+    expect(sim.hullRadius).toBe(24);
     expect(sim.collisionDamage).toBe(1);
     expect(sim.initialSpawnDelaySeconds).toBe(1.0);
     expect(sim.waveIntermissionSeconds).toBe(2);
@@ -78,6 +81,17 @@ describe('Desktop Prototype Configuration Invariants', () => {
     expect(sim.waveScaling.quotaBase).toBe(6);
     expect(sim.waveScaling.quotaPerWave).toBe(2);
     expect(sim.waveScaling.quotaMax).toBe(30);
+  });
+
+  it('derives hitboxRadius and hullRadius dynamically from target size constants (Rule R-E)', () => {
+    expect(DRONE_ARCHETYPE.hitboxRadius).toBe(Math.round(0.8 * (TARGET_DRONE_WIDTH / 2)));
+    expect(DRONE_ARCHETYPE.hitboxRadius).toBe(18);
+    expect(DEFAULT_RUN_CONFIG.simulation.hullRadius).toBe(
+      Math.round(0.8 * (TARGET_SHIP_SIZE.width / 2))
+    );
+    expect(DEFAULT_RUN_CONFIG.simulation.hullRadius).toBe(24);
+    expect(DEFAULT_RUN_CONFIG.simulation.spawnY).toBe(64);
+    expect(SHOW_LOCK_RETICLE).toBe(false);
   });
 
   it('validates scoring rules contract (+1 per character typed)', () => {

@@ -64,10 +64,18 @@ export const DIFFICULTY_PRESETS: Record<DifficultyPresetId, DifficultyPreset> = 
   },
 };
 
+export const TARGET_DRONE_WIDTH = 44;
+export const TARGET_SHIP_SIZE = {
+  width: 60,
+  height: 87,
+} as const;
+
+export const SHOW_LOCK_RETICLE = false;
+
 export const DRONE_ARCHETYPE: EnemyArchetypeConfig = {
   type: 'drone',
   healthPerLetter: 1,
-  hitboxRadius: 24,
+  hitboxRadius: Math.round(0.8 * (TARGET_DRONE_WIDTH / 2)),
 };
 
 export const DEFAULT_SCORING_RULES: ScoringRules = {
@@ -75,9 +83,9 @@ export const DEFAULT_SCORING_RULES: ScoringRules = {
 };
 
 export const DEFAULT_SIMULATION_CONFIG: GameplaySimulationConfig = {
-  spawnY: 40,
+  spawnY: 64,
   spawnMarginX: 60,
-  hullRadius: 28,
+  hullRadius: Math.round(0.8 * (TARGET_SHIP_SIZE.width / 2)),
   collisionDamage: 1,
   initialSpawnDelaySeconds: 1.0,
   waveIntermissionSeconds: 2,
