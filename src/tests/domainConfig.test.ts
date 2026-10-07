@@ -66,7 +66,6 @@ describe('Desktop Prototype Configuration Invariants', () => {
     expect(sim.initialSpawnDelaySeconds).toBe(1.0);
     expect(sim.waveIntermissionSeconds).toBe(2);
     expect(sim.labelCharWidthPx).toBe(14);
-    expect(sim.waveClearBonus).toBe(100);
     expect(sim.spawnGapWindowSeconds).toBe(1.5);
     expect(sim.commonalityStart).toBe(0.35);
     expect(sim.commonalityStep).toBe(0.1);
@@ -79,22 +78,8 @@ describe('Desktop Prototype Configuration Invariants', () => {
     expect(sim.waveScaling.quotaMax).toBe(30);
   });
 
-  it('enforces monotonic multiplier progression in scoring rules', () => {
-    const thresholds = DEFAULT_SCORING_RULES.multiplierThresholds;
-    expect(thresholds.length).toBeGreaterThan(0);
-    expect(DEFAULT_SCORING_RULES.scorePerChar).toBeGreaterThan(0);
-    expect(DEFAULT_SCORING_RULES.enemyClearBonus).toBeGreaterThan(0);
-
-    for (let i = 1; i < thresholds.length; i++) {
-      const current = thresholds[i];
-      const prev = thresholds[i - 1];
-      expect(current).toBeDefined();
-      expect(prev).toBeDefined();
-      if (current && prev) {
-        expect(current.streak).toBeGreaterThan(prev.streak);
-        expect(current.multiplier).toBeGreaterThanOrEqual(prev.multiplier);
-      }
-    }
+  it('validates scoring rules contract (+1 per character typed)', () => {
+    expect(DEFAULT_SCORING_RULES.scorePerChar).toBe(1);
   });
 
   it('enforces accuracy contract: strictly 100% when hits + misses is 0', () => {
@@ -113,7 +98,6 @@ describe('Desktop Prototype Configuration Invariants', () => {
       score: 0,
       streak: 0,
       maxStreak: 0,
-      multiplier: 1,
       accuracy: computeAccuracy(0, 0),
       hits: 0,
       misses: 0,
@@ -145,7 +129,7 @@ describe('GameEvent Discriminated Union Handling', () => {
   function formatEventMessage(event: GameEvent): string {
     switch (event.type) {
       case 'INPUT_MATCH':
-        return `MATCH: ${event.char} on ${event.enemyId} @ tick ${event.tick}`;
+        return `MATCH: ${event.char} (+${event.scoreAwarded}) on ${event.enemyId} @ tick ${event.tick}`;
       case 'INPUT_MISMATCH':
         return `MISMATCH: ${event.char} @ tick ${event.tick}`;
       case 'TARGET_LOCKED':
@@ -157,7 +141,7 @@ describe('GameEvent Discriminated Union Handling', () => {
       case 'ENEMY_HIT':
         return `HIT: ${event.damage} dmg @ tick ${event.tick}`;
       case 'ENEMY_DESTROYED':
-        return `DESTROYED: +${event.scoreAwarded} pts via ${event.cause} @ tick ${event.tick}`;
+        return `DESTROYED: via ${event.cause} @ tick ${event.tick}`;
       case 'PLAYER_DAMAGED':
         return `HULL: -${event.damage} @ tick ${event.tick}`;
       case 'ENEMY_SPAWNED':
@@ -177,29 +161,28 @@ describe('GameEvent Discriminated Union Handling', () => {
       char: 'r',
       enemyId: 'drone-1',
       remainingWord: 'econ',
+      scoreAwarded: 1,
       tick: 60,
     };
-    expect(formatEventMessage(matchEvent)).toBe('MATCH: r on drone-1 @ tick 60');
+    expect(formatEventMessage(matchEvent)).toBe('MATCH: r (+1) on drone-1 @ tick 60');
 
     const destroyWordEvent: GameEvent = {
       type: 'ENEMY_DESTROYED',
       enemyId: 'drone-1',
-      scoreAwarded: 150,
       position: { x: 640, y: 200 },
       cause: 'word',
       tick: 72,
     };
-    expect(formatEventMessage(destroyWordEvent)).toBe('DESTROYED: +150 pts via word @ tick 72');
+    expect(formatEventMessage(destroyWordEvent)).toBe('DESTROYED: via word @ tick 72');
 
     const destroyCollisionEvent: GameEvent = {
       type: 'ENEMY_DESTROYED',
       enemyId: 'drone-2',
-      scoreAwarded: 0,
       position: { x: 640, y: 620 },
       cause: 'collision',
       tick: 120,
     };
-    expect(formatEventMessage(destroyCollisionEvent)).toBe('DESTROYED: +0 pts via collision @ tick 120');
+    expect(formatEventMessage(destroyCollisionEvent)).toBe('DESTROYED: via collision @ tick 120');
 
     const spawnEvent: GameEvent = {
       type: 'ENEMY_SPAWNED',
@@ -255,7 +238,6 @@ describe('GameSnapshot Contract Integrity', () => {
       score: 350,
       streak: 5,
       maxStreak: 5,
-      multiplier: 2,
       accuracy: 100,
       hits: 5,
       misses: 0,
@@ -280,7 +262,6 @@ describe('GameSnapshot Contract Integrity', () => {
     expect(snapshot.enemies.length).toBe(1);
     expect(snapshot.enemies[0]?.word).toBe('RADAR');
     expect(snapshot.enemies[0]?.spawnTick).toBe(30);
-    expect(snapshot.scoring.multiplier).toBe(2);
     expect(snapshot.elapsedTicks).toBe(750);
   });
 });

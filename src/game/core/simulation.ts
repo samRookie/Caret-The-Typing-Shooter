@@ -11,23 +11,23 @@
  *    remainingWord[0]. Tie-break: smallest squared distance to the player, then lowest
  *    numeric id. A match locks the target.
  * 4. No match while unlocked: INPUT_MISMATCH (activeTargetId: null), misses +1,
- *    streak 0, multiplier 1.
+ *    streak 0.
  * 5. While locked: char must equal the locked enemy's remainingWord[0]. A mismatch
- *    applies the same penalty and the lock stays.
+ *    applies the same penalty (misses +1, streak 0) and the lock stays.
  * 6. release-target: clears the lock, keeps typed progress, emits TARGET_LOST,
  *    no penalty. No-op when unlocked.
  * 7. Event order for a correct char: [TARGET_LOCKED only if this char acquired the lock],
  *    INPUT_MATCH, PROJECTILE_SPAWNED, ENEMY_HIT. On the final char additionally
  *    ENEMY_DESTROYED{cause:"word"}, then TARGET_LOST.
- * 8. Scoring: on a correct char: streak +1; multiplier = lookup(streak); score +=
- *    scorePerChar * multiplier. On word completion: score += enemyClearBonus * multiplier.
- *    ENEMY_DESTROYED.scoreAwarded = the clear bonus only. wordsCompleted +1; track maxStreak.
+ * 8. Scoring (Decision D1): on a correct char: streak +1, maxStreak tracked; score += 1;
+ *    INPUT_MATCH carries scoreAwarded: 1. No word clear bonus, no wave bonus.
+ *    Streak tracks consecutive hits and is informational only.
  * 9. accuracy = 100 * hits / (hits + misses), and 100 when hits + misses = 0.
  *    wpm = (hits / 5) / minutes, 0 when elapsed ticks = 0.
  * 10. ENEMY_DESTROYED carries the enemy's position at the moment of the kill
  *     (the renderer plays the death effect after the entity leaves the snapshot).
  * 11. Collision: squared distance <= (enemy.hitboxRadius + hullRadius)^2. Events in order:
- *     PLAYER_DAMAGED, ENEMY_DESTROYED{cause:"collision", scoreAwarded:0}, TARGET_LOST
+ *     PLAYER_DAMAGED, ENEMY_DESTROYED{cause:"collision"}, TARGET_LOST
  *     (if it was the locked enemy), then GAME_OVER if health <= 0. Collisions do not touch
  *     streak or accuracy.
  * 12. Game over: status = "game-over"; getResult() builds GameResult (outcome "defeat",
@@ -117,7 +117,6 @@ export class GameSimulation {
   private score: number = 0;
   private streak: number = 0;
   private maxStreak: number = 0;
-  private multiplier: number = 1;
   private hits: number = 0;
   private misses: number = 0;
   private wordsCompleted: number = 0;
@@ -195,7 +194,6 @@ export class GameSimulation {
     this.score = 0;
     this.streak = 0;
     this.maxStreak = 0;
-    this.multiplier = 1;
     this.hits = 0;
     this.misses = 0;
     this.wordsCompleted = 0;
@@ -388,8 +386,7 @@ export class GameSimulation {
     if (this.streak > this.maxStreak) {
       this.maxStreak = this.streak;
     }
-    this.multiplier = this.computeMultiplier(this.streak);
-    this.score += this.scoringRules.scorePerChar * this.multiplier;
+    this.score += this.scoringRules.scorePerChar;
 
     // Advance word substring & reduce health
     enemy.remainingWord = enemy.remainingWord.slice(1);
@@ -401,6 +398,7 @@ export class GameSimulation {
       char,
       enemyId: enemy.id,
       remainingWord: enemy.remainingWord,
+      scoreAwarded: 1,
       tick: this.currentTick,
     });
 
@@ -425,14 +423,10 @@ export class GameSimulation {
       enemy.alive = false;
       this.wordsCompleted++;
 
-      const clearBonus = this.scoringRules.enemyClearBonus * this.multiplier;
-      this.score += clearBonus;
-
       // Event order on kill: ENEMY_DESTROYED -> TARGET_LOST
       this.emit({
         type: 'ENEMY_DESTROYED',
         enemyId: enemy.id,
-        scoreAwarded: clearBonus,
         position: { ...enemy.position },
         cause: 'word',
         tick: this.currentTick,
@@ -455,7 +449,6 @@ export class GameSimulation {
   private processMismatch(char: string, lockedEnemyId: string | null): void {
     this.misses++;
     this.streak = 0;
-    this.multiplier = 1;
 
     this.emit({
       type: 'INPUT_MISMATCH',
@@ -739,7 +732,6 @@ export class GameSimulation {
     this.emit({
       type: 'ENEMY_DESTROYED',
       enemyId: enemy.id,
-      scoreAwarded: 0,
       position: { ...enemy.position },
       cause: 'collision',
       tick: this.currentTick,
@@ -770,13 +762,9 @@ export class GameSimulation {
       const aliveCount = this.enemies.filter((e) => e.alive).length;
       if (aliveCount === 0) {
         // Wave complete!
-        const bonus = this.config.simulation.waveClearBonus * this.waveNumber;
-        this.score += bonus;
-
         this.emit({
           type: 'WAVE_COMPLETED',
           waveNumber: this.waveNumber,
-          bonusScore: bonus,
           tick: this.currentTick,
         });
 
@@ -835,17 +823,6 @@ export class GameSimulation {
     if (elapsedMinutes <= 0) return 0;
     const standardWords = this.hits / 5;
     return Math.round(standardWords / elapsedMinutes);
-  }
-
-  private computeMultiplier(streak: number): number {
-    const thresholds = this.scoringRules.multiplierThresholds;
-    let mult = 1;
-    for (const t of thresholds) {
-      if (streak >= t.streak) {
-        mult = t.multiplier;
-      }
-    }
-    return mult;
   }
 
   private evaluateRating(accuracy: number): PerformanceRating {
@@ -914,7 +891,6 @@ export class GameSimulation {
       score: this.score,
       streak: this.streak,
       maxStreak: this.maxStreak,
-      multiplier: this.multiplier,
       accuracy: this.computeAccuracy(),
       hits: this.hits,
       misses: this.misses,

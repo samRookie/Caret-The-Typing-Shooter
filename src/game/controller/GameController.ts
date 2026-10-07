@@ -24,7 +24,6 @@ export interface HudState {
   readonly score: number;
   readonly wave: number;
   readonly streak: number;
-  readonly multiplier: number;
   readonly accuracy: number;
   readonly hull: number;
   readonly maxHull: number;
@@ -52,7 +51,6 @@ export const INITIAL_HUD_STATE: HudState = {
   score: 0,
   wave: 1,
   streak: 0,
-  multiplier: 1,
   accuracy: 100,
   hull: 100,
   maxHull: 100,
@@ -119,7 +117,6 @@ export function extractHudState(snapshot: GameSnapshot): HudState {
     score: snapshot.scoring.score,
     wave: snapshot.wave.waveNumber,
     streak: snapshot.scoring.streak,
-    multiplier: snapshot.scoring.multiplier,
     accuracy: snapshot.scoring.accuracy,
     hull: snapshot.player.health,
     maxHull: snapshot.player.maxHealth,
@@ -439,7 +436,6 @@ export class GameController {
           score: 0,
           streak: 0,
           maxStreak: 0,
-          multiplier: 1,
           accuracy: 100,
           hits: 0,
           misses: 0,

@@ -11,7 +11,6 @@ describe('8.C HUD Overlay Data Binding & Render Throttle', () => {
       score: 1850,
       wave: 3,
       streak: 9,
-      multiplier: 2,
       accuracy: 94,
       hull: 80,
       maxHull: 100,
@@ -25,11 +24,10 @@ describe('8.C HUD Overlay Data Binding & Render Throttle', () => {
 
     render(<HUDOverlay hud={hud} onPause={onPause} />);
 
-    // Score, wave, streak, multiplier, accuracy
+    // Score, wave, streak, accuracy
     expect(screen.getByText('1850')).toBeInTheDocument();
     expect(screen.getByText('03')).toBeInTheDocument(); // Padded to 2 digits
     expect(screen.getByText('9')).toBeInTheDocument();
-    expect(screen.getByText('2x')).toBeInTheDocument();
     expect(screen.getByText('94%')).toBeInTheDocument();
 
     // Hull progress bar
@@ -55,7 +53,6 @@ describe('8.C HUD Overlay Data Binding & Render Throttle', () => {
       score: 0,
       wave: 1,
       streak: 0,
-      multiplier: 1,
       accuracy: 100,
       hull: 100,
       maxHull: 100,
@@ -80,7 +77,6 @@ describe('8.C HUD Overlay Data Binding & Render Throttle', () => {
       score: 100,
       wave: 1,
       streak: 0,
-      multiplier: 1,
       accuracy: 100,
       hull: 100,
       maxHull: 100,

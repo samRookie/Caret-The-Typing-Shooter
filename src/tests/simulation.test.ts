@@ -192,11 +192,16 @@ describe('Target Acquisition and Typing Rules (4.C)', () => {
       'TARGET_LOST',
     ]);
 
+    const matchEvent = eventsChar3.find((e) => e.type === 'INPUT_MATCH');
+    expect(matchEvent).toBeDefined();
+    if (matchEvent && matchEvent.type === 'INPUT_MATCH') {
+      expect(matchEvent.scoreAwarded).toBe(1);
+    }
+
     const destroyEvent = eventsChar3.find((e) => e.type === 'ENEMY_DESTROYED');
     expect(destroyEvent).toBeDefined();
     if (destroyEvent && destroyEvent.type === 'ENEMY_DESTROYED') {
       expect(destroyEvent.cause).toBe('word');
-      expect(destroyEvent.scoreAwarded).toBe(100); // Base clear bonus at 1x
     }
   });
 
@@ -367,7 +372,7 @@ describe('Target Acquisition and Typing Rules (4.C)', () => {
     expect(events.some((e) => e.type === 'PLAYER_DAMAGED')).toBe(true);
   });
 
-  it('evaluates scoring, streak progression, and multipliers accurately', () => {
+  it('evaluates scoring and streak progression (+1 per character)', () => {
     const mockWordProvider: IWordProvider = {
       nextWord: () => 'zap',
       stats: { fallbacks: 0 },
@@ -380,19 +385,29 @@ describe('Target Acquisition and Typing Rules (4.C)', () => {
       sim.tick();
     }
 
-    // 1 char deal 10 pts * 1x multiplier = 10 pts
+    // 1 char deal exactly 1 pt
     sim.handleCommand({ type: 'char', char: 'z' });
-    expect(sim.getSnapshot().scoring.score).toBe(10);
+    expect(sim.getSnapshot().scoring.score).toBe(1);
     expect(sim.getSnapshot().scoring.streak).toBe(1);
+    expect(sim.getSnapshot().scoring.maxStreak).toBe(1);
 
     sim.handleCommand({ type: 'char', char: 'a' });
-    expect(sim.getSnapshot().scoring.score).toBe(20);
+    expect(sim.getSnapshot().scoring.score).toBe(2);
     expect(sim.getSnapshot().scoring.streak).toBe(2);
+    expect(sim.getSnapshot().scoring.maxStreak).toBe(2);
 
-    // Final char: 10 pts + 100 clear bonus = 130 total
+    // Final char: +1 pt, no clear bonus = 3 total
     sim.handleCommand({ type: 'char', char: 'p' });
-    expect(sim.getSnapshot().scoring.score).toBe(130);
+    expect(sim.getSnapshot().scoring.score).toBe(3);
+    expect(sim.getSnapshot().scoring.streak).toBe(3);
+    expect(sim.getSnapshot().scoring.maxStreak).toBe(3);
     expect(sim.getSnapshot().scoring.wordsCompleted).toBe(1);
+
+    // Mismatch: resets streak to 0, score stays 3, maxStreak stays 3
+    sim.handleCommand({ type: 'char', char: 'x' });
+    expect(sim.getSnapshot().scoring.score).toBe(3);
+    expect(sim.getSnapshot().scoring.streak).toBe(0);
+    expect(sim.getSnapshot().scoring.maxStreak).toBe(3);
   });
 
   it('evaluates accuracy 100% at zero attempts and WPM 0 at zero elapsed ticks', () => {
@@ -550,7 +565,6 @@ describe('Wave Progression, Intermission and Concurrent Cap (4.E)', () => {
     expect(waveClearEvent).toBeDefined();
     if (waveClearEvent && waveClearEvent.type === 'WAVE_COMPLETED') {
       expect(waveClearEvent.waveNumber).toBe(1);
-      expect(waveClearEvent.bonusScore).toBe(100);
     }
 
     expect(sim.getSnapshot().wave.isCompleted).toBe(true);

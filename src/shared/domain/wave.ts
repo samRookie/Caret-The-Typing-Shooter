@@ -28,8 +28,6 @@ export interface ScoringState {
   readonly streak: number;
   /** Highest streak achieved during the current run (range: >= 0). */
   readonly maxStreak: number;
-  /** Current score multiplier derived from streak thresholds (range: >= 1). */
-  readonly multiplier: number;
   /**
    * Typing accuracy as a percentage (range: 0..100).
    * Calculated as (hits / (hits + misses)) * 100.

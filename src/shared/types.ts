@@ -5,7 +5,6 @@ export interface TelemetryData {
   score: number;
   wave: number;
   streak: number;
-  multiplier: number;
   accuracy: number;
   activeTarget: string | null;
   activeTargetTypedIndex?: number;

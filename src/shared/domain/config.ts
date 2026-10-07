@@ -86,7 +86,6 @@ export interface GameplaySimulationConfig {
   readonly initialSpawnDelaySeconds: number;
   readonly waveIntermissionSeconds: number;
   readonly labelCharWidthPx: number;
-  readonly waveClearBonus: number;
   readonly spawnGapWindowSeconds: number;
   readonly commonalityStart: number;
   readonly commonalityStep: number;
@@ -95,25 +94,11 @@ export interface GameplaySimulationConfig {
 }
 
 /**
- * Streak milestone required to reach a score multiplier tier.
- */
-export interface MultiplierThreshold {
-  /** Streak count needed to activate this multiplier (range: >= 0). */
-  readonly streak: number;
-  /** Score multiplier applied to character hits and destruction (range: >= 1). */
-  readonly multiplier: number;
-}
-
-/**
- * Scoring curves and multiplier progression rules.
+ * Scoring curves and character point values.
  */
 export interface ScoringRules {
-  /** Base points awarded per correct character typed (unit: points, range: > 0). */
+  /** Base points awarded per correct character typed (unit: points, strictly 1 in R1). */
   readonly scorePerChar: number;
-  /** Base bonus awarded upon completely typing and destroying an enemy (unit: points, range: > 0). */
-  readonly enemyClearBonus: number;
-  /** Tiered multiplier schedule ordered by streak requirement ascending. */
-  readonly multiplierThresholds: readonly MultiplierThreshold[];
 }
 
 /**

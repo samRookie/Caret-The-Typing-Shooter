@@ -32,6 +32,8 @@ export type GameEvent =
       readonly enemyId: string;
       /** Remaining untyped characters of the enemy word. */
       readonly remainingWord: string;
+      /** Score points awarded for this match (strictly 1). */
+      readonly scoreAwarded: number;
       /** Simulation tick index when event occurred (unit: ticks, range: >= 0). */
       readonly tick: number;
     }
@@ -106,8 +108,6 @@ export type GameEvent =
       readonly type: 'ENEMY_DESTROYED';
       /** Enemy identifier that was destroyed. */
       readonly enemyId: string;
-      /** Score points awarded for destruction (unit: points, range: >= 0). */
-      readonly scoreAwarded: number;
       /** Enemy coordinate when destroyed. */
       readonly position: Vector2;
       /** Cause of enemy destruction: completed word or hull collision. */
@@ -128,8 +128,6 @@ export type GameEvent =
       readonly type: 'WAVE_COMPLETED';
       /** Index of completed wave (range: >= 1). */
       readonly waveNumber: number;
-      /** Bonus points awarded for clearing the wave (unit: points, range: >= 0). */
-      readonly bonusScore: number;
       /** Simulation tick index when event occurred (unit: ticks, range: >= 0). */
       readonly tick: number;
     }

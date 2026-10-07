@@ -71,14 +71,7 @@ export const DRONE_ARCHETYPE: EnemyArchetypeConfig = {
 };
 
 export const DEFAULT_SCORING_RULES: ScoringRules = {
-  scorePerChar: 10,
-  enemyClearBonus: 100,
-  multiplierThresholds: [
-    { streak: 0, multiplier: 1 },
-    { streak: 5, multiplier: 2 },
-    { streak: 10, multiplier: 3 },
-    { streak: 20, multiplier: 4 },
-  ],
+  scorePerChar: 1,
 };
 
 export const DEFAULT_SIMULATION_CONFIG: GameplaySimulationConfig = {
@@ -89,7 +82,6 @@ export const DEFAULT_SIMULATION_CONFIG: GameplaySimulationConfig = {
   initialSpawnDelaySeconds: 1.0,
   waveIntermissionSeconds: 2,
   labelCharWidthPx: 14,
-  waveClearBonus: 100,
   spawnGapWindowSeconds: 1.5,
   commonalityStart: 0.35,
   commonalityStep: 0.1,

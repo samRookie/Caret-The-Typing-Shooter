@@ -25,7 +25,6 @@ export const HUDOverlay: React.FC<HUDOverlayProps> = ({
         score: telemetry.score,
         wave: telemetry.wave,
         streak: telemetry.streak,
-        multiplier: telemetry.multiplier,
         accuracy: telemetry.accuracy,
         hull: 100,
         maxHull: 100,
@@ -42,7 +41,6 @@ export const HUDOverlay: React.FC<HUDOverlayProps> = ({
         score: 0,
         wave: 1,
         streak: 0,
-        multiplier: 1,
         accuracy: 100,
         hull: 100,
         maxHull: 100,
@@ -84,11 +82,6 @@ export const HUDOverlay: React.FC<HUDOverlayProps> = ({
             variant="default"
           />
           <MetricCard label="STREAK" value={activeHud.streak} variant="success" />
-          <MetricCard
-            label="MULTIPLIER"
-            value={`${activeHud.multiplier}x`}
-            variant="accent"
-          />
           <MetricCard
             label="ACCURACY"
             value={`${activeHud.accuracy}%`}

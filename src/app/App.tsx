@@ -244,7 +244,6 @@ export const App: React.FC = () => {
                     score: 1450,
                     wave: 1,
                     streak: 8,
-                    multiplier: 2,
                     accuracy: 94,
                     activeTarget: 'RECON',
                     activeTargetTypedIndex: 2,

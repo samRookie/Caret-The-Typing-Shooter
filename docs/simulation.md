@@ -12,22 +12,24 @@ All time progression is quantized into discrete 60Hz simulation ticks (`tickRate
 1. **Command Lifecycle:** Commands are strictly ignored unless simulation status is `'running'`. After `'game-over'`, `tick()` and `handleCommand()` perform no operations.
 2. **Health Per Letter:** At spawn, `maxHealth = health = word.length`. Each correct character keystroke inflicts exactly 1 damage. The word completes and the enemy is destroyed precisely when health reaches 0.
 3. **Target Acquisition & Tie-Breaking:** When no target is locked, typed character is matched against `remainingWord[0]` across all alive enemies. Tie-break: resolved by smallest squared Euclidean distance to player, then by lowest numeric entity ID (e.g. `e1` before `e2`, `e9` before `e10`). A match locks the target and emits `TARGET_LOCKED` before processing the hit.
-4. **Unlocked Mismatch Penalty:** Mismatch while unlocked emits `INPUT_MISMATCH` with `activeTargetId: null`, increments `misses`, resets `streak` to 0, and resets `multiplier` to 1.
-5. **Locked Mismatch Penalty:** Keystrokes must match `lockedEnemy.remainingWord[0]`. On mismatch, the same penalty applies (`misses++`, `streak = 0`, `multiplier = 1`), but the **target lock persists**.
+4. **Unlocked Mismatch Penalty:** Mismatch while unlocked emits `INPUT_MISMATCH` with `activeTargetId: null`, increments `misses`, and resets `streak` to 0.
+5. **Locked Mismatch Penalty:** Keystrokes must match `lockedEnemy.remainingWord[0]`. On mismatch, the same penalty applies (`misses++`, `streak = 0`), but the **target lock persists**.
 6. **Target Release (`release-target`):** Clears the active lock, retains partial typing progress on the enemy, emits `TARGET_LOST`, and applies no penalty. Calling `release-target` while unlocked is a no-op.
 7. **Event Dispatch Order for Correct Character:**
    - Non-final character: `[TARGET_LOCKED if freshly acquired] -> INPUT_MATCH -> PROJECTILE_SPAWNED -> ENEMY_HIT`.
    - Final character completing word: `[TARGET_LOCKED if freshly acquired] -> INPUT_MATCH -> PROJECTILE_SPAWNED -> ENEMY_HIT -> ENEMY_DESTROYED {cause: "word"} -> TARGET_LOST`.
-8. **Scoring & Multipliers:**
-   - Correct character: `streak++`, `multiplier = lookup(streak)`, `score += scorePerChar * multiplier`.
-   - Word completion: `score += enemyClearBonus * multiplier`. `ENEMY_DESTROYED.scoreAwarded` records the clear bonus only. `wordsCompleted++`; track `maxStreak`.
+8. **Scoring (Decision D1):**
+   - Correct character: `streak++`, `score += 1`, `INPUT_MATCH` carries `scoreAwarded: 1`. Track `maxStreak`.
+   - Word completion: `wordsCompleted++`. No bonus points awarded; `ENEMY_DESTROYED` carries no score field.
+   - Wave clear: `WAVE_COMPLETED` carries no bonus score.
+   - Streak tracks consecutive correct characters; informational only (no score multiplier).
 9. **Accuracy & WPM Metrics:**
    - $$\text{Accuracy} = 100 \times \frac{\text{hits}}{\text{hits} + \text{misses}}$$ (strictly 100% when $\text{hits} + \text{misses} = 0$).
    - $$\text{WPM} = \frac{\text{hits} / 5}{\text{elapsedMinutes}}$$ (strictly 0 when $\text{elapsedTicks} = 0$).
 10. **Death Effect Anchor:** `ENEMY_DESTROYED` carries the enemy's physical position at the moment of kill so the renderer can play the explosion after entity snapshot eviction.
 11. **Hull Collision:**
     - Collision threshold: $\text{distance}^2 \le (\text{enemy.hitboxRadius} + \text{hullRadius})^2$.
-    - Event order: `PLAYER_DAMAGED` -> `ENEMY_DESTROYED {cause: "collision", scoreAwarded: 0}` -> `TARGET_LOST` (if locked) -> `GAME_OVER` (if health $\le 0$).
+    - Event order: `PLAYER_DAMAGED` -> `ENEMY_DESTROYED {cause: "collision"}` -> `TARGET_LOST` (if locked) -> `GAME_OVER` (if health $\le 0$).
     - Collisions do not touch keystroke streak or accuracy metrics.
 12. **Game Over & Rating Debriefing:**
     - Status transitions to `'game-over'`; `getResult()` compiles immutable `GameResult` (`outcome: "defeat"`, rating from accuracy thresholds, `durationMs` derived from ticks). After game over, `tick()` and commands do nothing. `start()` fully resets state.
@@ -50,17 +52,17 @@ Every tick executes in strictly specified, deterministic order:
 
 | Scenario | Event Dispatch Sequence | Notes |
 | :--- | :--- | :--- |
-| **First char matches unacquired enemy** | 1. `TARGET_LOCKED`<br>2. `INPUT_MATCH`<br>3. `PROJECTILE_SPAWNED`<br>4. `ENEMY_HIT` | Fresh target lock acquired; bolt fired to enemy coordinate. |
-| **Middle char matches locked enemy** | 1. `INPUT_MATCH`<br>2. `PROJECTILE_SPAWNED`<br>3. `ENEMY_HIT` | Target already locked; no duplicate `TARGET_LOCKED`. |
+| **First char matches unacquired enemy** | 1. `TARGET_LOCKED`<br>2. `INPUT_MATCH`<br>3. `PROJECTILE_SPAWNED`<br>4. `ENEMY_HIT` | Fresh target lock acquired; bolt fired to enemy coordinate; `INPUT_MATCH` awards `scoreAwarded: 1`. |
+| **Middle char matches locked enemy** | 1. `INPUT_MATCH`<br>2. `PROJECTILE_SPAWNED`<br>3. `ENEMY_HIT` | Target already locked; no duplicate `TARGET_LOCKED`; `INPUT_MATCH` awards `scoreAwarded: 1`. |
 | **Final char completing enemy word** | 1. `INPUT_MATCH`<br>2. `PROJECTILE_SPAWNED`<br>3. `ENEMY_HIT`<br>4. `ENEMY_DESTROYED` (`cause: 'word'`)<br>5. `TARGET_LOST` | Entity removed from active snapshot; death effect triggered at kill position. |
 | **Typing mismatch (unlocked)** | 1. `INPUT_MISMATCH` (`activeTargetId: null`) | Streak reset, misses incremented. |
 | **Typing mismatch (locked)** | 1. `INPUT_MISMATCH` (`activeTargetId: lockedId`) | Streak reset, misses incremented; lock persists. |
 | **Release target command** | 1. `TARGET_LOST` | Lock dropped; progress saved on enemy. |
-| **Enemy hull collision (survived)** | 1. `PLAYER_DAMAGED`<br>2. `ENEMY_DESTROYED` (`cause: 'collision'`)<br>3. `TARGET_LOST` (if locked) | Hull takes 20 damage, enemy destroyed with 0 pts. |
+| **Enemy hull collision (survived)** | 1. `PLAYER_DAMAGED`<br>2. `ENEMY_DESTROYED` (`cause: 'collision'`)<br>3. `TARGET_LOST` (if locked) | Hull takes collision damage, enemy destroyed. |
 | **Enemy hull collision (lethal)** | 1. `PLAYER_DAMAGED`<br>2. `ENEMY_DESTROYED` (`cause: 'collision'`)<br>3. `TARGET_LOST` (if locked)<br>4. `GAME_OVER` (`outcome: 'defeat'`) | Status set to `'game-over'`; simulation halts. |
 | **Wave start** | 1. `WAVE_STARTED` (`waveNumber`, `quota`) | Dispatched upon run start and after intermissions. |
 | **Enemy spawn** | 1. `ENEMY_SPAWNED` (`enemyId`, `position`) | Dispatched on every physical enemy creation. |
-| **Wave clear** | 1. `WAVE_COMPLETED` (`waveNumber`, `bonusScore`) | Triggered when quota spawned and all enemies destroyed. |
+| **Wave clear** | 1. `WAVE_COMPLETED` (`waveNumber`) | Triggered when quota spawned and all enemies destroyed. |
 
 ---
 
