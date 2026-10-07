@@ -1,3 +1,5 @@
+export const PHASER_FONT_FAMILY = 'Tektur';
+
 /**
  * Part A & B Design Tokens - Minimalist Dark Sci-Fi Tactical Console
  */
@@ -21,11 +23,10 @@ export const THEME = {
     plateBg: 'rgba(10, 14, 20, 0.92)',
   },
   typography: {
-    fontDisplay: "'KenneyFuture', monospace, sans-serif",
-    fontCondensed: "'KenneyFutureNarrow', monospace, sans-serif",
-    fontSans:
-      "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
-    fontMono: "'Courier New', Courier, monospace",
+    fontDisplay: '"Tektur", ui-sans-serif, system-ui, sans-serif',
+    fontCondensed: '"Tektur", ui-sans-serif, system-ui, sans-serif',
+    fontSans: '"Tektur", ui-sans-serif, system-ui, sans-serif',
+    fontMono: '"Tektur", monospace',
     sizes: {
       xs: '11px',
       sm: '12px',

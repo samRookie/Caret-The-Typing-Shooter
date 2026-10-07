@@ -1,18 +1,7 @@
-@font-face {
-  font-family: 'KenneyFuture';
-  src: url('/assets/fonts/kenney-future.ttf') format('truetype');
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'KenneyFutureNarrow';
-  src: url('/assets/fonts/kenney-future-narrow.ttf') format('truetype');
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
+@import '@fontsource/tektur/latin-400.css';
+@import '@fontsource/tektur/latin-500.css';
+@import '@fontsource/tektur/latin-600.css';
+@import '@fontsource/tektur/latin-700.css';
 
 :root {
   /* Color Palette */
@@ -34,11 +23,11 @@
   --plate-bg: rgba(10, 14, 20, 0.92);
 
   /* Typography */
-  --font-display: 'KenneyFuture', monospace, sans-serif;
-  --font-condensed: 'KenneyFutureNarrow', monospace, sans-serif;
-  --font-sans:
-    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  --font-mono: 'Courier New', Courier, monospace;
+  --font-ui: "Tektur", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Tektur", ui-sans-serif, system-ui, sans-serif;
+  --font-condensed: "Tektur", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Tektur", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Tektur", monospace;
 
   /* Typography Sizes */
   --font-size-xs: 11px;

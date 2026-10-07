@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { spawnTargetLock } from '../rendering/phase1-vfx';
 import { DESKTOP_VIEWPORT, PLAYER_START } from '@/shared/config/defaultConfig';
+import { PHASER_FONT_FAMILY } from '@/shared/theme';
 
 export class VisualPreviewScene extends Phaser.Scene {
   private droneEnemy!: Phaser.GameObjects.Image;
@@ -143,7 +144,7 @@ export class VisualPreviewScene extends Phaser.Scene {
 
       const letterText = this.add
         .text(startX + i * spacing, 0, char, {
-          fontFamily: 'KenneyFutureNarrow, monospace',
+          fontFamily: PHASER_FONT_FAMILY,
           fontSize: '15px',
           color,
         })
