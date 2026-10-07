@@ -28,7 +28,7 @@ export const RENDERER_CONFIG = {
   labelCharWidthPx: 14,
   labelPaddingPx: 12,
   labelFontSizePx: 18,
-  labelFontFamily: "Consolas, Monaco, 'Courier New', Courier, monospace",
+  labelFontFamily: 'Tektur',
   plateHeightPx: 26,
 } as const;
 

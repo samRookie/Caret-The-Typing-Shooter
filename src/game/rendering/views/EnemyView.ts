@@ -58,6 +58,7 @@ export class EnemyView {
       const text = scene.add.text(item.x, 0, item.char, {
         fontFamily: RENDERER_CONFIG.labelFontFamily,
         fontSize: `${RENDERER_CONFIG.labelFontSizePx}px`,
+        fontStyle: '600',
         color: this.getColorForState(item.state),
       });
       text.setOrigin(0.5, 0.5);

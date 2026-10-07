@@ -32,7 +32,19 @@ export class BootScene extends Phaser.Scene {
     this.load.audio('wave-complete', `${baseUrl}assets/audio/wave-complete.ogg`);
   }
 
-  create(): void {
+  async create(): Promise<void> {
+    if (typeof document !== 'undefined' && 'fonts' in document) {
+      try {
+        await Promise.all([
+          document.fonts.load('600 18px Tektur'),
+          document.fonts.load('500 16px Tektur'),
+          document.fonts.load('700 48px Tektur'),
+        ]);
+      } catch {
+        // Fall back gracefully if font loading throws
+      }
+    }
+
     const controller = this.registry.get('controller');
     if (controller && typeof controller.setBootComplete === 'function') {
       controller.setBootComplete();
