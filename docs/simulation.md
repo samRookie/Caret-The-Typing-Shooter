@@ -113,6 +113,20 @@ flowchart TD
 - `wordRng` is used **exclusively** by `IWordProvider` to sample candidate words matching the wave's length tier and exclusion rules.
 - **Decoupling Guarantee:** Adding, deleting, or reordering words in the dictionary JSON files has zero effect on the spawn locations, spawn intervals, or spatial trajectories of enemies.
 
+### 5.1 Two-Draw Word Selection Algorithm (Spec 1.4, Sub-section 2.C)
+Each spawned word is generated through exactly two deterministic draws from `wordRng`:
+1. **Draw 1 (Length Selection):** A float in `[0, 1)` maps through the cumulative distribution `lengthWeightsForWave(w)` to select length $L \in [3, 8]$.
+2. **Candidate Pool Resolution & Fallbacks:**
+   - Evaluates the top $\lceil c \cdot |\text{tier } L|\rceil$ words of tier $L$ (where $c = \text{commonalityForWave}(w)$), excluding words currently active on screen and words starting with any currently active first letter.
+   - **Fallback 1:** Drop active first-letter exclusion for length $L$.
+   - **Fallback 2:** Widen length to nearest available length (search order: $[L, L-1, L+1, \dots]$ preferring shorter).
+   - **Fallback 3:** Expand commonality to 1.0 (full tier) across nearest lengths.
+   - **Fallback 4:** Drop active word exclusion across nearest lengths.
+3. **Draw 2 (Weighted Word Pick):** A second float in `[0, 1)` performs weighted selection over the resolved candidate pool in tier order:
+   - Words containing at least one hard letter (`j, k, q, v, w, x, z`) receive weight $M = \text{hardLetterMultiplierForWave}(w) \in [1.0, 2.0]$.
+   - Words without hard letters receive weight $1.0$.
+4. **Invariant:** Exactly two `wordRng.next()` calls are made per word regardless of which fallback path resolved the pool, preserving stream synchrony and strict determinism.
+
 ---
 
 ## 6. Phase 2 Deterministic Replay Specification

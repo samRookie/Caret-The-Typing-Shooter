@@ -11,6 +11,12 @@ import { Mulberry32 } from '@/game/core/prng';
 import { GameSimulation } from '@/game/core/simulation';
 import { DEFAULT_RUN_CONFIG } from '@/shared/config/defaultConfig';
 import {
+  commonalityForWave,
+  hardLetterMultiplierForWave,
+  hasHardLetter,
+  lengthWeightsForWave,
+} from '@/shared/config/progression';
+import {
   buildWordTiers,
   isValidWordCandidate,
 } from '../../scripts/build-words';
@@ -329,5 +335,227 @@ describe('20,000-Tick Simulation Run with Real Data (5.E)', () => {
     expect(duplicateLiveWordsFound).toBe(false);
     console.log(`[20,000-Tick Simulation] Word Provider Fallbacks Count: ${sim.wordProviderStats.fallbacks}`);
     expect(sim.wordProviderStats.fallbacks).toBeGreaterThanOrEqual(0);
+  });
+});
+
+describe('Two-Draw Word Selection Algorithm (Spec 1.4, Sub-section 2.C)', () => {
+  it('makes exactly two RNG draws per word under all conditions (including fallbacks)', () => {
+    class CountingRng extends Mulberry32 {
+      public drawCount = 0;
+      override next(): number {
+        this.drawCount++;
+        return super.next();
+      }
+    }
+
+    const countingRng = new CountingRng(777);
+    const provider = createWordProvider(countingRng);
+
+    // Standard call
+    provider.nextWord({
+      lengthWeights: lengthWeightsForWave(1),
+      commonality: 0.3,
+      hardLetterMultiplier: 1.0,
+      excludeFirstLetters: new Set(),
+      excludeWords: new Set(),
+    });
+    expect(countingRng.drawCount).toBe(2);
+
+    // Call triggering fallback (all words excluded)
+    const exhaustedProvider = createWordProvider(countingRng, {
+      4: ['atom'],
+    });
+    countingRng.drawCount = 0;
+    exhaustedProvider.nextWord({
+      lengthWeights: { 4: 100 },
+      commonality: 1.0,
+      hardLetterMultiplier: 1.0,
+      excludeFirstLetters: new Set(['a']),
+      excludeWords: new Set(['atom']),
+    });
+    // Even when traversing fallback cascade, PRNG must advance exactly twice
+    expect(countingRng.drawCount).toBe(2);
+  });
+
+  it('Draw 1 selects word length according to cumulative length weights', () => {
+    class ScriptedRng extends Mulberry32 {
+      private values: number[];
+      private idx = 0;
+      constructor(values: number[]) {
+        super(1);
+        this.values = values;
+      }
+      override next(): number {
+        if (!this.values || this.values.length === 0) return 0;
+        const val = this.values[this.idx % this.values.length]!;
+        this.idx++;
+        return val;
+      }
+    }
+
+    // Weights: 50% for 3, 50% for 4
+    // Draw 1: 0.2 (< 0.5) -> length 3; Draw 2: 0.0 -> first word
+    const rngA = new ScriptedRng([0.2, 0.0]);
+    const providerA = createWordProvider(rngA);
+    const wordA = providerA.nextWord({
+      lengthWeights: { 3: 50, 4: 50 },
+      commonality: 1.0,
+      hardLetterMultiplier: 1.0,
+      excludeFirstLetters: new Set(),
+      excludeWords: new Set(),
+    });
+    expect(wordA.length).toBe(3);
+
+    // Draw 1: 0.7 (>= 0.5) -> length 4; Draw 2: 0.0 -> first word
+    const rngB = new ScriptedRng([0.7, 0.0]);
+    const providerB = createWordProvider(rngB);
+    const wordB = providerB.nextWord({
+      lengthWeights: { 3: 50, 4: 50 },
+      commonality: 1.0,
+      hardLetterMultiplier: 1.0,
+      excludeFirstLetters: new Set(),
+      excludeWords: new Set(),
+    });
+    expect(wordB.length).toBe(4);
+  });
+
+  it('widens to nearest available length preferring shorter when selected tier has no candidates', () => {
+    const miniDict = {
+      3: ['ace'],
+      4: ['atom'],
+      6: ['beacon'],
+    };
+    const rng = new Mulberry32(1234);
+    const provider = createWordProvider(rng, miniDict);
+
+    // Length 5 has 100% weight, but miniDict has no length 5 words.
+    // Nearest lengths from 5: 4 (delta 1, shorter), 6 (delta 1, longer), 3 (delta 2, shorter).
+    // Must prefer 4 over 6.
+    const word = provider.nextWord({
+      lengthWeights: { 5: 100 },
+      commonality: 1.0,
+      hardLetterMultiplier: 1.0,
+      excludeFirstLetters: new Set(),
+      excludeWords: new Set(),
+    });
+    expect(word.length).toBe(4);
+    expect(word).toBe('atom');
+  });
+
+  it('increases selection probability for hard-letter words as multiplier rises', () => {
+    const miniDict = {
+      4: ['beam', 'quiz'], // 'quiz' has hard letter 'q' and 'z'
+    };
+
+    // Multiplier 1: P(quiz) = 1 / (1 + 1) = 50%
+    const rng1 = new Mulberry32(999);
+    const provider1 = createWordProvider(rng1, miniDict);
+    let quizCountM1 = 0;
+    const trials = 4000;
+    for (let i = 0; i < trials; i++) {
+      const w = provider1.nextWord({
+        lengthWeights: { 4: 100 },
+        commonality: 1.0,
+        hardLetterMultiplier: 1.0,
+        excludeFirstLetters: new Set(),
+        excludeWords: new Set(),
+      });
+      if (w === 'quiz') quizCountM1++;
+    }
+    const ratioM1 = quizCountM1 / trials;
+    expect(ratioM1).toBeGreaterThan(0.46);
+    expect(ratioM1).toBeLessThan(0.54);
+
+    // Multiplier 3: P(quiz) = 3 / (1 + 3) = 75%
+    const rng3 = new Mulberry32(999);
+    const provider3 = createWordProvider(rng3, miniDict);
+    let quizCountM3 = 0;
+    for (let i = 0; i < trials; i++) {
+      const w = provider3.nextWord({
+        lengthWeights: { 4: 100 },
+        commonality: 1.0,
+        hardLetterMultiplier: 3.0,
+        excludeFirstLetters: new Set(),
+        excludeWords: new Set(),
+      });
+      if (w === 'quiz') quizCountM3++;
+    }
+    const ratioM3 = quizCountM3 / trials;
+    expect(ratioM3).toBeGreaterThan(0.71);
+    expect(ratioM3).toBeLessThan(0.79);
+  });
+
+  it('conforms to word-length distributions and hard-letter rise over 10,000 draws', () => {
+    const N = 10000;
+
+    // Wave 1: exactly 0 words > 4 letters
+    const rngW1 = new Mulberry32(4001);
+    const providerW1 = createWordProvider(rngW1);
+    let w1LongCount = 0;
+    let w1HardCount = 0;
+    for (let i = 0; i < N; i++) {
+      const word = providerW1.nextWord({
+        lengthWeights: lengthWeightsForWave(1),
+        commonality: commonalityForWave(1),
+        hardLetterMultiplier: hardLetterMultiplierForWave(1),
+        excludeFirstLetters: new Set(),
+        excludeWords: new Set(),
+      });
+      if (word.length > 4) w1LongCount++;
+      if (hasHardLetter(word)) w1HardCount++;
+    }
+    expect(w1LongCount).toBe(0);
+
+    // Wave 3: 5-6 letter share is 10% +/- 3% (7% to 13%)
+    const rngW3 = new Mulberry32(4003);
+    const providerW3 = createWordProvider(rngW3);
+    let w3Share56Count = 0;
+    for (let i = 0; i < N; i++) {
+      const word = providerW3.nextWord({
+        lengthWeights: lengthWeightsForWave(3),
+        commonality: commonalityForWave(3),
+        hardLetterMultiplier: hardLetterMultiplierForWave(3),
+        excludeFirstLetters: new Set(),
+        excludeWords: new Set(),
+      });
+      if (word.length === 5 || word.length === 6) w3Share56Count++;
+    }
+    const shareW3 = (w3Share56Count / N) * 100;
+    expect(shareW3).toBeGreaterThanOrEqual(7);
+    expect(shareW3).toBeLessThanOrEqual(13);
+
+    // Wave 5: 5-6 letter share is 50% +/- 3% (47% to 53%)
+    const rngW5 = new Mulberry32(4005);
+    const providerW5 = createWordProvider(rngW5);
+    let w5Share56Count = 0;
+    for (let i = 0; i < N; i++) {
+      const word = providerW5.nextWord({
+        lengthWeights: lengthWeightsForWave(5),
+        commonality: commonalityForWave(5),
+        hardLetterMultiplier: hardLetterMultiplierForWave(5),
+        excludeFirstLetters: new Set(),
+        excludeWords: new Set(),
+      });
+      if (word.length === 5 || word.length === 6) w5Share56Count++;
+    }
+    const shareW5 = (w5Share56Count / N) * 100;
+    expect(shareW5).toBeGreaterThanOrEqual(47);
+    expect(shareW5).toBeLessThanOrEqual(53);
+
+    // Wave 12: hard-letter share rises relative to Wave 1
+    const rngW12 = new Mulberry32(4012);
+    const providerW12 = createWordProvider(rngW12);
+    let w12HardCount = 0;
+    for (let i = 0; i < N; i++) {
+      const word = providerW12.nextWord({
+        lengthWeights: lengthWeightsForWave(12),
+        commonality: commonalityForWave(12),
+        hardLetterMultiplier: hardLetterMultiplierForWave(12),
+        excludeFirstLetters: new Set(),
+        excludeWords: new Set(),
+      });
+      if (hasHardLetter(word)) w12HardCount++;
+    }
+    expect(w12HardCount).toBeGreaterThan(w1HardCount);
   });
 });

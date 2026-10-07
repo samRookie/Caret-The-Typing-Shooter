@@ -66,7 +66,10 @@ import {
   DRONE_ARCHETYPE,
 } from '@/shared/config/defaultConfig';
 import {
+  commonalityForWave,
   concurrentCapForWave,
+  hardLetterMultiplierForWave,
+  lengthWeightsForWave,
   quotaForWave,
   spawnIntervalSeconds,
   speedForWave,
@@ -539,10 +542,6 @@ export class GameSimulation {
     const simConfig = this.config.simulation;
     const width = this.config.virtualResolution.width;
 
-    // Word Length Bounds
-    const minWordLen = 3;
-    const maxWordLen = this.waveNumber <= 2 ? 4 : 8;
-
     // Exclusions for word selection
     const activeFirstChars = new Set<string>();
     const activeWords = new Set<string>();
@@ -554,18 +553,12 @@ export class GameSimulation {
       }
     }
 
-    const commonality = Math.min(
-      1,
-      simConfig.commonalityStart +
-        simConfig.commonalityStep * (this.waveNumber - 1)
-    );
-
     const assignedWord = this.wordProvider.nextWord({
-      minLen: minWordLen,
-      maxLen: maxWordLen,
+      lengthWeights: lengthWeightsForWave(this.waveNumber),
+      commonality: commonalityForWave(this.waveNumber),
+      hardLetterMultiplier: hardLetterMultiplierForWave(this.waveNumber),
       excludeFirstLetters: activeFirstChars,
       excludeWords: activeWords,
-      commonality,
     });
 
     // Horizontal Spawning with Gap Window Retries
