@@ -52,7 +52,7 @@ describe('Desktop Prototype Configuration Invariants', () => {
     expect(sim.collisionDamage).toBe(1);
     expect(sim.playerMaxHealth).toBe(3);
     expect(sim.initialSpawnDelaySeconds).toBe(1.0);
-    expect(sim.waveIntermissionSeconds).toBe(2);
+    expect(sim.waveIntermissionSeconds).toBe(2.5);
     expect(sim.labelCharWidthPx).toBe(14);
     expect(sim.spawnGapWindowSeconds).toBe(1.5);
     expect(sim.commonalityStart).toBe(0.35);

@@ -44,12 +44,12 @@ describe('GameRuntime (7.A)', () => {
     const firstFrame = runtime.frame(1 / 60);
     expect(firstFrame.snapshot).toBeDefined();
     expect(Array.isArray(firstFrame.events)).toBe(true);
-    // On start/first tick, WAVE_STARTED was emitted
-    expect(firstFrame.events.some((e) => e.type === 'WAVE_STARTED')).toBe(true);
+    // On start/first tick, WAVE_INTERMISSION was emitted
+    expect(firstFrame.events.some((e) => e.type === 'WAVE_INTERMISSION')).toBe(true);
 
     // Second frame: events from first frame must not be returned again
     const secondFrame = runtime.frame(1 / 60);
-    expect(secondFrame.events.some((e) => e.type === 'WAVE_STARTED')).toBe(false);
+    expect(secondFrame.events.some((e) => e.type === 'WAVE_INTERMISSION')).toBe(false);
   });
 
   it('records multiple commands in FIFO order in commandLog', () => {

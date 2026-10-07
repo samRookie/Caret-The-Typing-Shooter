@@ -57,7 +57,7 @@ export const DEFAULT_SIMULATION_CONFIG: GameplaySimulationConfig = {
   collisionDamage: 1,
   playerMaxHealth: 3,
   initialSpawnDelaySeconds: 1.0,
-  waveIntermissionSeconds: 2,
+  waveIntermissionSeconds: 2.5,
   labelCharWidthPx: 14,
   spawnGapWindowSeconds: 1.5,
   commonalityStart: 0.35,

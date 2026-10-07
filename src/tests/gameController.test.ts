@@ -254,8 +254,8 @@ describe('8.A GameController Unit Tests', () => {
       const stateBefore = controller.getState();
 
       // Find an enemy to hit
-      // Wait for initial spawn
-      for (let i = 0; i < 70; i++) {
+      // Wait for initial intermission (150 ticks) and spawn delay (60 ticks)
+      for (let i = 0; i < 220; i++) {
         controller.frame(1 / 60);
       }
 

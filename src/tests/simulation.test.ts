@@ -126,7 +126,13 @@ describe('Golden Run Deterministic Hash Verification', () => {
 
 describe('Initial Spawn Delay (4.A)', () => {
   it('enforces initialSpawnDelaySeconds before the first enemy spawns', () => {
-    const sim = new GameSimulation(DEFAULT_RUN_CONFIG);
+    const sim = new GameSimulation({
+      ...DEFAULT_RUN_CONFIG,
+      simulation: {
+        ...DEFAULT_RUN_CONFIG.simulation,
+        waveIntermissionSeconds: 0,
+      },
+    });
     sim.start();
 
     // During ticks 1 to 60 (1.0s delay at 60Hz), no enemy spawns
@@ -152,7 +158,16 @@ describe('Target Acquisition and Typing Rules (4.C)', () => {
       stats: { fallbacks: 0 },
     };
 
-    const sim = new GameSimulation(DEFAULT_RUN_CONFIG, mockWordProvider);
+    const sim = new GameSimulation(
+      {
+        ...DEFAULT_RUN_CONFIG,
+        simulation: {
+          ...DEFAULT_RUN_CONFIG.simulation,
+          waveIntermissionSeconds: 0,
+        },
+      },
+      mockWordProvider
+    );
     sim.start();
 
     // Advance past initial spawn delay (60 ticks) to tick 61 where first enemy spawns
@@ -224,6 +239,7 @@ describe('Target Acquisition and Typing Rules (4.C)', () => {
         simulation: {
           ...DEFAULT_RUN_CONFIG.simulation,
           initialSpawnDelaySeconds: 0,
+          waveIntermissionSeconds: 0,
         },
       },
       mockWordProvider
@@ -258,7 +274,16 @@ describe('Target Acquisition and Typing Rules (4.C)', () => {
       nextWord: () => 'beam',
       stats: { fallbacks: 0 },
     };
-    const sim = new GameSimulation(DEFAULT_RUN_CONFIG, mockWordProvider);
+    const sim = new GameSimulation(
+      {
+        ...DEFAULT_RUN_CONFIG,
+        simulation: {
+          ...DEFAULT_RUN_CONFIG.simulation,
+          waveIntermissionSeconds: 0,
+        },
+      },
+      mockWordProvider
+    );
     sim.start();
 
     // Advance past initial spawn delay to spawn "beam"
@@ -304,7 +329,16 @@ describe('Target Acquisition and Typing Rules (4.C)', () => {
       nextWord: () => 'core',
       stats: { fallbacks: 0 },
     };
-    const sim = new GameSimulation(DEFAULT_RUN_CONFIG, mockWordProvider);
+    const sim = new GameSimulation(
+      {
+        ...DEFAULT_RUN_CONFIG,
+        simulation: {
+          ...DEFAULT_RUN_CONFIG.simulation,
+          waveIntermissionSeconds: 0,
+        },
+      },
+      mockWordProvider
+    );
     sim.start();
 
     // Advance past initial spawn delay to spawn "core"
@@ -344,6 +378,7 @@ describe('Target Acquisition and Typing Rules (4.C)', () => {
         simulation: {
           ...DEFAULT_RUN_CONFIG.simulation,
           initialSpawnDelaySeconds: 0,
+          waveIntermissionSeconds: 0,
         },
       },
       mockWordProvider
@@ -373,7 +408,16 @@ describe('Target Acquisition and Typing Rules (4.C)', () => {
       nextWord: () => 'zap',
       stats: { fallbacks: 0 },
     };
-    const sim = new GameSimulation(DEFAULT_RUN_CONFIG, mockWordProvider);
+    const sim = new GameSimulation(
+      {
+        ...DEFAULT_RUN_CONFIG,
+        simulation: {
+          ...DEFAULT_RUN_CONFIG.simulation,
+          waveIntermissionSeconds: 0,
+        },
+      },
+      mockWordProvider
+    );
     sim.start();
 
     // Advance past initial spawn delay
@@ -531,8 +575,8 @@ describe('Pause and Resume Controls (4.B)', () => {
   });
 });
 
-describe('Wave Progression, Intermission and Concurrent Cap (4.E)', () => {
-  it('advances waves, awards wave clear bonus, and enters intermission', () => {
+describe('Wave Progression, Intermission and Concurrent Cap (4.E, 2.D)', () => {
+  it('advances waves, enters intermission, and transitions with exact event order', () => {
     const mockWordProvider: IWordProvider = {
       nextWord: () => 'pod',
       stats: { fallbacks: 0 },
@@ -554,6 +598,15 @@ describe('Wave Progression, Intermission and Concurrent Cap (4.E)', () => {
     );
 
     sim.start();
+    const initialEvents = sim.drainEvents();
+    expect(initialEvents.some((e) => e.type === 'WAVE_INTERMISSION')).toBe(true);
+
+    // Step through 60 initial intermission ticks to start wave 1
+    for (let i = 0; i < 60; i++) {
+      sim.tick();
+    }
+    const wave1StartEvents = sim.drainEvents();
+    expect(wave1StartEvents.some((e) => e.type === 'WAVE_STARTED')).toBe(true);
 
     // Clear wave 1 quota (5 enemies)
     for (let q = 1; q <= 5; q++) {
@@ -575,6 +628,12 @@ describe('Wave Progression, Intermission and Concurrent Cap (4.E)', () => {
     if (waveClearEvent && waveClearEvent.type === 'WAVE_COMPLETED') {
       expect(waveClearEvent.waveNumber).toBe(1);
     }
+    const intermissionEvent = events.find((e) => e.type === 'WAVE_INTERMISSION');
+    expect(intermissionEvent).toBeDefined();
+    if (intermissionEvent && intermissionEvent.type === 'WAVE_INTERMISSION') {
+      expect(intermissionEvent.nextWave).toBe(2);
+      expect(intermissionEvent.durationTicks).toBe(60);
+    }
 
     expect(sim.getSnapshot().wave.isCompleted).toBe(true);
 
@@ -591,12 +650,61 @@ describe('Wave Progression, Intermission and Concurrent Cap (4.E)', () => {
     }
   });
 
+  it('runs initial WAVE_INTERMISSION for 150 ticks and freezes during pause (Decision D4)', () => {
+    const sim = new GameSimulation(DEFAULT_RUN_CONFIG);
+    sim.start();
+
+    const startEvents = sim.drainEvents();
+    expect(startEvents).toHaveLength(1);
+    expect(startEvents[0]).toMatchObject({
+      type: 'WAVE_INTERMISSION',
+      nextWave: 1,
+      durationTicks: 150,
+      tick: 0,
+    });
+    expect(sim.getSnapshot().wave.isCompleted).toBe(true);
+
+    // Advance 50 ticks
+    for (let i = 0; i < 50; i++) {
+      sim.tick();
+      expect(sim.getSnapshot().enemies).toHaveLength(0);
+    }
+
+    // Pause simulation: intermission timer must freeze
+    sim.pause();
+    for (let i = 0; i < 50; i++) {
+      sim.tick();
+    }
+    expect(sim.getSnapshot().wave.isCompleted).toBe(true);
+
+    // Resume simulation
+    sim.resume();
+    // Advance 99 ticks (total active = 149 ticks)
+    for (let i = 0; i < 99; i++) {
+      sim.tick();
+    }
+    expect(sim.drainEvents()).toEqual([]);
+    expect(sim.getSnapshot().wave.isCompleted).toBe(true);
+
+    // 150th active tick: triggers WAVE_STARTED(1)
+    sim.tick();
+    const waveEvents = sim.drainEvents();
+    const started = waveEvents.find((e) => e.type === 'WAVE_STARTED');
+    expect(started).toBeDefined();
+    if (started && started.type === 'WAVE_STARTED') {
+      expect(started.waveNumber).toBe(1);
+      expect(started.quota).toBe(5);
+    }
+    expect(sim.getSnapshot().wave.isCompleted).toBe(false);
+  });
+
   it('skips spawn when active enemies reach concurrent cap and restarts countdown', () => {
     const sim = new GameSimulation({
       ...DEFAULT_RUN_CONFIG,
       simulation: {
         ...DEFAULT_RUN_CONFIG.simulation,
         initialSpawnDelaySeconds: 0,
+        waveIntermissionSeconds: 0,
       },
     });
 
@@ -623,8 +731,8 @@ describe('Snapshot Isolation Security', () => {
     const sim = new GameSimulation(DEFAULT_RUN_CONFIG);
     sim.start();
 
-    // Advance past initial spawn delay to have an active enemy
-    for (let t = 0; t < 61; t++) {
+    // Advance past initial intermission (150 ticks) and spawn delay (60 ticks)
+    for (let t = 0; t < 220; t++) {
       sim.tick();
     }
 
@@ -675,7 +783,16 @@ describe('1.C Result Data & Snapshot Metrics', () => {
       nextWord: () => 'ace',
       stats: { fallbacks: 0 },
     };
-    const sim = new GameSimulation(DEFAULT_RUN_CONFIG, mockWordProvider);
+    const sim = new GameSimulation(
+      {
+        ...DEFAULT_RUN_CONFIG,
+        simulation: {
+          ...DEFAULT_RUN_CONFIG.simulation,
+          waveIntermissionSeconds: 0,
+        },
+      },
+      mockWordProvider
+    );
     sim.start();
 
     // Advance 61 ticks to spawn first enemy

@@ -215,25 +215,43 @@ export class GameSimulation {
     this.misses = 0;
     this.wordsCompleted = 0;
 
-    // Initialize Wave 1
-    this.waveNumber = 1;
-    this.waveSpawnedCount = 0;
-    this.isIntermission = false;
-    this.intermissionCountdownTicks = 0;
-    this.calculateWaveParams();
-
-    // Initial spawn delay: delay before the first spawn of a run
-    this.spawnCountdownTicks = Math.round(
-      this.config.simulation.initialSpawnDelaySeconds * this.config.tickRate
+    // Initialize Wave 1 (Spec 1.5, Decision D4)
+    const durationTicks = Math.round(
+      this.config.simulation.waveIntermissionSeconds * this.config.tickRate
     );
 
-    // Emit initial WAVE_STARTED
-    this.emit({
-      type: 'WAVE_STARTED',
-      waveNumber: this.waveNumber,
-      quota: this.waveQuota,
-      tick: this.currentTick,
-    });
+    if (durationTicks > 0) {
+      this.waveNumber = 0;
+      this.waveSpawnedCount = 0;
+      this.isIntermission = true;
+      this.intermissionCountdownTicks = durationTicks;
+      this.calculateWaveParams();
+      this.spawnCountdownTicks = 0;
+
+      // Emit initial WAVE_INTERMISSION
+      this.emit({
+        type: 'WAVE_INTERMISSION',
+        nextWave: 1,
+        durationTicks,
+        tick: this.currentTick,
+      });
+    } else {
+      this.waveNumber = 1;
+      this.waveSpawnedCount = 0;
+      this.isIntermission = false;
+      this.intermissionCountdownTicks = 0;
+      this.calculateWaveParams();
+      this.spawnCountdownTicks = Math.round(
+        this.config.simulation.initialSpawnDelaySeconds * this.config.tickRate
+      );
+
+      this.emit({
+        type: 'WAVE_STARTED',
+        waveNumber: 1,
+        quota: this.waveQuota,
+        tick: this.currentTick,
+      });
+    }
   }
 
   pause(): void {
@@ -481,16 +499,19 @@ export class GameSimulation {
   // --------------------------------------------------------------------------
 
   private calculateWaveParams(): void {
-    this.waveQuota = quotaForWave(this.waveNumber);
+    const wave = Math.max(1, this.waveNumber);
+    this.waveQuota = quotaForWave(wave);
   }
 
   private getWaveSpawnIntervalTicks(): number {
-    const intervalSec = spawnIntervalSeconds(this.waveNumber);
+    const wave = Math.max(1, this.waveNumber);
+    const intervalSec = spawnIntervalSeconds(wave);
     return Math.round(intervalSec * this.config.tickRate);
   }
 
   private getWaveSpeedPerTick(): number {
-    const speed = speedForWave(this.waveNumber);
+    const wave = Math.max(1, this.waveNumber);
+    const speed = speedForWave(wave);
     return speed / this.config.tickRate;
   }
 
@@ -502,7 +523,13 @@ export class GameSimulation {
         this.waveNumber++;
         this.waveSpawnedCount = 0;
         this.calculateWaveParams();
-        this.spawnCountdownTicks = 0;
+        this.spawnCountdownTicks =
+          this.waveNumber === 1
+            ? Math.round(
+                this.config.simulation.initialSpawnDelaySeconds *
+                  this.config.tickRate
+              )
+            : 0;
 
         this.emit({
           type: 'WAVE_STARTED',
@@ -747,9 +774,17 @@ export class GameSimulation {
         });
 
         this.isIntermission = true;
-        this.intermissionCountdownTicks = Math.round(
+        const durationTicks = Math.round(
           this.config.simulation.waveIntermissionSeconds * this.config.tickRate
         );
+        this.intermissionCountdownTicks = durationTicks;
+
+        this.emit({
+          type: 'WAVE_INTERMISSION',
+          nextWave: this.waveNumber + 1,
+          durationTicks,
+          tick: this.currentTick,
+        });
       }
     }
   }
@@ -880,7 +915,7 @@ export class GameSimulation {
       Math.max(0, this.waveQuota - this.waveSpawnedCount) + aliveEnemies.length;
 
     const wave: WaveState = {
-      waveNumber: this.waveNumber,
+      waveNumber: Math.max(1, this.waveNumber),
       totalEnemies: this.waveQuota,
       remainingEnemies: remainingWaveEnemies,
       spawnIntervalMs: Math.round(

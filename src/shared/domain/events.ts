@@ -132,9 +132,21 @@ export type GameEvent =
       readonly tick: number;
     }
   | {
+      readonly type: 'WAVE_INTERMISSION';
+      /** Index of the upcoming wave (range: >= 1). */
+      readonly nextWave: number;
+      /** Duration of the intermission in simulation ticks. */
+      readonly durationTicks: number;
+      /** Simulation tick index when event occurred (unit: ticks, range: >= 0). */
+      readonly tick: number;
+    }
+  | {
       readonly type: 'GAME_OVER';
       /** Final game result summary. */
       readonly result: GameResult;
       /** Simulation tick index when game over occurred (unit: ticks, range: >= 0). */
       readonly tick: number;
     };
+
+export type WaveIntermissionEvent = Extract<GameEvent, { type: 'WAVE_INTERMISSION' }>;
+

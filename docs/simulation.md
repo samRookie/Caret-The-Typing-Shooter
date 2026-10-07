@@ -43,8 +43,8 @@ Every tick executes in strictly specified, deterministic order:
 ### Initial Spawn Delay & Wave Scaling
 - **Initial Spawn Delay:** Delay of `initialSpawnDelaySeconds` (default 1.0s = 60 ticks) before the first spawn of a run.
 - **Wave Pacing:** Quota $= \min(6 + 2 \times (\text{wave} - 1), 30)$. Spawn interval $= \max(0.6 \times \text{base}, \text{base} \times 0.94^{\text{wave} - 1})$. Speed $= \min(\text{base} \times (1 + 0.06 \times (\text{wave}-1)), 2 \times \text{base})$.
-- **Intermission:** Pause of `waveIntermissionSeconds` (default 2s) between waves without spawns.
-- **Concurrent Cap:** When active alive enemies reach `maxConcurrentEnemies`, the spawn is skipped (not queued) and the spawn countdown restarts.
+- **Intermission (Decision D4):** Pause of `waveIntermissionSeconds` (2.5s = 150 ticks at 60Hz) before every wave and at run start without spawns.
+- **Concurrent Cap:** When active alive enemies reach `concurrentCapForWave(w)`, the spawn is skipped (not queued) and the spawn countdown restarts.
 
 ---
 
@@ -52,6 +52,7 @@ Every tick executes in strictly specified, deterministic order:
 
 | Scenario | Event Dispatch Sequence | Notes |
 | :--- | :--- | :--- |
+| **Run start** | 1. `WAVE_INTERMISSION` (`nextWave: 1`, `durationTicks: 150`)<br>*(150 ticks intermission)*<br>2. `WAVE_STARTED` (`waveNumber: 1`, `quota: 5`) | Dispatched at run start; wave banner displayed before first spawn. |
 | **First char matches unacquired enemy** | 1. `TARGET_LOCKED`<br>2. `INPUT_MATCH`<br>3. `PROJECTILE_SPAWNED`<br>4. `ENEMY_HIT` | Fresh target lock acquired; bolt fired to enemy coordinate; `INPUT_MATCH` awards `scoreAwarded: 1`. |
 | **Middle char matches locked enemy** | 1. `INPUT_MATCH`<br>2. `PROJECTILE_SPAWNED`<br>3. `ENEMY_HIT` | Target already locked; no duplicate `TARGET_LOCKED`; `INPUT_MATCH` awards `scoreAwarded: 1`. |
 | **Final char completing enemy word** | 1. `INPUT_MATCH`<br>2. `PROJECTILE_SPAWNED`<br>3. `ENEMY_HIT`<br>4. `ENEMY_DESTROYED` (`cause: 'word'`)<br>5. `TARGET_LOST` | Entity removed from active snapshot; death effect triggered at kill position. |
@@ -60,9 +61,8 @@ Every tick executes in strictly specified, deterministic order:
 | **Release target command** | 1. `TARGET_LOST` | Lock dropped; progress saved on enemy. |
 | **Enemy hull collision (survived)** | 1. `PLAYER_DAMAGED`<br>2. `ENEMY_DESTROYED` (`cause: 'collision'`)<br>3. `TARGET_LOST` (if locked) | Hull takes collision damage, enemy destroyed. |
 | **Enemy hull collision (lethal)** | 1. `PLAYER_DAMAGED`<br>2. `ENEMY_DESTROYED` (`cause: 'collision'`)<br>3. `TARGET_LOST` (if locked)<br>4. `GAME_OVER` (`outcome: 'defeat'`) | Status set to `'game-over'`; simulation halts. |
-| **Wave start** | 1. `WAVE_STARTED` (`waveNumber`, `quota`) | Dispatched upon run start and after intermissions. |
 | **Enemy spawn** | 1. `ENEMY_SPAWNED` (`enemyId`, `position`) | Dispatched on every physical enemy creation. |
-| **Wave clear** | 1. `WAVE_COMPLETED` (`waveNumber`) | Triggered when quota spawned and all enemies destroyed. |
+| **Wave clear** | 1. `WAVE_COMPLETED` (`waveNumber: n`)<br>2. `WAVE_INTERMISSION` (`nextWave: n + 1`, `durationTicks: 150`)<br>*(150 ticks intermission)*<br>3. `WAVE_STARTED` (`waveNumber: n + 1`, `quota`) | Triggered when quota spawned and all enemies destroyed; banner shown during intermission. |
 
 ---
 
