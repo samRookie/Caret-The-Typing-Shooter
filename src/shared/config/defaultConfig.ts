@@ -40,6 +40,11 @@ export const TARGET_SHIP_SIZE = {
 
 export const SHOW_LOCK_RETICLE = false;
 
+export const HUD_WING_GAP_WORLD = 52;
+export const HUD_WING_Y_OFFSET_WORLD = 0;
+export const HUD_WING_BOX_WIDTH_WORLD = 84;
+export const HUD_WING_BOX_HEIGHT_WORLD = 34;
+
 export const DRONE_ARCHETYPE: EnemyArchetypeConfig = {
   type: 'drone',
   healthPerLetter: 1,
