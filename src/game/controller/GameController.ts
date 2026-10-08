@@ -26,6 +26,8 @@ export interface HudState {
   readonly hull: number;
   readonly maxHull: number;
   readonly target: HudTarget | null;
+  readonly elapsedSeconds?: number;
+  readonly misses?: number;
 }
 
 export interface AppGameState {
@@ -48,9 +50,11 @@ export const INITIAL_HUD_STATE: HudState = {
   wave: 1,
   streak: 0,
   accuracy: 100,
-  hull: 100,
-  maxHull: 100,
+  hull: 3,
+  maxHull: 3,
   target: null,
+  elapsedSeconds: 0,
+  misses: 0,
 };
 
 /**
@@ -117,6 +121,8 @@ export function extractHudState(snapshot: GameSnapshot): HudState {
     hull: snapshot.player.health,
     maxHull: snapshot.player.maxHealth,
     target,
+    elapsedSeconds: snapshot.elapsedTicks / 60,
+    misses: snapshot.scoring.misses,
   };
 }
 
@@ -407,8 +413,8 @@ export class GameController {
         mode: 'standard',
         player: {
           position: DEFAULT_RUN_CONFIG.playerStart,
-          health: 100,
-          maxHealth: 100,
+          health: 3,
+          maxHealth: 3,
           alive: true,
           isDamaged: false,
         },

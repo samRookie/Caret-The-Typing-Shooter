@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useSyncExternalStore, useCallback }
 import './app.css';
 import { PhaserContainer } from '@/ui/PhaserContainer';
 import { TacticalButton } from '@/ui/components/TacticalButton';
+import { TopStrip } from '@/ui/components/TopStrip';
 import { HUDOverlay } from '@/ui/components/HUDOverlay';
 import { LoadingOverlay } from '@/ui/components/LoadingOverlay';
 import { MenuScreen } from '@/ui/components/MenuScreen';
@@ -182,6 +183,22 @@ export const App: React.FC = () => {
             </a>
           </div>
         </div>
+      )}
+
+      {/* Row 1: External Top Strip (rendered during gameplay or preview) */}
+      {(gameState.screen === 'running' ||
+        gameState.screen === 'paused' ||
+        gameState.screen === 'game-over' ||
+        (Boolean(import.meta.env.DEV) && isPreview)) && (
+        <TopStrip
+          wave={gameState.hud.wave}
+          elapsedSeconds={gameState.hud.elapsedSeconds ?? 0}
+          accuracy={gameState.hud.accuracy}
+          misses={gameState.hud.misses ?? 0}
+          hull={gameState.hud.hull}
+          maxHull={gameState.hud.maxHull}
+          onPause={gameState.screen === 'running' ? () => controller.pause() : undefined}
+        />
       )}
 
       {/* Row 2: Tactical Viewport Area */}
