@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { TacticalFrame } from './TacticalFrame';
 import { TacticalButton } from './TacticalButton';
+import { ClockBadge } from './ClockBadge';
 import { GAME_TITLE, GAME_SUBTITLE, HOW_TO_PLAY_TEXT } from '@/shared/config/branding';
 
 export interface MenuScreenProps {
@@ -36,8 +37,12 @@ export const MenuScreen: React.FC<MenuScreenProps> = ({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
+        position: 'relative',
       }}
     >
+      <div style={{ position: 'absolute', top: 16, right: 16, zIndex: 10 }}>
+        <ClockBadge />
+      </div>
       <TacticalFrame
         title="COMMAND HEADQUARTERS"
         subtitle="MISSION DISPATCH READY"

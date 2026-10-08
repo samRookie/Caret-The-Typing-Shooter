@@ -6,6 +6,9 @@ import { ActiveTargetReadout } from '@/ui/components/ActiveTargetReadout';
 import { LoadingOverlay } from '@/ui/components/LoadingOverlay';
 import { PauseModal } from '@/ui/components/PauseModal';
 import { GameOverModal } from '@/ui/components/GameOverModal';
+import { HullPips } from '@/ui/components/HullPips';
+import { TopStrip } from '@/ui/components/TopStrip';
+import { ClockBadge } from '@/ui/components/ClockBadge';
 
 describe('TacticalButton Component', () => {
   it('renders button label and fires click handler', () => {
@@ -109,5 +112,57 @@ describe('GameOverModal Component', () => {
 
     fireEvent.click(screen.getByText(/INITIALIZE NEW RUN/i));
     expect(handleRestart).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('HullPips Component (Spec 5.B)', () => {
+  it('renders 3 pips with correct active status and aria-label', () => {
+    const { container } = render(<HullPips currentHealth={2} maxHealth={3} />);
+    const statusEl = screen.getByRole('status', { name: /Hull integrity: 2 of 3 pips/i });
+    expect(statusEl).toBeInTheDocument();
+
+    const activePips = container.querySelectorAll('[data-pip-active="true"]');
+    const lostPips = container.querySelectorAll('[data-pip-active="false"]');
+    expect(activePips.length).toBe(2);
+    expect(lostPips.length).toBe(1);
+  });
+});
+
+describe('TopStrip Component (Spec 5.B)', () => {
+  it('renders wave, time, accuracy, and triggers onPause', () => {
+    const handlePause = vi.fn();
+    render(
+      <TopStrip
+        wave={2}
+        elapsedSeconds={83}
+        accuracy={94.5}
+        misses={2}
+        hull={3}
+        onPause={handlePause}
+      />
+    );
+
+    expect(screen.getByText('WAVE 02')).toBeInTheDocument();
+    expect(screen.getByText('TIME 01:23')).toBeInTheDocument();
+    expect(screen.getByText('ACCURACY 94.5%')).toBeInTheDocument();
+
+    const pauseBtn = screen.getByRole('button', { name: /PAUSE · ESC/i });
+    fireEvent.click(pauseBtn);
+    expect(handlePause).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('ClockBadge Component (Spec 5.C)', () => {
+  it('renders role="timer" and mounts/unmounts cleanly', () => {
+    const { unmount } = render(<ClockBadge />);
+    const timer = screen.getByRole('timer');
+    expect(timer).toBeInTheDocument();
+    expect(timer.textContent).toMatch(/SYS\s*\d{1,2}:\d{2}/);
+
+    // Trigger visibilitychange to test listener
+    fireEvent(document, new Event('visibilitychange'));
+
+    // Should unmount without errors/leaks
+    expect(() => unmount()).not.toThrow();
   });
 });

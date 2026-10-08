@@ -2,6 +2,7 @@ import React from 'react';
 import { TacticalFrame } from './TacticalFrame';
 import { TacticalButton } from './TacticalButton';
 import { MetricCard } from './MetricCard';
+import { ClockBadge } from './ClockBadge';
 import { useFocusTrap } from '../hooks/useFocusTrap';
 import { GameResult } from '@/shared/domain';
 
@@ -38,7 +39,11 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
       role="dialog"
       aria-modal="true"
       aria-labelledby="game-over-dialog-title"
+      style={{ position: 'relative' }}
     >
+      <div style={{ position: 'absolute', top: 16, right: 16, zIndex: 10 }}>
+        <ClockBadge />
+      </div>
       <div ref={trapRef} style={{ width: '90%', maxWidth: '520px' }}>
         <TacticalFrame
           title="MISSION DEBRIEFING"

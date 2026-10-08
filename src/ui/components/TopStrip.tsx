@@ -1,6 +1,7 @@
 import React from 'react';
 import { HullPips } from './HullPips';
 import { TacticalButton } from './TacticalButton';
+import { ClockBadge } from './ClockBadge';
 import { formatAccuracy, formatElapsed } from '@/shared/formatters';
 
 export interface TopStripProps {
@@ -82,7 +83,7 @@ export const TopStrip: React.FC<TopStripProps> = ({
             PAUSE · ESC
           </TacticalButton>
         )}
-        {rightSlot}
+        {rightSlot ?? <ClockBadge />}
       </div>
     </header>
   );
