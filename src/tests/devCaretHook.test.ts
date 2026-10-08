@@ -38,6 +38,11 @@ describe('Dev Caret Inspection Hook (7.E)', () => {
         activeEnemiesCount: 2,
         activeGhostsCount: 1,
         activeProjectilesCount: 3,
+        getViewMetrics: () => ({
+          playerShip: { displayWidth: 60, displayHeight: 87 },
+          drones: [],
+          labelPlateHeadroomMin: 7,
+        }),
       }),
     } as unknown as GameScene;
 
@@ -64,6 +69,9 @@ describe('Dev Caret Inspection Hook (7.E)', () => {
 
     const log = window.__caret?.getCommandLog();
     expect(Array.isArray(log)).toBe(true);
+
+    const metrics = window.__caret?.getViewMetrics?.();
+    expect(metrics).toBeDefined();
   });
 
   it('unregister cleans up window.__caret', () => {

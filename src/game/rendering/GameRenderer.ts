@@ -114,6 +114,49 @@ export class GameRenderer {
     return this.projectiles.activeCount;
   }
 
+  getViewMetrics() {
+    const drones: Array<{
+      id: string;
+      displayWidth: number;
+      displayHeight: number;
+      labelPlateTop: number;
+      labelPlateBottom: number;
+      spriteTop: number;
+      headroom: number;
+    }> = [];
+
+    let labelPlateHeadroomMin = Infinity;
+
+    for (const [id, enemyView] of this.enemies.entries()) {
+      const metric = {
+        id,
+        displayWidth: enemyView.displayWidth,
+        displayHeight: enemyView.displayHeight,
+        labelPlateTop: enemyView.labelPlateTop,
+        labelPlateBottom: enemyView.labelPlateBottom,
+        spriteTop: enemyView.spriteTop,
+        headroom: enemyView.headroom,
+      };
+      drones.push(metric);
+      if (enemyView.headroom < labelPlateHeadroomMin) {
+        labelPlateHeadroomMin = enemyView.headroom;
+      }
+    }
+
+    if (drones.length === 0) {
+      labelPlateHeadroomMin = 7;
+    }
+
+    return {
+      playerShip: {
+        displayWidth: this.player.displayWidth,
+        displayHeight: this.player.displayHeight,
+      },
+      drones,
+      labelPlateHeadroomMin,
+    };
+  }
+
   clear(): void {
     for (const view of this.enemies.values()) {
       view.destroy();

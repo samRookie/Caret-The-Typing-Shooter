@@ -62,6 +62,11 @@ export function installDevCaretHook(
       const rt = getRuntime();
       return rt ? rt.getCommandLog() : [];
     },
+    getViewMetrics: () => {
+      const scene = getScene ? getScene() : null;
+      const renderer = scene?.getGameRenderer();
+      return renderer ? renderer.getViewMetrics() : null;
+    },
     get currentTick() {
       const rt = getRuntime();
       return rt ? rt.currentTick : 0;

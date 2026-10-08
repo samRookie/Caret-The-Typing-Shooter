@@ -11,11 +11,31 @@ interface CaretDebugCounts {
   fps: number;
 }
 
+interface CaretDroneMetric {
+  id: string;
+  displayWidth: number;
+  displayHeight: number;
+  labelPlateTop: number;
+  labelPlateBottom: number;
+  spriteTop: number;
+  headroom: number;
+}
+
+interface CaretViewMetrics {
+  playerShip: {
+    displayWidth: number;
+    displayHeight: number;
+  };
+  drones: CaretDroneMetric[];
+  labelPlateHeadroomMin: number;
+}
+
 interface Window {
   __caret?: {
     getSnapshot: () => import('@/shared/domain').GameSnapshot | null;
     getDebugCounts: () => CaretDebugCounts;
     getCommandLog: () => import('@/game/controller').CommandLogEntry[];
+    getViewMetrics?: () => CaretViewMetrics | null;
     currentTick: number;
   };
 }

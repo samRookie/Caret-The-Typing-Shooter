@@ -10,12 +10,15 @@ describe('EnemyView (7.C)', () => {
     const mockScene = {
       add: {
         image: vi.fn(() => ({
+          setDisplaySize: vi.fn().mockReturnThis(),
           setDepth: vi.fn().mockReturnThis(),
           setOrigin: vi.fn().mockReturnThis(),
           setPosition: vi.fn().mockReturnThis(),
           destroy: vi.fn(),
           x: 100,
           y: 50,
+          displayWidth: 44,
+          displayHeight: 44,
         })),
         text: vi.fn(() => {
           textCreationCount++;
@@ -73,6 +76,73 @@ describe('EnemyView (7.C)', () => {
     expect(textCreationCount).toBe(6);
 
     // Destroy view
+    view.destroy();
+  });
+
+  it('enforces label plate headroom >= 6 px above drone sprite (Rule R-E)', () => {
+    let containerY = 0;
+    const mockScene = {
+      add: {
+        image: vi.fn(() => ({
+          setDisplaySize: vi.fn().mockReturnThis(),
+          setDepth: vi.fn().mockReturnThis(),
+          setOrigin: vi.fn().mockReturnThis(),
+          setPosition: vi.fn().mockReturnThis(),
+          destroy: vi.fn(),
+          x: 200,
+          y: 100,
+          displayWidth: 44,
+          displayHeight: 44,
+        })),
+        text: vi.fn(() => ({
+          setOrigin: vi.fn().mockReturnThis(),
+          setColor: vi.fn().mockReturnThis(),
+          destroy: vi.fn(),
+        })),
+        container: vi.fn((_x: number, y: number) => {
+          containerY = y;
+          return {
+            setDepth: vi.fn().mockReturnThis(),
+            setPosition: vi.fn((_cx: number, cy: number) => {
+              containerY = cy;
+            }).mockReturnThis(),
+            add: vi.fn(),
+            destroy: vi.fn(),
+            get y() {
+              return containerY;
+            },
+          };
+        }),
+        graphics: vi.fn(() => ({
+          clear: vi.fn().mockReturnThis(),
+          fillStyle: vi.fn().mockReturnThis(),
+          fillRoundedRect: vi.fn().mockReturnThis(),
+          lineStyle: vi.fn().mockReturnThis(),
+          strokeRoundedRect: vi.fn().mockReturnThis(),
+          lineBetween: vi.fn().mockReturnThis(),
+          destroy: vi.fn(),
+        })),
+      },
+    } as unknown as Phaser.Scene;
+
+    const enemy: EnemyState = {
+      id: 'enemy-headroom',
+      type: 'drone',
+      word: 'RECON',
+      remainingWord: 'RECON',
+      position: { x: 200, y: 100 },
+      velocity: { x: 0, y: 1 },
+      health: 5,
+      maxHealth: 5,
+      alive: true,
+      spawnTick: 0,
+    };
+
+    const view = new EnemyView(mockScene, enemy, false);
+
+    expect(view.displayWidth).toBe(44);
+    expect(view.headroom).toBeGreaterThanOrEqual(6);
+
     view.destroy();
   });
 });

@@ -6,9 +6,14 @@ import {
   layoutLabel,
   LayoutLetter,
 } from '../layoutLabel';
-import { RENDERER_CONFIG } from '@/shared/config/defaultConfig';
+import { RENDERER_CONFIG, TARGET_DRONE_WIDTH } from '@/shared/config/defaultConfig';
 import { THEME } from '@/shared/theme';
 import { EnemyState } from '@/shared/domain';
+
+// Clear headroom >= 6 px between bottom of label plate and top of drone sprite (Rule R-E)
+export const LABEL_HEADROOM_PX = 7;
+export const LABEL_Y_OFFSET =
+  TARGET_DRONE_WIDTH / 2 + LABEL_HEADROOM_PX + RENDERER_CONFIG.plateHeightPx / 2;
 
 export class EnemyView {
   readonly id: string;
@@ -30,15 +35,16 @@ export class EnemyView {
     this.lastRemainingWord = enemy.remainingWord;
     this.lastIsTargeted = isTargeted;
 
-    // 1. Drone Image (Depth 10)
+    // 1. Drone Image (Depth 10, display size 44x44 px)
     this.droneImage = scene.add.image(enemy.position.x, enemy.position.y, 'drone');
+    this.droneImage.setDisplaySize(TARGET_DRONE_WIDTH, TARGET_DRONE_WIDTH);
     this.droneImage.setDepth(DEPTHS.ENEMIES);
     this.droneImage.setOrigin(0.5, 0.5);
 
-    // 2. Label Container (Depth 25)
+    // 2. Label Container (Depth 25, positioned with >= 6px headroom above sprite)
     this.plateWidth = computePlateWidth(this.word.length);
     const clampedX = clampContainerX(enemy.position.x, this.plateWidth);
-    const labelY = enemy.position.y - 38;
+    const labelY = enemy.position.y - LABEL_Y_OFFSET;
 
     this.labelContainer = scene.add.container(clampedX, labelY);
     this.labelContainer.setDepth(DEPTHS.LABELS);
@@ -73,7 +79,7 @@ export class EnemyView {
     // 1. Position update: setPosition each frame (zero allocation)
     this.droneImage.setPosition(enemy.position.x, enemy.position.y);
     const clampedX = clampContainerX(enemy.position.x, this.plateWidth);
-    this.labelContainer.setPosition(clampedX, enemy.position.y - 38);
+    this.labelContainer.setPosition(clampedX, enemy.position.y - LABEL_Y_OFFSET);
 
     // 2. Label state update: recolor ONLY when remainingWord or isTargeted changes
     if (
@@ -153,6 +159,30 @@ export class EnemyView {
 
   get y(): number {
     return this.droneImage.y;
+  }
+
+  get displayWidth(): number {
+    return this.droneImage.displayWidth;
+  }
+
+  get displayHeight(): number {
+    return this.droneImage.displayHeight;
+  }
+
+  get spriteTop(): number {
+    return this.droneImage.y - this.droneImage.displayHeight / 2;
+  }
+
+  get labelPlateBottom(): number {
+    return this.labelContainer.y + this.plateHeight / 2;
+  }
+
+  get labelPlateTop(): number {
+    return this.labelContainer.y - this.plateHeight / 2;
+  }
+
+  get headroom(): number {
+    return this.spriteTop - this.labelPlateBottom;
   }
 
   destroy(): void {

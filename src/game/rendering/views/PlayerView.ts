@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { DEPTHS } from '../depths';
-import { PLAYER_START, RENDERER_CONFIG } from '@/shared/config/defaultConfig';
+import { PLAYER_START, RENDERER_CONFIG, TARGET_SHIP_SIZE } from '@/shared/config/defaultConfig';
 import { THEME } from '@/shared/theme';
 import { PlayerState } from '@/shared/domain';
 
@@ -10,6 +10,7 @@ export class PlayerView {
 
   constructor(scene: Phaser.Scene) {
     this.sprite = scene.add.image(PLAYER_START.x, PLAYER_START.y, 'player-ship');
+    this.sprite.setDisplaySize(TARGET_SHIP_SIZE.width, TARGET_SHIP_SIZE.height);
     this.sprite.setDepth(DEPTHS.PLAYER);
     this.sprite.setOrigin(0.5, 0.5);
   }
@@ -42,6 +43,14 @@ export class PlayerView {
 
   get y(): number {
     return this.sprite.y;
+  }
+
+  get displayWidth(): number {
+    return this.sprite.displayWidth;
+  }
+
+  get displayHeight(): number {
+    return this.sprite.displayHeight;
   }
 
   reset(): void {
