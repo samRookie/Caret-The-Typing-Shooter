@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { GameEvent, GameSnapshot } from '@/shared/domain';
+import { SHOW_LOCK_RETICLE } from '@/shared/config/defaultConfig';
 import { reconcile } from './reconcile';
 import { BackgroundView } from './views/BackgroundView';
 import { PlayerView } from './views/PlayerView';
@@ -15,7 +16,7 @@ export class GameRenderer {
   private readonly enemies: Map<string, EnemyView> = new Map();
   private readonly ghosts: GhostPool;
   private readonly projectiles: ProjectilePool;
-  private readonly reticle: ReticleView;
+  private readonly reticle: ReticleView | null;
 
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
@@ -23,7 +24,7 @@ export class GameRenderer {
     this.player = new PlayerView(scene);
     this.ghosts = new GhostPool(scene);
     this.projectiles = new ProjectilePool(scene);
-    this.reticle = new ReticleView(scene);
+    this.reticle = SHOW_LOCK_RETICLE ? new ReticleView(scene) : null;
   }
 
   /**
@@ -81,21 +82,23 @@ export class GameRenderer {
           // Handled below via activeTargetId
           break;
         case 'TARGET_LOST':
-          this.reticle.hide();
+          this.reticle?.hide();
           break;
       }
     }
 
-    // 4. Update Reticle state & position
-    if (snapshot.activeTargetId) {
-      const targetView = this.enemies.get(snapshot.activeTargetId);
-      if (targetView) {
-        this.reticle.show(targetView.x, targetView.y);
+    // 4. Update Reticle state & position (gated by SHOW_LOCK_RETICLE)
+    if (this.reticle) {
+      if (snapshot.activeTargetId) {
+        const targetView = this.enemies.get(snapshot.activeTargetId);
+        if (targetView) {
+          this.reticle.show(targetView.x, targetView.y);
+        } else {
+          this.reticle.hide();
+        }
       } else {
         this.reticle.hide();
       }
-    } else {
-      this.reticle.hide();
     }
   }
 
@@ -118,7 +121,7 @@ export class GameRenderer {
     this.enemies.clear();
     this.ghosts.clear();
     this.projectiles.clear();
-    this.reticle.hide();
+    this.reticle?.hide();
     this.player.reset();
   }
 
@@ -131,6 +134,6 @@ export class GameRenderer {
     this.enemies.clear();
     this.ghosts.destroy();
     this.projectiles.destroy();
-    this.reticle.destroy();
+    this.reticle?.destroy();
   }
 }

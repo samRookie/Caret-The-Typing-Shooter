@@ -1,66 +1,57 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import React from 'react';
-import { HUDOverlay } from '@/ui/components/HUDOverlay';
+import { TopStrip } from '@/ui/components/TopStrip';
+import { ShipWingBoxes } from '@/ui/components/WingBox';
 import { HudState } from '@/game/controller/GameController';
 
-describe('8.C HUD Overlay Data Binding & Render Throttle', () => {
-  it('renders all real simulation metrics, 2-digit wave, and hull progressbar with correct accessibility attributes', () => {
+describe('HUD Data Binding & Render Throttle (Spec 5.B, 5.D, 5.E)', () => {
+  it('renders all real simulation metrics via TopStrip and ShipWingBoxes with correct accessibility attributes', () => {
     const onPause = vi.fn();
     const hud: HudState = {
       score: 1850,
       wave: 3,
       streak: 9,
-      accuracy: 94,
-      hull: 80,
-      maxHull: 100,
-      target: {
-        id: 'drone-1',
-        word: 'RADAR',
-        remainingWord: 'DAR',
-        typedIndex: 2,
-      },
-    };
-
-    render(<HUDOverlay hud={hud} onPause={onPause} />);
-
-    // Score, wave, streak, accuracy
-    expect(screen.getByText('1850')).toBeInTheDocument();
-    expect(screen.getByText('03')).toBeInTheDocument(); // Padded to 2 digits
-    expect(screen.getByText('9')).toBeInTheDocument();
-    expect(screen.getByText('94%')).toBeInTheDocument();
-
-    // Hull progress bar
-    const hullBar = screen.getByRole('progressbar', { name: /hull integrity/i });
-    expect(hullBar).toBeInTheDocument();
-    expect(hullBar).toHaveAttribute('aria-valuenow', '80');
-    expect(hullBar).toHaveAttribute('aria-valuemin', '0');
-    expect(hullBar).toHaveAttribute('aria-valuemax', '100');
-    expect(screen.getByText('80/100')).toBeInTheDocument();
-
-    // Active target
-    expect(screen.getByText(/TARGET LOCK/i)).toBeInTheDocument();
-    expect(screen.getAllByText('R').length).toBeGreaterThan(0);
-
-    // Pause button
-    const pauseBtn = screen.getByRole('button', { name: /PAUSE/i });
-    fireEvent.click(pauseBtn);
-    expect(onPause).toHaveBeenCalledTimes(1);
-  });
-
-  it('hides active target lock when target is null', () => {
-    const hud: HudState = {
-      score: 0,
-      wave: 1,
-      streak: 0,
-      accuracy: 100,
-      hull: 100,
-      maxHull: 100,
+      accuracy: 94.2,
+      misses: 1,
+      hull: 2,
+      maxHull: 3,
+      elapsedSeconds: 85,
       target: null,
     };
 
-    render(<HUDOverlay hud={hud} onPause={vi.fn()} />);
-    expect(screen.queryByText(/TARGET LOCK/i)).not.toBeInTheDocument();
+    render(
+      <div>
+        <TopStrip
+          wave={hud.wave}
+          elapsedSeconds={hud.elapsedSeconds ?? 0}
+          accuracy={hud.accuracy}
+          misses={hud.misses ?? 0}
+          hull={hud.hull}
+          maxHull={hud.maxHull}
+          onPause={onPause}
+        />
+        <ShipWingBoxes streak={hud.streak} score={hud.score} />
+      </div>
+    );
+
+    // TopStrip: Wave (2 digits), Time (mm:ss), Accuracy (with 1 decimal)
+    expect(screen.getByText('WAVE 03')).toBeInTheDocument();
+    expect(screen.getByText('TIME 01:25')).toBeInTheDocument();
+    expect(screen.getByText('ACCURACY 94.2%')).toBeInTheDocument();
+
+    // TopStrip: 3-pip Hull status
+    const hullStatus = screen.getByRole('status', { name: /Hull integrity: 2 of 3 pips/i });
+    expect(hullStatus).toBeInTheDocument();
+
+    // ShipWingBoxes: Streak & Score
+    expect(screen.getByText('9')).toBeInTheDocument();
+    expect(screen.getByText('1850')).toBeInTheDocument();
+
+    // TopStrip: Pause button
+    const pauseBtn = screen.getByRole('button', { name: /PAUSE · ESC/i });
+    fireEvent.click(pauseBtn);
+    expect(onPause).toHaveBeenCalledTimes(1);
   });
 
   it('React re-renders on the HUD <= ~10 per second during idle play when driven by GameController throttling', () => {
@@ -68,7 +59,17 @@ describe('8.C HUD Overlay Data Binding & Render Throttle', () => {
 
     const TestHUDWrapper: React.FC<{ hud: HudState }> = ({ hud }) => {
       renderCount++;
-      return <HUDOverlay hud={hud} onPause={vi.fn()} />;
+      return (
+        <div>
+          <TopStrip
+            wave={hud.wave}
+            elapsedSeconds={hud.elapsedSeconds ?? 0}
+            accuracy={hud.accuracy}
+            hull={hud.hull}
+          />
+          <ShipWingBoxes streak={hud.streak} score={hud.score} />
+        </div>
+      );
     };
 
     // Simulate 1 second of 60 FPS frames (60 frames)
@@ -78,8 +79,10 @@ describe('8.C HUD Overlay Data Binding & Render Throttle', () => {
       wave: 1,
       streak: 0,
       accuracy: 100,
-      hull: 100,
-      maxHull: 100,
+      hull: 3,
+      maxHull: 3,
+      elapsedSeconds: 0,
+      misses: 0,
       target: null,
     };
 
@@ -91,7 +94,7 @@ describe('8.C HUD Overlay Data Binding & Render Throttle', () => {
     for (let frame = 1; frame <= 60; frame++) {
       if (frame % 6 === 0) {
         // 100ms elapsed -> throttle triggers an emit
-        currentHud = { ...currentHud, score: 100 + frame };
+        currentHud = { ...currentHud, score: 100 + frame, elapsedSeconds: frame / 60 };
         rerender(<TestHUDWrapper hud={currentHud} />);
         emittedUpdates++;
       }

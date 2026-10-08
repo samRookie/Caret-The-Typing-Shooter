@@ -38,9 +38,12 @@ describe('Tactical Command Console App Shell', () => {
     const playBtn = screen.getByRole('button', { name: /INITIATE ENGAGEMENT/i });
     fireEvent.click(playBtn);
 
-    const toggleBtn = screen.getByRole('button', { name: /MOTION: NORMAL/i });
+    const pauseBtn = screen.getByRole('button', { name: /PAUSE · ESC/i });
+    fireEvent.click(pauseBtn);
+
+    const toggleBtn = screen.getByRole('button', { name: /REDUCED MOTION/i });
     expect(toggleBtn).toBeInTheDocument();
     fireEvent.click(toggleBtn);
-    expect(screen.getByRole('button', { name: /MOTION: REDUCED/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /REDUCED MOTION \[ENABLED\]/i })).toBeInTheDocument();
   });
 });

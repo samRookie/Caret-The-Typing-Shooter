@@ -2,7 +2,6 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { TacticalButton } from '@/ui/components/TacticalButton';
 import { MetricCard } from '@/ui/components/MetricCard';
-import { ActiveTargetReadout } from '@/ui/components/ActiveTargetReadout';
 import { LoadingOverlay } from '@/ui/components/LoadingOverlay';
 import { PauseModal } from '@/ui/components/PauseModal';
 import { GameOverModal } from '@/ui/components/GameOverModal';
@@ -40,29 +39,6 @@ describe('MetricCard Component', () => {
     expect(screen.getByText(/ACCURACY/i)).toBeInTheDocument();
     expect(screen.getByText('98')).toBeInTheDocument();
     expect(screen.getByText('%')).toBeInTheDocument();
-  });
-});
-
-describe('ActiveTargetReadout Component', () => {
-  it('correctly segments typed, next, and remaining characters', () => {
-    const { container } = render(
-      <ActiveTargetReadout word="TARGET" typedIndex={2} isTargeted={true} />
-    );
-
-    // Characters at index 0 and 1 should have class 'word-plate-char-typed'
-    const typedChars = container.querySelectorAll('.word-plate-char-typed');
-    expect(typedChars.length).toBe(2);
-    expect(typedChars[0]?.textContent).toBe('T');
-    expect(typedChars[1]?.textContent).toBe('A');
-
-    // Character at index 2 ('R') should have class 'word-plate-char-next'
-    const nextChar = container.querySelector('.word-plate-char-next');
-    expect(nextChar).not.toBeNull();
-    expect(nextChar?.textContent).toBe('R');
-
-    // Remaining characters ('G', 'E', 'T') should have class 'word-plate-char-remaining'
-    const remainingChars = container.querySelectorAll('.word-plate-char-remaining');
-    expect(remainingChars.length).toBe(3);
   });
 });
 

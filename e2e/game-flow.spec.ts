@@ -45,8 +45,8 @@ test.describe('Step 8 — Game Flow: Menu, HUD Binding, Pause, Game Over, Restar
 
     // HUD becomes visible
     await expect(page.getByText('SCORE')).toBeVisible();
-    await expect(page.getByText('WAVE')).toBeVisible();
-    await expect(page.getByRole('progressbar', { name: /hull integrity/i })).toBeVisible();
+    await expect(page.getByText('WAVE 01')).toBeVisible();
+    await expect(page.getByRole('status', { name: /hull integrity/i })).toBeVisible();
 
     // Verify window.__caret is active
     await page.waitForFunction(() => typeof window.__caret !== 'undefined');

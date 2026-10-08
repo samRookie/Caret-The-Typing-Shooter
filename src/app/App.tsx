@@ -4,7 +4,6 @@ import { PhaserContainer } from '@/ui/PhaserContainer';
 import { TacticalButton } from '@/ui/components/TacticalButton';
 import { TopStrip } from '@/ui/components/TopStrip';
 import { ShipWingBoxes } from '@/ui/components/WingBox';
-import { HUDOverlay } from '@/ui/components/HUDOverlay';
 import { LoadingOverlay } from '@/ui/components/LoadingOverlay';
 import { MenuScreen } from '@/ui/components/MenuScreen';
 import { PauseModal } from '@/ui/components/PauseModal';
@@ -192,9 +191,9 @@ export const App: React.FC = () => {
         gameState.screen === 'game-over' ||
         (Boolean(import.meta.env.DEV) && isPreview)) && (
         <TopStrip
-          wave={gameState.hud.wave}
-          elapsedSeconds={gameState.hud.elapsedSeconds ?? 0}
-          accuracy={gameState.hud.accuracy}
+          wave={isPreview ? 1 : gameState.hud.wave}
+          elapsedSeconds={isPreview ? 45 : (gameState.hud.elapsedSeconds ?? 0)}
+          accuracy={isPreview ? 94 : gameState.hud.accuracy}
           misses={gameState.hud.misses ?? 0}
           hull={gameState.hud.hull}
           maxHull={gameState.hud.maxHull}
@@ -214,34 +213,14 @@ export const App: React.FC = () => {
           }}
         />
 
-        {/* Tactical HUD Overlay & Wing Boxes (rendered during active or paused gameplay, or in preview mode) */}
+        {/* Tactical Wing Boxes (rendered during active or paused gameplay, or in preview mode) */}
         {(gameState.screen === 'running' ||
           gameState.screen === 'paused' ||
           (Boolean(import.meta.env.DEV) && isPreview)) && (
-          <>
-            <HUDOverlay
-              hud={gameState.hud}
-              telemetry={
-                isPreview
-                  ? {
-                      score: 1450,
-                      wave: 1,
-                      streak: 8,
-                      accuracy: 94,
-                      activeTarget: 'RECON',
-                      activeTargetTypedIndex: 2,
-                    }
-                  : undefined
-              }
-              onPause={() => controller.pause()}
-              reducedMotion={reducedMotion}
-              onToggleReducedMotion={handleToggleReducedMotion}
-            />
-            <ShipWingBoxes
-              streak={gameState.hud.streak}
-              score={gameState.hud.score}
-            />
-          </>
+          <ShipWingBoxes
+            streak={isPreview ? 8 : gameState.hud.streak}
+            score={isPreview ? 1450 : gameState.hud.score}
+          />
         )}
 
         {/* Tactical Screens & Modals */}
