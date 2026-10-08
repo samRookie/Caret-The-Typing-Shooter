@@ -9,9 +9,10 @@ describe('Tactical Command Console App Shell', () => {
   });
 
   it('renders clean tactical command console in standard mode and starts game', () => {
-    render(<App />);
-    expect(screen.getByText(/TACTICAL COMMAND CONSOLE/i)).toBeInTheDocument();
-    expect(screen.getByText(/SYSTEM ONLINE \/\/ READY/i)).toBeInTheDocument();
+    const { container } = render(<App />);
+    expect(container.querySelector('.game-shell')).toBeInTheDocument();
+    expect(container.querySelector('.viewport-container')).toBeInTheDocument();
+    expect(screen.queryByText(/TACTICAL COMMAND CONSOLE/i)).toBeNull();
 
     // Start game from Menu screen
     const playBtn = screen.getByRole('button', { name: /INITIATE ENGAGEMENT/i });

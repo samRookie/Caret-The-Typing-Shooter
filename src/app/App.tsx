@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef, useSyncExternalStore, useCallback } from 'react';
 import './app.css';
 import { PhaserContainer } from '@/ui/PhaserContainer';
-import { TacticalFrame } from '@/ui/components/TacticalFrame';
 import { TacticalButton } from '@/ui/components/TacticalButton';
 import { HUDOverlay } from '@/ui/components/HUDOverlay';
 import { LoadingOverlay } from '@/ui/components/LoadingOverlay';
@@ -104,120 +103,90 @@ export const App: React.FC = () => {
     setReducedMotion((prev) => !prev);
   };
 
+  const viewportRef = useRef<HTMLDivElement>(null);
+
+  // ResizeObserver injecting --u = viewportWidthPx / 1280 (Spec 5.A)
+  useEffect(() => {
+    const el = viewportRef.current;
+    if (!el) return;
+
+    const setScale = (width: number) => {
+      const u = width / 1280;
+      el.style.setProperty('--u', u.toString());
+    };
+
+    setScale(el.clientWidth || 1280);
+
+    if (typeof ResizeObserver !== 'undefined') {
+      const observer = new ResizeObserver((entries) => {
+        for (const entry of entries) {
+          setScale(entry.contentRect.width);
+        }
+      });
+      observer.observe(el);
+      return () => observer.disconnect();
+    }
+  }, []);
+
   return (
-    <div className="tactical-viewport">
-      {/* Top Header: preview switchboard is strictly gated behind import.meta.env.DEV && isPreview */}
-      {import.meta.env.DEV && isPreview ? (
-        <TacticalFrame
-          title="TACTICAL COMMAND HUD"
-          subtitle="PREVIEW SWITCHBOARD [DEV ONLY]"
-          style={{ padding: '8px 16px', flexShrink: 0 }}
+    <div className="game-shell">
+      {/* Dev-only preview switchboard (strictly gated behind import.meta.env.DEV && isPreview) */}
+      {import.meta.env.DEV && isPreview && (
+        <div
+          style={{
+            padding: '6px 16px',
+            background: 'var(--surface)',
+            borderBottom: '1px solid var(--border)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '8px',
+            fontSize: '11px',
+            fontFamily: 'var(--font-condensed)',
+            flexShrink: 0,
+          }}
         >
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              flexWrap: 'wrap',
-              gap: '8px',
-            }}
-          >
-            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-              <span
-                style={{
-                  fontFamily: 'var(--font-condensed)',
-                  fontSize: '11px',
-                  color: 'var(--text-secondary)',
-                  marginRight: '4px',
-                }}
-              >
-                PREVIEW CONTROLS:
-              </span>
-              <TacticalButton
-                size="sm"
-                variant={showPreviewLoading ? 'primary' : 'default'}
-                onClick={() => setShowPreviewLoading((prev) => !prev)}
-              >
-                {showPreviewLoading ? 'CLOSE LOADING' : 'PREVIEW LOADING'}
-              </TacticalButton>
-
-              <TacticalButton
-                size="sm"
-                variant={showPreviewPause ? 'primary' : 'default'}
-                onClick={() => setShowPreviewPause((prev) => !prev)}
-              >
-                {showPreviewPause ? 'CLOSE PAUSE' : 'PREVIEW PAUSE'}
-              </TacticalButton>
-
-              <TacticalButton
-                size="sm"
-                variant={showPreviewGameOver ? 'primary' : 'default'}
-                onClick={() => setShowPreviewGameOver((prev) => !prev)}
-              >
-                {showPreviewGameOver ? 'CLOSE GAME OVER' : 'PREVIEW GAME OVER'}
-              </TacticalButton>
-              <a
-                href="/"
-                style={{
-                  color: 'var(--text-secondary)',
-                  fontFamily: 'var(--font-condensed)',
-                  fontSize: '11px',
-                  textDecoration: 'underline',
-                  marginLeft: '8px',
-                }}
-              >
-                [BACK TO MAIN GAME]
-              </a>
-            </div>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <span style={{ color: 'var(--text-secondary)', marginRight: '4px' }}>PREVIEW SWITCHBOARD [DEV ONLY]</span>
+            <span style={{ color: 'var(--accent)' }}>PREVIEW CONTROLS:</span>
+            <TacticalButton
+              size="sm"
+              variant={showPreviewLoading ? 'primary' : 'default'}
+              onClick={() => setShowPreviewLoading((prev) => !prev)}
+            >
+              {showPreviewLoading ? 'CLOSE LOADING' : 'PREVIEW LOADING'}
+            </TacticalButton>
+            <TacticalButton
+              size="sm"
+              variant={showPreviewPause ? 'primary' : 'default'}
+              onClick={() => setShowPreviewPause((prev) => !prev)}
+            >
+              {showPreviewPause ? 'CLOSE PAUSE' : 'PREVIEW PAUSE'}
+            </TacticalButton>
+            <TacticalButton
+              size="sm"
+              variant={showPreviewGameOver ? 'primary' : 'default'}
+              onClick={() => setShowPreviewGameOver((prev) => !prev)}
+            >
+              {showPreviewGameOver ? 'CLOSE GAME OVER' : 'PREVIEW GAME OVER'}
+            </TacticalButton>
+            <a
+              href="/"
+              style={{
+                color: 'var(--text-secondary)',
+                textDecoration: 'underline',
+                marginLeft: '8px',
+              }}
+            >
+              [BACK TO MAIN GAME]
+            </a>
           </div>
-        </TacticalFrame>
-      ) : (
-        <TacticalFrame
-          title="TACTICAL COMMAND CONSOLE"
-          subtitle="SYSTEM ONLINE // READY"
-          style={{ padding: '8px 16px', flexShrink: 0 }}
-        >
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              fontSize: '12px',
-              fontFamily: 'var(--font-condensed)',
-            }}
-          >
-            <div style={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
-              <div>
-                <span style={{ color: 'var(--text-secondary)' }}>MODE: </span>
-                <span style={{ color: 'var(--text-primary)' }}>TACTICAL DEFENSE</span>
-              </div>
-              <div>
-                <span style={{ color: 'var(--text-secondary)' }}>STATUS: </span>
-                <span style={{ color: 'var(--accent-bright)' }}>
-                  {gameState.screen.toUpperCase()}
-                </span>
-              </div>
-            </div>
-          </div>
-        </TacticalFrame>
+        </div>
       )}
 
-      {/* Main Viewport Container */}
-      <div
-        style={{
-          position: 'relative',
-          flex: 1,
-          width: '100%',
-          aspectRatio: '16 / 9',
-          maxHeight: 'calc(100vh - 120px)',
-          margin: '0 auto',
-          overflow: 'hidden',
-          borderRadius: 'var(--radius-md)',
-          border: '1px solid var(--border)',
-          background: 'var(--bg-0)',
-          boxShadow: 'var(--shadow-panel)',
-        }}
-      >
+      {/* Row 2: Tactical Viewport Area */}
+      <div className="viewport-area">
+        <div ref={viewportRef} className="viewport-container">
         {/* Live Phaser Viewport */}
         <PhaserContainer
           controller={controller}
@@ -318,6 +287,7 @@ export const App: React.FC = () => {
             <DebugOverlay />
           </React.Suspense>
         )}
+        </div>
       </div>
 
       {/* Viewport Dimension & Status Footer */}

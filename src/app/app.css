@@ -87,24 +87,51 @@ body {
   align-items: center;
 }
 
-/* Tactical App Viewport Container */
-.tactical-viewport {
-  position: relative;
-  width: 100vw;
-  height: 100vh;
-  max-width: 1680px;
-  max-height: 1050px;
-  display: flex;
-  flex-direction: column;
-  padding: 16px;
-  gap: 12px;
+/* Game Shell Grid Layout (5.A) */
+:root {
+  --top-strip-height: 46px;
 }
 
-@media (max-width: 1366px) {
-  .tactical-viewport {
-    padding: 12px;
-    gap: 8px;
-  }
+.game-shell {
+  position: relative;
+  width: 100vw;
+  height: 100dvh;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  background: var(--bg-0);
+  overflow: hidden;
+}
+
+.viewport-area {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.viewport-container {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  width: min(100%, calc((100dvh - var(--top-strip-height, 46px)) * 16 / 9));
+  max-width: 100%;
+  max-height: calc(100dvh - var(--top-strip-height, 46px));
+  margin: 0 auto;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  background: var(--bg-0);
+  box-shadow: var(--shadow-panel);
+}
+
+/* Tactical App Viewport Container (Legacy alias) */
+.tactical-viewport {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Tactical Button Component Base */
