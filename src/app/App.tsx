@@ -4,6 +4,7 @@ import { PhaserContainer } from '@/ui/PhaserContainer';
 import { TacticalButton } from '@/ui/components/TacticalButton';
 import { TopStrip } from '@/ui/components/TopStrip';
 import { ShipWingBoxes } from '@/ui/components/WingBox';
+import { WaveBanner } from '@/ui/components/WaveBanner';
 import { LoadingOverlay } from '@/ui/components/LoadingOverlay';
 import { MenuScreen } from '@/ui/components/MenuScreen';
 import { PauseModal } from '@/ui/components/PauseModal';
@@ -220,6 +221,15 @@ export const App: React.FC = () => {
           <ShipWingBoxes
             streak={isPreview ? 8 : gameState.hud.streak}
             score={isPreview ? 1450 : gameState.hud.score}
+          />
+        )}
+
+        {/* Tactical Wave Announcement Banner (Spec 5.G) */}
+        {(gameState.screen === 'running' || gameState.screen === 'paused') && (
+          <WaveBanner
+            wave={gameState.hud.wave}
+            visible={Boolean(gameState.hud.isIntermission)}
+            reducedMotion={reducedMotion}
           />
         )}
 

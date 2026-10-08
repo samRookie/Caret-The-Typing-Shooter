@@ -8,6 +8,7 @@ import { GameOverModal } from '@/ui/components/GameOverModal';
 import { HullPips } from '@/ui/components/HullPips';
 import { TopStrip } from '@/ui/components/TopStrip';
 import { ClockBadge } from '@/ui/components/ClockBadge';
+import { WaveBanner } from '@/ui/components/WaveBanner';
 
 describe('TacticalButton Component', () => {
   it('renders button label and fires click handler', () => {
@@ -140,5 +141,27 @@ describe('ClockBadge Component (Spec 5.C)', () => {
 
     // Should unmount without errors/leaks
     expect(() => unmount()).not.toThrow();
+  });
+});
+
+describe('WaveBanner Component (Spec 5.G)', () => {
+  it('renders wave heading and announcement text with proper accessibility role', () => {
+    render(<WaveBanner wave={1} visible={true} />);
+    const banner = screen.getByTestId('wave-banner');
+    expect(banner).toBeInTheDocument();
+    expect(banner).toHaveAttribute('role', 'alert');
+    expect(screen.getByText('WAVE 01')).toBeInTheDocument();
+    expect(screen.getByText(/INCOMING HOSTILE WAVE DETECTED/i)).toBeInTheDocument();
+    expect(banner).toHaveStyle({ opacity: '1' });
+  });
+
+  it('respects visibility false and handles reducedMotion', () => {
+    const { rerender } = render(<WaveBanner wave={2} visible={false} reducedMotion={false} />);
+    const banner = screen.getByTestId('wave-banner');
+    expect(banner).toHaveStyle({ opacity: '0' });
+
+    // With reducedMotion, transition is 'none' and visibility is hidden when not visible
+    rerender(<WaveBanner wave={2} visible={false} reducedMotion={true} />);
+    expect(banner).toHaveStyle({ transition: 'none', visibility: 'hidden' });
   });
 });

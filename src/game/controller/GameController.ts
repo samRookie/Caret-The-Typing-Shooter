@@ -28,6 +28,7 @@ export interface HudState {
   readonly target: HudTarget | null;
   readonly elapsedSeconds?: number;
   readonly misses?: number;
+  readonly isIntermission?: boolean;
 }
 
 export interface AppGameState {
@@ -55,6 +56,7 @@ export const INITIAL_HUD_STATE: HudState = {
   target: null,
   elapsedSeconds: 0,
   misses: 0,
+  isIntermission: true,
 };
 
 /**
@@ -123,6 +125,7 @@ export function extractHudState(snapshot: GameSnapshot): HudState {
     target,
     elapsedSeconds: snapshot.elapsedTicks / 60,
     misses: snapshot.scoring.misses,
+    isIntermission: snapshot.wave.isCompleted,
   };
 }
 
