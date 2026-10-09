@@ -86,21 +86,6 @@ At the conclusion of each engagement, the Mission Debriefing console provides a 
 
 ---
 
-## Run It Yourself
-
-Clone the repository and launch the local mission simulator:
-
-```bash
-git clone https://github.com/samRookie/Caret-The-Typing-Shooter.git
-cd "Caret-The-Typing-Shooter"
-npm install
-npm run dev
-```
-
-Then open [http://localhost:3000](http://localhost:3000) in your browser.
-
----
-
 ## Credits
 
 * **Typography:** Font family **Tektur** by The Tektur Project Authors, licensed under the SIL Open Font License 1.1.
@@ -110,19 +95,3 @@ Then open [http://localhost:3000](http://localhost:3000) in your browser.
 ---
 
 Made by @samRookie
-
----
-
-<details>
-<summary>For developers</summary>
-
-### Quick Commands
-* `npm run dev`: Launch local Vite development server
-* `npm run build`: Compile TypeScript and bundle production assets
-* `npm run test`: Run Vitest unit and integration test suites
-* `npm run lint`: Run ESLint checks across TypeScript sources
-
-**Built with:** React, TypeScript, Phaser 3, and Vite.  
-Reference implementation documentation is located under the `docs/` folder.
-
-</details>
