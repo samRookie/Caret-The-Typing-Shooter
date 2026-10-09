@@ -10,7 +10,7 @@ This document catalogues every third-party asset currently residing in `public/`
 |---|---|---|---|
 | `assets/audio/ui-click.ogg` | Kenney UI Pack / Digital Audio | Version not stated; license file missing from pack | CC0 1.0 Universal (claimed) |
 | `assets/audio/laser.ogg` | Kenney Digital Audio | Version not stated; license file missing from pack | CC0 1.0 Universal (claimed) |
-| `assets/audio/hit.ogg` | Kenney Digital Audio | Version not stated; license file missing from pack | CC0 1.0 Universal (claimed) |
+| `assets/audio/hit.ogg` | Kenney Sci-Fi Sounds | Version 1.0; license file present in repo (`third_party/kenney/sci-fi-sounds/License.txt`) | CC0 1.0 Universal |
 | `assets/audio/destroy.ogg` | Kenney Digital Audio | Version not stated; license file missing from pack | CC0 1.0 Universal (claimed) |
 | `assets/audio/wrong-input.ogg` | Kenney Digital Audio | Version not stated; license file missing from pack | CC0 1.0 Universal (claimed) |
 | `assets/audio/wave-complete.ogg` | Kenney Digital Audio | Version not stated; license file missing from pack | CC0 1.0 Universal (claimed) |
@@ -42,9 +42,14 @@ This document catalogues every third-party asset currently residing in `public/`
 
 3. **Kenney Digital Audio**
    * **License File:** Missing from repository archives. Recorded in `third_party/kenney/digital-audio/License.txt`.
-   * **Usage in `public/`:** Sound effects (`laser.ogg`, `hit.ogg`, `destroy.ogg`, `wrong-input.ogg`, `wave-complete.ogg`).
+   * **Usage in `public/`:** Sound effects (`laser.ogg`, `destroy.ogg`, `wrong-input.ogg`, `wave-complete.ogg`).
 
-4. **Kenney UI Pack**
+4. **Kenney Sci-Fi Sounds (Version 1.0)**
+   * **License File:** Present in repository at `third_party/kenney/sci-fi-sounds/License.txt`.
+   * **License:** Creative Commons Zero, CC0 1.0 Universal.
+   * **Usage in `public/`:** Hull collision & damage sound effect (`hit.ogg`, sourced from `explosionCrunch_000.ogg`).
+
+5. **Kenney UI Pack**
    * **License File:** Missing from repository archives. Recorded in `third_party/kenney/ui-pack/License.txt`.
    * **Usage in `public/`:** UI sound (`ui-click.ogg`). Legacy fonts removed.
 

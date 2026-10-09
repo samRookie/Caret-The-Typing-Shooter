@@ -76,6 +76,15 @@ export const App: React.FC = () => {
   const [showPreviewPause, setShowPreviewPause] = useState(false);
   const [showPreviewGameOver, setShowPreviewGameOver] = useState(false);
 
+  // Footer status note: briefly visible for 3 seconds on startup, then fades out completely
+  const [showFooterNotes, setShowFooterNotes] = useState(true);
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setShowFooterNotes(false);
+    }, 3000);
+    return () => window.clearTimeout(timer);
+  }, []);
+
   // Compute effective reduced motion from settingsStore
   const effectiveReducedMotion =
     settings.reducedMotion === 'on'
@@ -429,7 +438,7 @@ export const App: React.FC = () => {
         </div>
       </div>
 
-      {/* Viewport Dimension & Status Footer */}
+      {/* Viewport Dimension & Status Footer (briefly visible on startup, then fades out completely) */}
       <div
         style={{
           display: 'flex',
@@ -440,6 +449,10 @@ export const App: React.FC = () => {
           color: 'var(--text-secondary)',
           padding: '0 4px',
           flexShrink: 0,
+          opacity: showFooterNotes ? 1 : 0,
+          visibility: showFooterNotes ? 'visible' : 'hidden',
+          transition: 'opacity 0.8s ease-out, visibility 0.8s ease-out',
+          pointerEvents: 'none',
         }}
       >
         <span>TACTICAL RESOLUTION: ADAPTIVE [DESKTOP OPTIMIZED 1280×720 / 1440×900]</span>
