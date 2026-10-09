@@ -143,6 +143,8 @@ export class SettingsStore {
     return this.currentSettings;
   };
 
+  set = this.updateSettings;
+
   resetSettings = (): SettingsV1 => {
     this.currentSettings = { ...DEFAULT_SETTINGS };
     this.saveToStorage();

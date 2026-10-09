@@ -9,8 +9,13 @@ import { LoadingOverlay } from '@/ui/components/LoadingOverlay';
 import { MenuScreen } from '@/ui/components/MenuScreen';
 import { PauseModal } from '@/ui/components/PauseModal';
 import { GameOverModal } from '@/ui/components/GameOverModal';
+import { SettingsModal } from '@/ui/components/SettingsModal';
 import { GameController } from '@/game/controller/GameController';
 import { installDevCaretHook } from '@/game/controller/devCaretHook';
+import { useHistory, historyStore } from '@/shared/history/historyStore';
+import { evaluateRecords, RecordEvaluation } from '@/shared/history/statsMath';
+import { buildRunRecord } from '@/app/history/buildRunRecord';
+import { useSettings, settingsStore } from '@/shared/settings/settingsStore';
 import type { GameScene } from '@/game/scenes/GameScene';
 
 // Gated strictly to dev mode: absent from production bundle
@@ -53,12 +58,32 @@ export const App: React.FC = () => {
 
   const gameState = useSyncExternalStore(subscribe, getSnapshot);
 
-  const [reducedMotion, setReducedMotion] = useState(false);
+  const historyRuns = useHistory();
+  const settings = useSettings();
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [evaluation, setEvaluation] = useState<RecordEvaluation | null>(null);
+  const [comparison, setComparison] = useState<{
+    bestScore: number;
+    bestWave: number;
+    prevScore: number;
+    prevWave: number;
+  } | null>(null);
+  const committedRunKeyRef = useRef<string | null>(null);
 
   // Modal Preview States for preview switchboard (DEV and preview=1 only)
   const [showPreviewLoading, setShowPreviewLoading] = useState(false);
   const [showPreviewPause, setShowPreviewPause] = useState(false);
   const [showPreviewGameOver, setShowPreviewGameOver] = useState(false);
+
+  // Compute effective reduced motion from settingsStore
+  const effectiveReducedMotion =
+    settings.reducedMotion === 'on'
+      ? true
+      : settings.reducedMotion === 'off'
+      ? false
+      : typeof window !== 'undefined' &&
+        typeof window.matchMedia === 'function' &&
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   // Cleanup controller on window unload
   useEffect(() => {
@@ -92,18 +117,55 @@ export const App: React.FC = () => {
     }
   }, [controller]);
 
-  // Reduced motion toggle on document element
+  // Sync document element attribute with effective reduced motion
   useEffect(() => {
-    if (reducedMotion) {
+    if (effectiveReducedMotion) {
       document.documentElement.setAttribute('data-reduced-motion', 'true');
     } else {
       document.documentElement.removeAttribute('data-reduced-motion');
     }
-  }, [reducedMotion]);
+  }, [effectiveReducedMotion]);
 
   const handleToggleReducedMotion = () => {
-    setReducedMotion((prev) => !prev);
+    const nextPref = settings.reducedMotion === 'on' ? 'off' : 'on';
+    settingsStore.set({ reducedMotion: nextPref });
   };
+
+  // Run-ID Deduplication & Record Evaluation Guard (Decision D13)
+  useEffect(() => {
+    if (gameState.screen === 'game-over' && gameState.result) {
+      const runKey = `${gameState.seed}-${gameState.result.durationSeconds}-${gameState.result.score}-${gameState.result.hits}-${gameState.result.misses}`;
+      if (committedRunKeyRef.current === runKey) {
+        return;
+      }
+      committedRunKeyRef.current = runKey;
+
+      const currentRuns = historyStore.load();
+      const prevBestScore =
+        currentRuns.length > 0 ? Math.max(...currentRuns.map((r) => r.score)) : 0;
+      const prevBestWave =
+        currentRuns.length > 0 ? Math.max(...currentRuns.map((r) => r.wave)) : 0;
+      const prevRun =
+        currentRuns.length > 0 ? currentRuns[currentRuns.length - 1] : null;
+
+      const nextId = historyStore.getNextId();
+      const endedAtIso = new Date().toISOString();
+      const record = buildRunRecord(gameState.result, endedAtIso, nextId);
+
+      const evalResult = evaluateRecords(currentRuns, record);
+      setEvaluation(evalResult);
+      setComparison({
+        bestScore: Math.max(prevBestScore, record.score),
+        bestWave: Math.max(prevBestWave, record.wave),
+        prevScore: prevRun?.score ?? 0,
+        prevWave: prevRun?.wave ?? 0,
+      });
+
+      historyStore.append(record);
+    } else if (gameState.screen === 'running') {
+      committedRunKeyRef.current = null;
+    }
+  }, [gameState.screen, gameState.result, gameState.seed]);
 
   const viewportRef = useRef<HTMLDivElement>(null);
 
@@ -229,7 +291,7 @@ export const App: React.FC = () => {
           <WaveBanner
             wave={gameState.hud.wave}
             visible={Boolean(gameState.hud.isIntermission)}
-            reducedMotion={reducedMotion}
+            reducedMotion={effectiveReducedMotion}
           />
         )}
 
@@ -241,6 +303,9 @@ export const App: React.FC = () => {
         {!isPreview && gameState.screen === 'menu' && (
           <MenuScreen
             onPlay={() => controller.start()}
+            onOpenSettings={() => setIsSettingsOpen(true)}
+            runs={historyRuns}
+            reducedMotion={effectiveReducedMotion}
           />
         )}
 
@@ -249,7 +314,8 @@ export const App: React.FC = () => {
             onResume={() => controller.resume()}
             onRestart={() => controller.restart()}
             onQuitToMenu={() => controller.quitToMenu()}
-            reducedMotion={reducedMotion}
+            onOpenSettings={() => setIsSettingsOpen(true)}
+            reducedMotion={effectiveReducedMotion}
             onToggleReducedMotion={handleToggleReducedMotion}
           />
         )}
@@ -262,10 +328,20 @@ export const App: React.FC = () => {
             accuracy={gameState.hud.accuracy}
             result={gameState.result}
             seed={gameState.seed}
+            evaluation={evaluation}
+            comparison={comparison}
+            runs={historyRuns}
+            reducedMotion={effectiveReducedMotion}
             onRestart={() => controller.restart()}
             onQuitToMenu={() => controller.quitToMenu()}
           />
         )}
+
+        {/* Tactical Settings Modal */}
+        <SettingsModal
+          isOpen={isSettingsOpen}
+          onClose={() => setIsSettingsOpen(false)}
+        />
 
         {/* Modal Overlays for Previewing and Verification (DEV and preview=1 only) */}
         {import.meta.env.DEV && isPreview && showPreviewLoading && (
@@ -277,7 +353,8 @@ export const App: React.FC = () => {
             onResume={() => setShowPreviewPause(false)}
             onRestart={() => setShowPreviewPause(false)}
             onQuitToMenu={() => setShowPreviewPause(false)}
-            reducedMotion={reducedMotion}
+            onOpenSettings={() => setIsSettingsOpen(true)}
+            reducedMotion={effectiveReducedMotion}
             onToggleReducedMotion={handleToggleReducedMotion}
           />
         )}
@@ -289,6 +366,26 @@ export const App: React.FC = () => {
             streak={8}
             accuracy={94}
             seed={1337}
+            evaluation={{
+              isFirstRun: false,
+              isNewWaveRecord: false,
+              isNewScoreRecord: true,
+              previousBestWave: 1,
+              previousBestScore: 1200,
+            }}
+            comparison={{
+              bestScore: 1450,
+              bestWave: 1,
+              prevScore: 1100,
+              prevWave: 1,
+            }}
+            runs={[
+              { id: 1, endedAt: '', score: 500, wave: 1, maxStreak: 3, wordsDestroyed: 5, hits: 20, misses: 2, accuracy: 90.9, grossWpm: 25, netWpm: 22, durationSeconds: 45 },
+              { id: 2, endedAt: '', score: 750, wave: 1, maxStreak: 4, wordsDestroyed: 7, hits: 30, misses: 1, accuracy: 96.7, grossWpm: 28, netWpm: 27, durationSeconds: 50 },
+              { id: 3, endedAt: '', score: 900, wave: 1, maxStreak: 5, wordsDestroyed: 8, hits: 35, misses: 2, accuracy: 94.5, grossWpm: 30, netWpm: 28, durationSeconds: 55 },
+              { id: 4, endedAt: '', score: 1100, wave: 1, maxStreak: 6, wordsDestroyed: 10, hits: 45, misses: 3, accuracy: 93.7, grossWpm: 32, netWpm: 29, durationSeconds: 60 },
+              { id: 5, endedAt: '', score: 1450, wave: 1, maxStreak: 8, wordsDestroyed: 14, hits: 60, misses: 3, accuracy: 95.2, grossWpm: 35, netWpm: 33, durationSeconds: 70 },
+            ]}
             onRestart={() => setShowPreviewGameOver(false)}
             onQuitToMenu={() => setShowPreviewGameOver(false)}
           />
