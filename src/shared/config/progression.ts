@@ -14,9 +14,9 @@
 export const HARD_LETTERS = ['j', 'k', 'q', 'v', 'w', 'x', 'z'] as const;
 
 /**
- * Standard wave intermission duration between waves in seconds (Decision D4).
+ * Standard wave intermission duration between waves in seconds (Decision D4, tuned to 1.5s).
  */
-export const WAVE_INTERMISSION_SECONDS = 2.5;
+export const WAVE_INTERMISSION_SECONDS = 1.5;
 
 /**
  * Computes enemy drone approach speed in virtual pixels per second.

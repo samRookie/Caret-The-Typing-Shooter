@@ -33,12 +33,8 @@ export const MenuScreen: React.FC<MenuScreenProps> = ({
   return (
     <div
       className="tactical-modal-backdrop"
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        position: 'relative',
-      }}
+      role="dialog"
+      aria-modal="true"
     >
       <div style={{ position: 'absolute', top: 16, right: 16, zIndex: 10 }}>
         <ClockBadge />

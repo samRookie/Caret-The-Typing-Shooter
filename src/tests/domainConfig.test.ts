@@ -48,11 +48,11 @@ describe('Desktop Prototype Configuration Invariants', () => {
     const sim = DEFAULT_RUN_CONFIG.simulation;
     expect(sim.spawnY).toBe(64);
     expect(sim.spawnMarginX).toBe(60);
-    expect(sim.hullRadius).toBe(24);
+    expect(sim.hullRadius).toBe(21);
     expect(sim.collisionDamage).toBe(1);
     expect(sim.playerMaxHealth).toBe(3);
     expect(sim.initialSpawnDelaySeconds).toBe(1.0);
-    expect(sim.waveIntermissionSeconds).toBe(2.5);
+    expect(sim.waveIntermissionSeconds).toBe(1.5);
     expect(sim.labelCharWidthPx).toBe(14);
     expect(sim.spawnGapWindowSeconds).toBe(1.5);
     expect(sim.commonalityStart).toBe(0.35);
@@ -72,7 +72,7 @@ describe('Desktop Prototype Configuration Invariants', () => {
     expect(DEFAULT_RUN_CONFIG.simulation.hullRadius).toBe(
       Math.round(0.8 * (TARGET_SHIP_SIZE.width / 2))
     );
-    expect(DEFAULT_RUN_CONFIG.simulation.hullRadius).toBe(24);
+    expect(DEFAULT_RUN_CONFIG.simulation.hullRadius).toBe(21);
     expect(DEFAULT_RUN_CONFIG.simulation.spawnY).toBe(64);
     expect(SHOW_LOCK_RETICLE).toBe(false);
   });

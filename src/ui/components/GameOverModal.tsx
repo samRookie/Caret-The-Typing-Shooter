@@ -39,7 +39,6 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
       role="dialog"
       aria-modal="true"
       aria-labelledby="game-over-dialog-title"
-      style={{ position: 'relative' }}
     >
       <div style={{ position: 'absolute', top: 16, right: 16, zIndex: 10 }}>
         <ClockBadge />

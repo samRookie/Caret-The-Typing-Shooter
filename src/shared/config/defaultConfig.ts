@@ -5,6 +5,7 @@ import {
   ScoringRules,
   Vector2,
 } from '../domain';
+import { WAVE_INTERMISSION_SECONDS } from './progression';
 
 export const DESKTOP_VIEWPORT = {
   width: 1280,
@@ -34,8 +35,8 @@ export const RENDERER_CONFIG = {
 
 export const TARGET_DRONE_WIDTH = 44;
 export const TARGET_SHIP_SIZE = {
-  width: 60,
-  height: 87,
+  width: 52,
+  height: 75,
 } as const;
 
 export const SHOW_LOCK_RETICLE = false;
@@ -62,7 +63,7 @@ export const DEFAULT_SIMULATION_CONFIG: GameplaySimulationConfig = {
   collisionDamage: 1,
   playerMaxHealth: 3,
   initialSpawnDelaySeconds: 1.0,
-  waveIntermissionSeconds: 2.5,
+  waveIntermissionSeconds: WAVE_INTERMISSION_SECONDS,
   labelCharWidthPx: 14,
   spawnGapWindowSeconds: 1.5,
   commonalityStart: 0.35,

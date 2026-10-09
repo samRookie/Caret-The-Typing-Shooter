@@ -221,7 +221,7 @@ export class GameSimulation {
     );
 
     if (durationTicks > 0) {
-      this.waveNumber = 0;
+      this.waveNumber = 1;
       this.waveSpawnedCount = 0;
       this.isIntermission = true;
       this.intermissionCountdownTicks = durationTicks;
@@ -520,7 +520,6 @@ export class GameSimulation {
       this.intermissionCountdownTicks--;
       if (this.intermissionCountdownTicks <= 0) {
         this.isIntermission = false;
-        this.waveNumber++;
         this.waveSpawnedCount = 0;
         this.calculateWaveParams();
         this.spawnCountdownTicks =
@@ -773,7 +772,10 @@ export class GameSimulation {
           tick: this.currentTick,
         });
 
+        // Advance to incoming wave so snapshot immediately reflects the new wave
+        this.waveNumber++;
         this.isIntermission = true;
+        this.calculateWaveParams();
         const durationTicks = Math.round(
           this.config.simulation.waveIntermissionSeconds * this.config.tickRate
         );
@@ -781,7 +783,7 @@ export class GameSimulation {
 
         this.emit({
           type: 'WAVE_INTERMISSION',
-          nextWave: this.waveNumber + 1,
+          nextWave: this.waveNumber,
           durationTicks,
           tick: this.currentTick,
         });

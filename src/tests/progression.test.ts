@@ -149,6 +149,6 @@ describe('progression configuration', () => {
   });
 
   it('exports standard wave intermission constant', () => {
-    expect(WAVE_INTERMISSION_SECONDS).toBe(2.5);
+    expect(WAVE_INTERMISSION_SECONDS).toBe(1.5);
   });
 });

@@ -1,5 +1,6 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { reconcile } from '@/game/rendering/reconcile';
+import { PlayerView } from '@/game/rendering/views/PlayerView';
 import {
   layoutLabel,
   computePlateWidth,
@@ -136,6 +137,43 @@ describe('Rendering Pure Helpers (7.B)', () => {
 
       // Accepts word string directly
       expect(clampContainerX(10, 'COMBAT', canvasWidth)).toBe(halfWidth);
+    });
+  });
+
+  describe('PlayerView Aim Tracking & Orientation', () => {
+    it('pivots towards active target coordinates and returns upright when unlocked', () => {
+      const mockImage = {
+        setDisplaySize: vi.fn().mockReturnThis(),
+        setDepth: vi.fn().mockReturnThis(),
+        setOrigin: vi.fn().mockReturnThis(),
+        setPosition: vi.fn().mockReturnThis(),
+        clearTint: vi.fn().mockReturnThis(),
+        setTint: vi.fn().mockReturnThis(),
+        destroy: vi.fn(),
+        x: 640,
+        y: 620,
+        rotation: 0,
+        displayWidth: 52,
+        displayHeight: 75,
+      };
+
+      const mockScene = {
+        add: {
+          image: vi.fn(() => mockImage),
+        },
+      } as unknown as Phaser.Scene;
+
+      const playerView = new PlayerView(mockScene);
+      expect(playerView.rotation).toBe(0);
+
+      // Target to the upper right: (x: 740, y: 520) -> angle = PI / 4 (~0.785 rad)
+      playerView.update(0.1, undefined, { x: 740, y: 520 });
+      expect(playerView.rotation).toBeGreaterThan(0);
+      expect(playerView.rotation).toBeCloseTo(Math.PI / 4, 3);
+
+      // Clear target -> should smoothly rotate back towards 0
+      playerView.update(0.1, undefined, null);
+      expect(playerView.rotation).toBeCloseTo(0, 3);
     });
   });
 });

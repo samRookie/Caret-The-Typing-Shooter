@@ -33,7 +33,14 @@ export class GameRenderer {
   apply(snapshot: GameSnapshot, events: GameEvent[], deltaSeconds: number): void {
     // 1. Advance continuous background starfield and player animation
     this.background.update(deltaSeconds);
-    this.player.update(deltaSeconds, snapshot.player);
+    let targetPos: { x: number; y: number } | null = null;
+    if (snapshot.activeTargetId) {
+      const activeEnemy = snapshot.enemies.find((e) => e.id === snapshot.activeTargetId);
+      if (activeEnemy) {
+        targetPos = activeEnemy.position;
+      }
+    }
+    this.player.update(deltaSeconds, snapshot.player, targetPos);
     this.projectiles.update(deltaSeconds);
 
     // 2. Reconcile enemy entity views against snapshot

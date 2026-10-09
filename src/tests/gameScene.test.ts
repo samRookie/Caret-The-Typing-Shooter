@@ -37,8 +37,8 @@ describe('GameScene Loop & Lifecycle (7.D)', () => {
           destroy: vi.fn(),
           x: 0,
           y: 0,
-          displayWidth: 60,
-          displayHeight: 87,
+          displayWidth: 52,
+          displayHeight: 75,
         })),
         graphics: vi.fn(() => ({
           setDepth: vi.fn().mockReturnThis(),

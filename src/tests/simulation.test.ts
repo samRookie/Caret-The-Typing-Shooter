@@ -97,7 +97,7 @@ describe('Golden Run Deterministic Hash Verification', () => {
    * verify the emitted events match intended game mechanics, and update this constant.
    */
   const EXPECTED_GOLDEN_HASH =
-    'bfec60ed5a90af31cef6a11766ebeecd5705b63376c8092b2dedb0e4abb51027';
+    'ce94b4a94ad1563cf2368d11cc73b3aca3e368fc6931ddc6f8e72462d89008b2';
 
   it('matches the golden SHA-256 hash of a deterministic scripted event log', () => {
     const sim = new GameSimulation({ ...DEFAULT_RUN_CONFIG, seed: 4242 });
@@ -650,7 +650,7 @@ describe('Wave Progression, Intermission and Concurrent Cap (4.E, 2.D)', () => {
     }
   });
 
-  it('runs initial WAVE_INTERMISSION for 150 ticks and freezes during pause (Decision D4)', () => {
+  it('runs initial WAVE_INTERMISSION for 90 ticks and freezes during pause (Decision D4)', () => {
     const sim = new GameSimulation(DEFAULT_RUN_CONFIG);
     sim.start();
 
@@ -659,34 +659,34 @@ describe('Wave Progression, Intermission and Concurrent Cap (4.E, 2.D)', () => {
     expect(startEvents[0]).toMatchObject({
       type: 'WAVE_INTERMISSION',
       nextWave: 1,
-      durationTicks: 150,
+      durationTicks: 90,
       tick: 0,
     });
     expect(sim.getSnapshot().wave.isCompleted).toBe(true);
 
-    // Advance 50 ticks
-    for (let i = 0; i < 50; i++) {
+    // Advance 30 ticks
+    for (let i = 0; i < 30; i++) {
       sim.tick();
       expect(sim.getSnapshot().enemies).toHaveLength(0);
     }
 
     // Pause simulation: intermission timer must freeze
     sim.pause();
-    for (let i = 0; i < 50; i++) {
+    for (let i = 0; i < 30; i++) {
       sim.tick();
     }
     expect(sim.getSnapshot().wave.isCompleted).toBe(true);
 
     // Resume simulation
     sim.resume();
-    // Advance 99 ticks (total active = 149 ticks)
-    for (let i = 0; i < 99; i++) {
+    // Advance 59 ticks (total active = 89 ticks)
+    for (let i = 0; i < 59; i++) {
       sim.tick();
     }
     expect(sim.drainEvents()).toEqual([]);
     expect(sim.getSnapshot().wave.isCompleted).toBe(true);
 
-    // 150th active tick: triggers WAVE_STARTED(1)
+    // 90th active tick: triggers WAVE_STARTED(1)
     sim.tick();
     const waveEvents = sim.drainEvents();
     const started = waveEvents.find((e) => e.type === 'WAVE_STARTED');
