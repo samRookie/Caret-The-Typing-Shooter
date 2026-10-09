@@ -1,138 +1,128 @@
-# Futuristic Typing Shooter
+<div align="center">
 
-A minimalist dark sci-fi typing shooter built with **React**, **TypeScript**, and **Phaser 3**.
+# CARET: THE TYPING SHOOTER
 
----
+### TACTICAL DEFENSE PROTOCOL
 
-## Visual Direction & Aesthetic Philosophy
+**Your keyboard is the cockpit.**
 
-* **Theme:** Tactical military HUD console. Minimalist dark sci-fi, not an arcade carnival.
-* **Palette:**
-  * Background: Deep charcoal / near black (`#07090c`, `#0d1218`).
-  * Dominant Accent: Electric Amber (`#ffb84a`).
-  * Text: White (`#f3f7fa`) for high-priority telemetry; Muted Gray (`#8995a1`) for context.
-  * Surfaces: Dark translucent glass (`rgba(18, 24, 31, 0.88)`) with subtle amber borders.
-* **Typography:** Tektur monospace font for crisp, fixed-width combat legibility, word labels, and telemetry.
+<br />
+
+<img src="docs/screenshots/gameplay_combat.png" alt="Caret active gameplay combat scene showing spacecraft aiming at target enemy drone" width="800" />
+
+</div>
 
 ---
 
-## Visual Showcase
+## The Pitch
 
-### Active Combat & Dynamic Aim Tracking
-![Combat Gameplay](docs/screenshots/gameplay_combat.png)
-*Real-time engagement demonstrating active target typing lock, spacecraft dynamic angular aim tracking, aerodynamic golden laser bolts, HUD telemetry top-strip, and wing-anchored streak/score boxes.*
+Hostile drone vessels descend through deep space, each protected by an encrypted target word. Type each word cleanly to lock on, fire plasma salvos, and obliterate incoming hostiles before they breach your perimeter. Hold the line across escalating waves as approach vectors accelerate and words demand greater typing mastery.
 
 ---
 
-### Command Headquarters & Mission Debriefing
-| Tactical Command Menu | Mission Debriefing (Game Over) |
+## Why You'll Like It
+
+* **Pure Keyboard Control:** Zero mouse reliance. Every movement, lock-on, firing sequence, and menu command responds straight from your home row.
+* **Progressive Wave Escalation:** Battles build naturally from steady introductory skirmishes into high-pressure hostile swarms.
+* **Calibrated Word Selection:** Early waves field punchy 3-to-4 letter targets; deeper waves demand focus against complex vocabulary and challenging keystrokes.
+* **Three-Point Hull Protection:** Your vessel carries 3 hull integrity pips, giving you resilience to withstand two collisions before systems fail.
+* **Real-Time Performance Feedback:** Monitor your current streak, accuracy percentage, words per minute, and final tactical rank across every run.
+* **Instant In-Browser Action:** Jump directly into combat with no sign-ups, downloads, or external accounts required.
+
+---
+
+## How to Play
+
+1. **Acquire Target:** Type the initial letter of any hostile drone's word to establish a firing lock and align your vessel.
+2. **Execute Salvo:** Finish typing the remaining letters accurately to discharge golden plasma bolts and detonate the drone.
+3. **Defend Hull:** Destroy incoming hostiles before their flight paths reach the bottom of the screen and collide with your ship.
+
+### Flight Controls
+
+| Key | Tactical Action |
+| :--- | :--- |
+| Letters (A–Z) | Lock onto a matching hostile and fire plasma bolts |
+| Tab | Release current target lock to switch priorities |
+| Esc | Pause combat engagement and review flight options |
+| Enter | Launch engagement from command menu or restart after debriefing |
+
+---
+
+## Visual Briefing
+
+<div align="center">
+
+| Command Headquarters | Mission Debriefing |
 | :---: | :---: |
-| ![Command Menu](docs/screenshots/menu_screen.png) | ![Mission Debriefing](docs/screenshots/gameover_modal.png) |
-| *Mission briefing, engagement directives, and launch controls.* | *Post-combat telemetry: accuracy, WPM, streak, and performance rating.* |
+| <img src="docs/screenshots/menu_screen.png" alt="Command Headquarters briefing menu screen" width="380" /> | <img src="docs/screenshots/gameover_modal.png" alt="Mission debriefing results screen displaying combat statistics" width="380" /> |
+| *Mission briefing, engagement directives, and launch controls.* | *End-of-run telemetry: final score, wave, streak, accuracy, WPM, and tactical rank.* |
+
+<br />
+
+<img src="docs/screenshots/preview_switchboard.png" alt="Visual preview switchboard demonstrating Tektur typography sheet" width="780" />
+
+*Developer calibration switchboard featuring Tektur typography validation and combat UI elements.*
+
+</div>
 
 ---
 
-### Visual Preview Switchboard (?preview=1)
-![Preview Switchboard](docs/screenshots/preview_switchboard.png)
-*Developer switchboard with typography validation sheets, 200% zoom inspection, and modal state testing.*
+## Track Your Progress
+
+At the conclusion of each engagement, the Mission Debriefing console provides a comprehensive combat analysis:
+
+* **Final Score:** One base point awarded for every accurate character typed.
+* **Wave Reached:** Deepest hostile wave cleared during your deployment.
+* **Max Streak:** Your longest uninterrupted sequence of accurate keystrokes.
+* **Accuracy & Speed:** Keystroke accuracy percentage paired with net words-per-minute calculations.
+* **Tactical Rank:** Operational grade awarded from D up to rank S based on your shooting performance.
 
 ---
 
-## Directory Architecture
+## Comfort and Accessibility
 
-```text
-PROJECT 11 - TYPING SHOOTING GAME/
-├── docs/
-│   ├── screenshots/        # High-resolution UI & gameplay visual captures
-│   └── source-assets/      # Source asset packages & provenance archives
-├── public/
-│   └── assets/
-│       ├── audio/          # Active audio cues (click, laser, hit, destroy, wrong-input, wave-complete)
-│       ├── fonts/          # Tactical display fonts (Kenney Future, Kenney Future Narrow)
-│       └── vfx/            # Original SVG entities (player-ship, drone, projectile-reticle)
-├── src/
-│   ├── app/
-│   │   ├── App.tsx         # Root tactical console shell
-│   │   ├── routes.ts       # Route / state definitions
-│   │   └── app.css         # Design tokens & tactical theme styles
-│   ├── game/
-│   │   ├── config.ts       # Phaser GameConfig factory (1280x720 Scale.FIT)
-│   │   ├── core/           # Game simulation interfaces
-│   │   ├── input/          # Typing dispatcher contracts
-│   │   ├── rendering/      # Procedural VFX helper module
-│   │   └── scenes/
-│   │       ├── BootScene.ts          # Asset preloader
-│   │       ├── GameScene.ts          # Main gameplay scene
-│   │       └── VisualPreviewScene.ts # Dev preview scene (?preview=1)
-│   ├── ui/
-│   │   ├── components/
-│   │   │   ├── TacticalFrame.tsx       # Translucent glass HUD panel
-│   │   │   ├── TacticalButton.tsx      # Sci-fi button with keyboard focus ring
-│   │   │   ├── MetricCard.tsx          # Telemetry stat display
-│   │   │   ├── ActiveTargetReadout.tsx # Target lock 3-tier word display
-│   │   │   ├── HUDOverlay.tsx          # Tactical HUD overlay
-│   │   │   ├── LoadingOverlay.tsx      # Fullscreen loading state
-│   │   │   ├── PauseModal.tsx          # Tactical pause modal
-│   │   │   └── GameOverModal.tsx       # Debriefing summary modal
-│   │   └── PhaserContainer.tsx         # React ref wrapper with clean teardown
-│   ├── shared/
-│   │   ├── config/
-│   │   │   └── defaultConfig.ts # Centralized desktop defaults & difficulty presets
-│   │   ├── domain/              # Pure domain contracts (renderer & UI agnostic)
-│   │   ├── theme.ts             # Color palette & visual constants
-│   │   └── types.ts             # Shared telemetry types
-│   ├── assets/
-│   │   └── index.ts        # Asset key constants
-│   ├── tests/
-│   │   ├── setup.ts                # Vitest setup
-│   │   ├── App.test.tsx            # Console shell tests
-│   │   ├── HUDComponents.test.tsx  # UI primitives tests
-│   │   ├── PhaserContainer.test.tsx # StrictMode lifecycle tests
-│   │   └── domainConfig.test.ts    # Domain configuration tests
-│   ├── main.tsx            # React application entry
-│   └── vite-env.d.ts       # Vite client types
-├── e2e/
-│   └── app.spec.ts         # Playwright smoke, lifecycle, and contrast tests
-├── eslint.config.js        # Strict ESLint configuration
-├── .prettierrc             # Code formatting rules
-├── tsconfig.json           # Strict TypeScript configuration
-├── vite.config.ts          # Vite build & dev config
-├── vitest.config.ts        # Vitest test runner config
-├── playwright.config.ts    # Playwright browser test config
-└── package.json            # Scripts & scoped dependencies
-```
+* **Reduced Motion:** Toggle reduced motion anytime from the tactical pause menu to disable rapid visual oscillations.
+* **Hardware Recommendation:** Best played on a desktop or laptop with a physical keyboard.
 
 ---
 
-## Getting Started
+## Run It Yourself
 
-### Installation
+Clone the repository and launch the local mission simulator:
+
 ```bash
+git clone https://github.com/samRookie/Caret-The-Typing-Shooter.git
+cd "Caret-The-Typing-Shooter"
 npm install
-```
-
-### Development Server
-```bash
 npm run dev
 ```
-Starts the Vite development server at `http://localhost:3000`.
-To view the visual preview switchboard, navigate to: `http://localhost:3000/?preview=1`.
 
-### Production Build
-```bash
-npm run build
-```
-Executes TypeScript type checking (`tsc -b`) and bundles the application with Vite.
+Then open [http://localhost:3000](http://localhost:3000) in your browser.
 
-### Testing
-```bash
-npm run test      # Executes Vitest unit & component tests
-npm run test:e2e  # Executes Playwright browser tests
-```
+---
 
-### Code Quality
-```bash
-npm run lint          # Run ESLint across TypeScript codebase
-npm run format        # Format code with Prettier
-npm run format:check  # Check formatting compliance
-```
+## Credits
+
+* **Typography:** Font family **Tektur** by The Tektur Project Authors, licensed under the SIL Open Font License 1.1.
+* **Audio Assets:** Sound effects created by **Kenney**.
+* See [CREDITS.md](CREDITS.md) for details.
+
+---
+
+Made by @samRookie
+
+---
+
+<details>
+<summary>For developers</summary>
+
+### Quick Commands
+* `npm run dev`: Launch local Vite development server
+* `npm run build`: Compile TypeScript and bundle production assets
+* `npm run test`: Run Vitest unit and integration test suites
+* `npm run lint`: Run ESLint checks across TypeScript sources
+
+**Built with:** React, TypeScript, Phaser 3, and Vite.  
+Reference implementation documentation is located under the `docs/` folder.
+
+</details>
