@@ -65,6 +65,10 @@ export function installDevCaretHook(
         fps: Math.round((scene?.game?.loop?.actualFps ?? 60) * 10) / 10,
       };
     },
+    getFrameTimeMs: () => {
+      const scene = getScene ? getScene() : null;
+      return Math.round((scene?.game?.loop?.delta ?? 16.66) * 100) / 100;
+    },
     getEffectCounts: () => {
       const scene = getScene ? getScene() : null;
       const renderer = scene?.getGameRenderer();

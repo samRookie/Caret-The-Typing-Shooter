@@ -39,6 +39,7 @@ interface Window {
     getEffectCounts?: () => import('@/game/rendering/effects/EffectBackend').EffectCounts;
     getAudioLog?: () => readonly import('@/game/rendering/audio/AudioManager').SoundPlayRecord[];
     getAudioContextState?: () => string;
+    getFrameTimeMs?: () => number;
     currentTick: number;
   };
 }
