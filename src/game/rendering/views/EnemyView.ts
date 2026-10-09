@@ -185,6 +185,39 @@ export class EnemyView {
     return this.spriteTop - this.labelPlateBottom;
   }
 
+  flash(ms: number = 60): void {
+    if (!this.droneImage.active) return;
+    this.droneImage.setTintFill(0xffffff);
+    this.droneImage.scene?.time?.delayedCall(ms, () => {
+      if (this.droneImage.active) {
+        this.droneImage.clearTint();
+      }
+    });
+  }
+
+  pulse(ms: number = 100, scale: number = 1.06): void {
+    if (!this.labelContainer.active || !this.labelContainer.scene) return;
+    this.labelContainer.scene.tweens.add({
+      targets: this.labelContainer,
+      scaleX: scale,
+      scaleY: scale,
+      duration: ms / 2,
+      yoyo: true,
+      ease: 'Sine.easeInOut',
+    });
+  }
+
+  fadeIn(ms: number = 200): void {
+    if (!this.droneImage.active || !this.droneImage.scene) return;
+    this.droneImage.setAlpha(0);
+    this.droneImage.scene.tweens.add({
+      targets: this.droneImage,
+      alpha: 1,
+      duration: ms,
+      ease: 'Linear',
+    });
+  }
+
   destroy(): void {
     this.droneImage.destroy();
     this.labelContainer.destroy(true);
