@@ -112,8 +112,6 @@ Caret is built from the ground up for strict deterministic fidelity and responsi
 * **React 18 Tactical HUD:** Overlay UI with real-time status updates, cyber scanline effects, and interactive settings dialogs.
 * **Zero Runtime Overhead:** Hand-crafted physics, input queues, and audio routing without external bloat or telemetry tracking.
 
-For technical audits, benchmarks, and performance metrics, see the [Phase 1 Final Report](docs/PHASE1_REPORT.md).
-
 ---
 
 ## Credits & Licensing
