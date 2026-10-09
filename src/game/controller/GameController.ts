@@ -8,8 +8,12 @@ import {
 } from '@/shared/config/defaultConfig';
 import { GameRuntime, FrameResult } from './GameRuntime';
 import { KeyboardAdapter } from '@/game/input/keyboardAdapter';
+import { FeedbackBus, feedbackBus } from './FeedbackBus';
+import { planEffects, EffectContext } from '@/game/rendering/effects/planEffects';
+import { getMotionPolicy } from '@/shared/motion';
+import { EFFECT_CONFIG } from '@/shared/config/effectsConfig';
 
-export type Screen = 'loading' | 'menu' | 'running' | 'paused' | 'game-over';
+export type Screen = 'loading' | 'menu' | 'running' | 'paused' | 'game-over-pending' | 'game-over';
 
 export interface HudTarget {
   readonly id: string;
@@ -145,6 +149,9 @@ export class GameController {
 
   private throttleTimerMs: number = 0;
   private destroyed: boolean = false;
+  private gameOverTimeoutId: number | null = null;
+  private isGameOverHandled: boolean = false;
+  readonly feedbackBus: FeedbackBus = feedbackBus;
 
   get isDestroyed(): boolean {
     return this.destroyed;
@@ -202,6 +209,9 @@ export class GameController {
       getState: () => ({ gameActive: this._state.screen === 'running' }),
       targetWindow: this.targetWindow,
       onUIIntent: (action) => {
+        if (this._state.screen === 'game-over-pending') {
+          return;
+        }
         if (action === 'pause-toggle') {
           if (this._state.screen === 'running') {
             this.pause();
@@ -211,6 +221,19 @@ export class GameController {
         }
       },
     });
+  }
+
+  cancelPendingTimers(): void {
+    if (this.gameOverTimeoutId !== null) {
+      if (this.targetWindow) {
+        this.targetWindow.clearTimeout(this.gameOverTimeoutId);
+      } else if (typeof clearTimeout !== 'undefined') {
+        clearTimeout(this.gameOverTimeoutId);
+      }
+      this.gameOverTimeoutId = null;
+    }
+    this.isGameOverHandled = false;
+    this.feedbackBus.reset();
   }
 
   setSceneClearCallback(callback: () => void): void {
@@ -267,6 +290,7 @@ export class GameController {
 
   start(opts?: { seed?: number }): void {
     if (this.destroyed) return;
+    this.cancelPendingTimers();
 
     const chosenSeed = resolveSeed(this.targetWindow, opts?.seed);
 
@@ -328,6 +352,7 @@ export class GameController {
 
   restart(): void {
     if (this.destroyed) return;
+    this.cancelPendingTimers();
 
     // Reset scene views if callback registered
     this.onSceneClear?.();
@@ -362,6 +387,7 @@ export class GameController {
 
   quitToMenu(): void {
     if (this.destroyed) return;
+    this.cancelPendingTimers();
 
     if (this._runtime) {
       this._runtime.pause();
@@ -384,6 +410,7 @@ export class GameController {
   destroy(): void {
     if (this.destroyed) return;
     this.destroyed = true;
+    this.cancelPendingTimers();
 
     if (this.targetDocument) {
       this.targetDocument.removeEventListener('visibilitychange', this.boundVisibilityChange);
@@ -453,16 +480,53 @@ export class GameController {
     const result = this._runtime.frame(deltaSeconds);
     const { snapshot, events } = result;
 
-    if (snapshot.status === 'game-over') {
-      const gameResult = this._runtime.simulation.getResult();
-      const finalHud = extractHudState(snapshot);
+    // Route hudSignal events through feedbackBus
+    const motionPolicy = getMotionPolicy();
+    const ctx: EffectContext = {
+      wd: 44,
+      ws: 60,
+      healthAfter: snapshot.player.health,
+    };
 
-      this.emit({
-        ...this._state,
-        screen: 'game-over',
-        hud: finalHud,
-        result: gameResult,
-      });
+    for (const event of events) {
+      const planned = planEffects(event, ctx, motionPolicy);
+      for (const cmd of planned) {
+        if (cmd.type === 'hudSignal') {
+          this.feedbackBus.emit(cmd.signal);
+        }
+      }
+    }
+
+    if (snapshot.status === 'game-over') {
+      if (!this.isGameOverHandled) {
+        this.isGameOverHandled = true;
+        const gameResult = this._runtime.simulation.getResult();
+        const finalHud = extractHudState(snapshot);
+
+        const delayMs = motionPolicy.reduced
+          ? EFFECT_CONFIG.GAME_OVER_PANEL_DELAY_REDUCED_MS
+          : EFFECT_CONFIG.GAME_OVER_PANEL_DELAY_MS;
+
+        this.emit({
+          ...this._state,
+          screen: 'game-over-pending',
+          hud: finalHud,
+          result: gameResult,
+        });
+
+        const win = this.targetWindow ?? (typeof window !== 'undefined' ? window : null);
+        const scheduleFn = win ? win.setTimeout.bind(win) : setTimeout;
+
+        this.gameOverTimeoutId = scheduleFn(() => {
+          this.gameOverTimeoutId = null;
+          this.emit({
+            ...this._state,
+            screen: 'game-over',
+            hud: finalHud,
+            result: gameResult,
+          });
+        }, delayMs) as unknown as number;
+      }
 
       return result;
     }

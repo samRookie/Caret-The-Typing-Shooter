@@ -133,7 +133,10 @@ export const App: React.FC = () => {
 
   // Run-ID Deduplication & Record Evaluation Guard (Decision D13)
   useEffect(() => {
-    if (gameState.screen === 'game-over' && gameState.result) {
+    if (
+      (gameState.screen === 'game-over' || gameState.screen === 'game-over-pending') &&
+      gameState.result
+    ) {
       const runKey = `${gameState.seed}-${gameState.result.durationSeconds}-${gameState.result.score}-${gameState.result.hits}-${gameState.result.misses}`;
       if (committedRunKeyRef.current === runKey) {
         return;

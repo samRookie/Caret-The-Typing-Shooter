@@ -329,3 +329,26 @@ body {
   background: var(--accent-dim);
   border-radius: var(--radius-sm);
 }
+
+/* Feedback Layer Animations (Step 10) */
+@keyframes pipLossAnim {
+  0% {
+    transform: scale(1.35);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes pipLastLifePulse {
+  0%, 100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 2px rgba(255, 184, 74, 0.4));
+  }
+  50% {
+    transform: scale(1.18);
+    filter: drop-shadow(0 0 6px rgba(255, 184, 74, 0.9));
+  }
+}
