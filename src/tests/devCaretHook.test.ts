@@ -72,6 +72,16 @@ describe('Dev Caret Inspection Hook (7.E)', () => {
 
     const metrics = window.__caret?.getViewMetrics?.();
     expect(metrics).toBeDefined();
+
+    const effectCounts = window.__caret?.getEffectCounts?.();
+    expect(effectCounts).toBeDefined();
+    expect(typeof effectCounts?.liveParticles).toBe('number');
+
+    const audioLog = window.__caret?.getAudioLog?.();
+    expect(Array.isArray(audioLog)).toBe(true);
+
+    const audioState = window.__caret?.getAudioContextState?.();
+    expect(typeof audioState).toBe('string');
   });
 
   it('unregister cleans up window.__caret', () => {

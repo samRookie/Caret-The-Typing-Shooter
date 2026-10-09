@@ -104,11 +104,18 @@ export class GameRenderer {
       shipPosition: { x: this.player.x, y: this.player.y },
     };
 
+    const isNoVfx =
+      Boolean(import.meta.env.DEV) &&
+      typeof window !== 'undefined' &&
+      new URLSearchParams(window.location.search).get('novfx') === '1';
+
     for (const event of events) {
       const commands = planEffects(event, ctx, motionPolicy);
       const priority =
         event.type === 'PLAYER_DAMAGED' || event.type === 'GAME_OVER' ? 'high' : 'normal';
-      this.effectsManager.execute(commands, priority);
+      if (!isNoVfx) {
+        this.effectsManager.execute(commands, priority);
+      }
 
       // Route sound commands to audioManager
       const isKeypress = event.type === 'INPUT_MATCH' || event.type === 'INPUT_MISMATCH';

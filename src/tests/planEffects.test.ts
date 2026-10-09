@@ -125,7 +125,7 @@ describe('Pure Effect Planner (Section 2 & 8)', () => {
     const stdCmds = planEffects(event, CTX_STANDARD, DEFAULT_MOTION_POLICY);
     expect(stdCmds).toHaveLength(2);
     expect(stdCmds[0]).toEqual({ type: 'spriteFlash', target: 'drone', id: 'e1', ms: 60 });
-    expect(stdCmds[1].type).toBe('burst');
+    expect(stdCmds[1]!.type).toBe('burst');
 
     const redCmds = planEffects(event, CTX_STANDARD, REDUCED_MOTION_POLICY);
     expect(redCmds).toEqual([{ type: 'spriteFlash', target: 'drone', id: 'e1', ms: 60 }]);
@@ -251,15 +251,21 @@ describe('Pure Effect Planner (Section 2 & 8)', () => {
       type: 'GAME_OVER',
       result: {
         outcome: 'defeat',
-        finalWave: 3,
-        wordsCompleted: 15,
         score: 42,
-        rating: 'B',
-        accuracy: 88,
-        wpm: 45,
-        durationSeconds: 65,
+        wave: 3,
+        wavesCompleted: 2,
+        maxStreak: 10,
+        wordsDestroyed: 15,
+        wordsCompleted: 15,
         hits: 42,
         misses: 5,
+        accuracy: 88,
+        grossWpm: 45,
+        netWpm: 45,
+        wpm: 45,
+        durationSeconds: 65,
+        durationMs: 65000,
+        rating: 'B',
       },
       tick: 100,
     };

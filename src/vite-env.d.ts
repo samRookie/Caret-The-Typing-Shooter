@@ -36,6 +36,9 @@ interface Window {
     getDebugCounts: () => CaretDebugCounts;
     getCommandLog: () => import('@/game/controller').CommandLogEntry[];
     getViewMetrics?: () => CaretViewMetrics | null;
+    getEffectCounts?: () => import('@/game/rendering/effects/EffectBackend').EffectCounts;
+    getAudioLog?: () => readonly import('@/game/rendering/audio/AudioManager').SoundPlayRecord[];
+    getAudioContextState?: () => string;
     currentTick: number;
   };
 }

@@ -38,9 +38,9 @@ describe('AudioManager', () => {
     mgr.play('hit', { volume: 0.6, rate: 1.0 });
 
     expect(playedList.length).toBe(1);
-    expect(playedList[0].cue).toBe('hit');
-    expect(playedList[0].volume).toBeCloseTo(0.6 * EFFECT_CONFIG.MASTER_GAIN, 4);
-    expect(playedList[0].rate).toBe(1.0);
+    expect(playedList[0]!.cue).toBe('hit');
+    expect(playedList[0]!.volume).toBeCloseTo(0.6 * EFFECT_CONFIG.MASTER_GAIN, 4);
+    expect(playedList[0]!.rate).toBe(1.0);
     mgr.destroy();
   });
 
@@ -50,7 +50,7 @@ describe('AudioManager', () => {
 
     expect(playedList.length).toBe(1);
     // 0.8 * 0.85 = 0.68
-    expect(playedList[0].volume).toBeCloseTo(0.8 * EFFECT_CONFIG.MASTER_GAIN, 4);
+    expect(playedList[0]!.volume).toBeCloseTo(0.8 * EFFECT_CONFIG.MASTER_GAIN, 4);
     mgr.destroy();
   });
 
@@ -115,8 +115,8 @@ describe('AudioManager', () => {
 
     // Only 2 should play
     expect(playedList.length).toBe(2);
-    expect(playedList[0].cue).toBe('laser');
-    expect(playedList[1].cue).toBe('hit');
+    expect(playedList[0]!.cue).toBe('laser');
+    expect(playedList[1]!.cue).toBe('hit');
 
     // Next keypress resets counter
     mgr.beginKeypress();
@@ -151,7 +151,7 @@ describe('AudioManager', () => {
 
     vi.advanceTimersByTime(50);
     expect(playedList.length).toBe(1);
-    expect(playedList[0].cue).toBe('wave-complete');
+    expect(playedList[0]!.cue).toBe('wave-complete');
 
     // Test cancellation on stopAll
     mgr.play('wave-complete', { delayMs: 200 });

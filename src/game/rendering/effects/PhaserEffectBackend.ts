@@ -132,7 +132,7 @@ export class PhaserEffectBackend implements EffectBackend {
       ease: isStatic ? 'Linear' : 'Cubic.easeOut',
       onUpdate: () => {
         g.clear();
-        g.lineStyle(2, THEME.phaserColors.accent, targetObj.alpha);
+        g.lineStyle(2, THEME.phaserColors.amber, targetObj.alpha);
         g.strokeCircle(at.x, at.y, targetObj.radius);
       },
       onComplete: () => {
@@ -145,7 +145,7 @@ export class PhaserEffectBackend implements EffectBackend {
   spawnBurst(
     at: Vector2,
     count: number,
-    speed: readonly [number, number],
+    _speed: readonly [number, number],
     lifeMs: number,
     _priority: 'normal' | 'high'
   ): void {
