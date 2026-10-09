@@ -201,6 +201,17 @@ export const App: React.FC = () => {
       });
 
       historyStore.append(record);
+
+      // Update local unverified best in settingsStore (Step 11 Spec)
+      const currentHighScore = settingsStore.getSettings().highScore;
+      if (!currentHighScore || record.score > currentHighScore.score) {
+        settingsStore.updateSettings({
+          highScore: {
+            score: record.score,
+            wave: record.wave,
+          },
+        });
+      }
     } else if (gameState.screen === 'running') {
       committedRunKeyRef.current = null;
     }
@@ -300,6 +311,8 @@ export const App: React.FC = () => {
           hull={gameState.hud.hull}
           maxHull={gameState.hud.maxHull}
           onPause={gameState.screen === 'running' ? () => controller.pause() : undefined}
+          muted={settings.muted}
+          onToggleMute={() => settingsStore.updateSettings({ muted: !settings.muted, sfxEnabled: settings.muted })}
         />
       )}
 
@@ -375,6 +388,7 @@ export const App: React.FC = () => {
             seed={gameState.seed}
             evaluation={evaluation}
             comparison={comparison}
+            localBest={settings.highScore}
             runs={historyRuns}
             reducedMotion={effectiveReducedMotion}
             onRestart={() => controller.restart()}

@@ -40,6 +40,19 @@ export function isReducedMotionActive(preference?: ReducedMotionPreference): boo
 }
 
 /**
+ * Synchronizes data-reduced-motion attribute on <html> with current effective motion policy.
+ */
+export function syncDocumentReducedMotion(preference?: ReducedMotionPreference): void {
+  if (typeof document === 'undefined') return;
+  const active = isReducedMotionActive(preference);
+  if (active) {
+    document.documentElement.setAttribute('data-reduced-motion', 'true');
+  } else {
+    document.documentElement.removeAttribute('data-reduced-motion');
+  }
+}
+
+/**
  * Returns current motion policy for Phaser and headless logic.
  * Evaluated when an effect fires so mid-run changes apply immediately.
  */
@@ -51,12 +64,18 @@ export function getMotionPolicy(preference?: ReducedMotionPreference): MotionPol
  * React hook that subscribes to settingsStore and system matchMedia change events.
  */
 export function useMotionPolicy(): MotionPolicy {
-  const [policy, setPolicy] = useState<MotionPolicy>(() => getMotionPolicy());
+  const [policy, setPolicy] = useState<MotionPolicy>(() => {
+    syncDocumentReducedMotion();
+    return getMotionPolicy();
+  });
 
   useEffect(() => {
     const update = () => {
+      syncDocumentReducedMotion();
       setPolicy(getMotionPolicy());
     };
+
+    syncDocumentReducedMotion();
 
     // Subscribe to settings store changes
     const unsubscribeStore = settingsStore.subscribe(update);

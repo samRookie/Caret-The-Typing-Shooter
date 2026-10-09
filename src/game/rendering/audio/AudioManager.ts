@@ -23,6 +23,8 @@ export interface AudioManagerOptions {
 export class AudioManager {
   private backend: SoundBackend | null = null;
   private readonly clock: () => number;
+  private sfxVolume: number = EFFECT_CONFIG.MASTER_GAIN;
+  private muted: boolean = false;
   private sfxEnabled: boolean = true;
   private unsubscribeStore?: () => void;
 
@@ -44,11 +46,21 @@ export class AudioManager {
     this.clock = options.clock ?? (() => (typeof performance !== 'undefined' ? performance.now() : Date.now()));
 
     // Subscribe to settingsStore live changes
-    this.sfxEnabled = settingsStore.getSettings().sfxEnabled;
+    const settings = settingsStore.getSettings();
+    this.sfxVolume = settings.sfxVolume ?? EFFECT_CONFIG.MASTER_GAIN;
+    this.muted = settings.muted ?? false;
+    this.sfxEnabled = settings.sfxEnabled && !this.muted;
+
     this.unsubscribeStore = settingsStore.subscribe(() => {
-      const nextEnabled = settingsStore.getSettings().sfxEnabled;
-      if (this.sfxEnabled !== nextEnabled) {
-        this.setEnabled(nextEnabled);
+      const current = settingsStore.getSettings();
+      this.sfxVolume = current.sfxVolume ?? EFFECT_CONFIG.MASTER_GAIN;
+      this.muted = current.muted ?? false;
+      const nextEnabled = current.sfxEnabled && !this.muted;
+      if (this.sfxEnabled !== nextEnabled || this.muted) {
+        this.sfxEnabled = nextEnabled;
+        if (!nextEnabled || this.muted) {
+          this.stopAll();
+        }
       }
     });
   }
@@ -104,7 +116,7 @@ export class AudioManager {
   }
 
   private dispatchPlay(cue: SoundCue, rawVolume: number, rate: number): void {
-    if (!this.sfxEnabled) return;
+    if (!this.sfxEnabled || this.muted || this.sfxVolume <= 0) return;
 
     const now = this.clock();
 
@@ -127,7 +139,7 @@ export class AudioManager {
       }, 100);
     }
 
-    const effectiveVolume = clampedVolume * EFFECT_CONFIG.MASTER_GAIN;
+    const effectiveVolume = clampedVolume * this.sfxVolume;
 
     // Log played sound
     this.playLog.push({
@@ -157,11 +169,36 @@ export class AudioManager {
     this.backend?.stopAll();
   }
 
+  getVolume(): number {
+    return this.sfxVolume;
+  }
+
+  setVolume(vol: number): void {
+    const clamped = Math.max(0, Math.min(1, vol));
+    this.sfxVolume = clamped;
+    settingsStore.updateSettings({ sfxVolume: clamped });
+  }
+
+  isMuted(): boolean {
+    return this.muted || !this.sfxEnabled;
+  }
+
+  setMuted(muted: boolean): void {
+    this.muted = muted;
+    this.sfxEnabled = !muted;
+    if (muted) {
+      this.stopAll();
+    }
+    settingsStore.updateSettings({ muted, sfxEnabled: !muted });
+  }
+
   setEnabled(enabled: boolean): void {
     this.sfxEnabled = enabled;
+    this.muted = !enabled;
     if (!enabled) {
       this.stopAll();
     }
+    settingsStore.updateSettings({ sfxEnabled: enabled, muted: !enabled });
   }
 
   async unlock(): Promise<void> {

@@ -40,18 +40,21 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
   if (!isOpen) return null;
 
-  const handleToggleSfx = () => {
-    // TODO(step-10): connect to sound engine when audio assets are integrated
-    settingsStore.set({ sfxEnabled: !settings.sfxEnabled });
+  const handleToggleMute = () => {
+    const nextMuted = !settings.muted;
+    settingsStore.updateSettings({ muted: nextMuted, sfxEnabled: !nextMuted });
   };
 
   const handleToggleMusic = () => {
-    // TODO(step-10): connect to sound engine when audio assets are integrated
-    settingsStore.set({ musicEnabled: !settings.musicEnabled });
+    settingsStore.updateSettings({ musicEnabled: !settings.musicEnabled });
+  };
+
+  const handleResetSettings = () => {
+    settingsStore.resetSettings();
   };
 
   const handleReducedMotionChange = (pref: ReducedMotionPreference) => {
-    settingsStore.set({ reducedMotion: pref });
+    settingsStore.updateSettings({ reducedMotion: pref });
     if (pref === 'on') {
       document.documentElement.setAttribute('data-reduced-motion', 'true');
     } else if (pref === 'off') {
@@ -114,12 +117,56 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               Hardware & Accessibility Parameters
             </h2>
 
+            {/* Storage Availability Warning Banner */}
+            {!settings.storageAvailable && (
+              <div
+                role="alert"
+                style={{
+                  padding: '8px 12px',
+                  background: 'rgba(255, 95, 95, 0.15)',
+                  border: '1px solid var(--danger, #ff5f5f)',
+                  borderRadius: 'var(--radius-sm, 4px)',
+                  fontFamily: 'var(--font-condensed)',
+                  fontSize: '11px',
+                  color: 'var(--danger, #ff5f5f)',
+                  letterSpacing: '0.04em',
+                  textAlign: 'center',
+                }}
+              >
+                ⚠️ Settings won&apos;t be saved in this browser
+              </div>
+            )}
+
+            {/* Local Best Display */}
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: '8px 12px',
+                background: 'rgba(0, 0, 0, 0.35)',
+                border: '1px solid var(--border, rgba(255, 184, 74, 0.2))',
+                borderRadius: 'var(--radius-sm, 4px)',
+                fontFamily: 'var(--font-condensed)',
+                fontSize: '11px',
+              }}
+            >
+              <span style={{ color: 'var(--text-secondary, #8995a1)', letterSpacing: '0.06em' }}>
+                LOCAL BEST (not verified)
+              </span>
+              <span style={{ color: 'var(--accent-bright, #ffd37a)', fontWeight: 'bold' }}>
+                {settings.highScore
+                  ? `${settings.highScore.score.toLocaleString()} PTS · WAVE ${String(settings.highScore.wave).padStart(2, '0')}`
+                  : '--'}
+              </span>
+            </div>
+
             {/* Audio Settings */}
             <div
               style={{
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '8px',
+                gap: '12px',
                 padding: '10px 12px',
                 background: 'rgba(0, 0, 0, 0.35)',
                 border: '1px solid var(--border, rgba(255, 184, 74, 0.2))',
@@ -138,7 +185,56 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 AUDIO CHANNELS
               </span>
 
-              {/* SFX Toggle */}
+              {/* SFX Volume Slider */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                  }}
+                >
+                  <label
+                    htmlFor="sfx-volume-slider"
+                    style={{
+                      fontFamily: 'var(--font-condensed)',
+                      fontSize: '12px',
+                      color: 'var(--text-primary, #f3f7fa)',
+                    }}
+                  >
+                    Combat SFX Volume
+                  </label>
+                  <span
+                    style={{
+                      fontFamily: 'var(--font-mono, monospace)',
+                      fontSize: '11px',
+                      color: 'var(--accent-bright, #ffd37a)',
+                    }}
+                  >
+                    {Math.round(settings.sfxVolume * 100)}%
+                  </span>
+                </div>
+                <input
+                  id="sfx-volume-slider"
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.05"
+                  value={settings.sfxVolume}
+                  onChange={(e) => {
+                    const val = parseFloat(e.target.value);
+                    settingsStore.updateSettings({ sfxVolume: val });
+                  }}
+                  aria-label="Combat SFX Volume"
+                  style={{
+                    accentColor: 'var(--accent, #ffb84a)',
+                    width: '100%',
+                    cursor: 'pointer',
+                  }}
+                />
+              </div>
+
+              {/* SFX Mute Toggle */}
               <div
                 style={{
                   display: 'flex',
@@ -158,15 +254,15 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 <TacticalButton
                   variant="default"
                   size="sm"
-                  onClick={handleToggleSfx}
+                  onClick={handleToggleMute}
                   style={{
-                    borderColor: settings.sfxEnabled ? 'var(--accent)' : 'var(--border)',
-                    color: settings.sfxEnabled
+                    borderColor: !settings.muted && settings.sfxEnabled ? 'var(--accent)' : 'var(--border)',
+                    color: !settings.muted && settings.sfxEnabled
                       ? 'var(--accent-bright)'
                       : 'var(--text-secondary)',
                   }}
                 >
-                  {settings.sfxEnabled ? 'ENABLED' : 'MUTED'}
+                  {!settings.muted && settings.sfxEnabled ? 'ENABLED' : 'MUTED'}
                 </TacticalButton>
               </div>
 
@@ -373,6 +469,20 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 </div>
               )}
             </div>
+
+            {/* Reset Settings to Defaults Button (Step 11 Spec) */}
+            <TacticalButton
+              variant="default"
+              size="sm"
+              onClick={handleResetSettings}
+              style={{
+                borderColor: 'var(--border)',
+                color: 'var(--text-secondary)',
+                letterSpacing: '0.06em',
+              }}
+            >
+              RESET SETTINGS TO DEFAULTS
+            </TacticalButton>
 
             {/* Close Button */}
             <TacticalButton

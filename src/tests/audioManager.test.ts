@@ -26,7 +26,7 @@ describe('AudioManager', () => {
       resumeContext: async () => {},
     };
 
-    settingsStore.set({ sfxEnabled: true });
+    settingsStore.resetSettings();
   });
 
   afterEach(() => {
@@ -138,6 +138,46 @@ describe('AudioManager', () => {
     settingsStore.set({ sfxEnabled: true });
     mgr.play('hit');
     expect(playedList.length).toBe(1);
+    mgr.destroy();
+  });
+
+  it('mutes playback and stops all active sounds when muted is true', () => {
+    const mgr = new AudioManager({ backend, clock: () => mockTime });
+    settingsStore.updateSettings({ muted: true });
+
+    mgr.play('hit');
+    expect(playedList.length).toBe(0);
+    expect(stopped).toBe(true);
+
+    // Unmute
+    settingsStore.updateSettings({ muted: false });
+    mgr.play('hit');
+    expect(playedList.length).toBe(1);
+    mgr.destroy();
+  });
+
+  it('scales effective volume by sfxVolume dynamically', () => {
+    const mgr = new AudioManager({ backend, clock: () => mockTime });
+    mgr.setVolume(0.5);
+
+    mgr.play('hit', { volume: 0.6 });
+    expect(playedList.length).toBe(1);
+    // 0.6 raw * 0.5 sfxVolume = 0.3 effective
+    expect(playedList[0]!.volume).toBeCloseTo(0.3, 4);
+
+    mgr.setVolume(1.0);
+    mockTime += 40;
+    mgr.play('hit', { volume: 0.6 });
+    expect(playedList.length).toBe(2);
+    // 0.6 raw * 1.0 sfxVolume = 0.6 effective
+    expect(playedList[1]!.volume).toBeCloseTo(0.6, 4);
+
+    mgr.setVolume(0.0);
+    mockTime += 40;
+    mgr.play('hit', { volume: 0.6 });
+    // volume 0 behaves as muted
+    expect(playedList.length).toBe(2);
+
     mgr.destroy();
   });
 

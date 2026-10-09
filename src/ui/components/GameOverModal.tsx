@@ -22,6 +22,7 @@ export interface GameOverModalProps {
     prevScore: number;
     prevWave: number;
   } | null;
+  localBest?: { score: number; wave: number } | null;
   runs?: readonly RunRecord[];
   reducedMotion?: boolean;
   onRestart: () => void;
@@ -37,6 +38,7 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
   seed,
   evaluation,
   comparison,
+  localBest,
   runs = [],
   reducedMotion = false,
   onRestart,
@@ -234,6 +236,31 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
                       : '--'}
                   </div>
                 </div>
+              </div>
+            )}
+
+            {/* Local Best Indicator (Step 11 Spec) */}
+            {localBest && (
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  background: 'rgba(0, 0, 0, 0.45)',
+                  border: '1px dashed var(--border, rgba(255, 184, 74, 0.3))',
+                  borderRadius: 'var(--radius-sm, 4px)',
+                  padding: '6px 12px',
+                  fontFamily: 'var(--font-condensed)',
+                  fontSize: '11px',
+                  letterSpacing: '0.06em',
+                }}
+              >
+                <span style={{ color: 'var(--text-secondary, #8995a1)' }}>
+                  LOCAL BEST (not verified)
+                </span>
+                <span style={{ color: 'var(--accent-bright, #ffd37a)', fontWeight: 'bold' }}>
+                  {localBest.score.toLocaleString()} PTS · WAVE {String(localBest.wave).padStart(2, '0')}
+                </span>
               </div>
             )}
 

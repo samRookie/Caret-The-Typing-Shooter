@@ -54,7 +54,7 @@ export class GameRenderer {
    */
   apply(snapshot: GameSnapshot, events: GameEvent[], deltaSeconds: number): void {
     // 1. Advance continuous background starfield and player animation
-    this.background.update(deltaSeconds, snapshot.wave.waveNumber);
+    this.background.update(deltaSeconds, snapshot.wave?.waveNumber ?? 1);
     let targetPos: { x: number; y: number } | null = null;
     if (snapshot.activeTargetId) {
       const activeEnemy = snapshot.enemies.find((e) => e.id === snapshot.activeTargetId);
