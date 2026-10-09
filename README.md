@@ -24,16 +24,17 @@ A minimalist dark sci-fi typing shooter built with **React**, **TypeScript**, an
 
 ---
 
-### Command Headquarters & Debriefing Modals
-| Tactical Command Menu | Tactical Pause Screen |
+### Command Headquarters & Mission Debriefing
+| Tactical Command Menu | Mission Debriefing (Game Over) |
 | :---: | :---: |
-| ![Command Menu](docs/screenshots/menu_screen.png) | ![Tactical Pause](docs/screenshots/pause_modal.png) |
-| *Mission briefing, engagement directives, and launch controls.* | *Combat thread suspension with restart and motion accessibility controls.* |
+| ![Command Menu](docs/screenshots/menu_screen.png) | ![Mission Debriefing](docs/screenshots/gameover_modal.png) |
+| *Mission briefing, engagement directives, and launch controls.* | *Post-combat telemetry: accuracy, WPM, streak, and performance rating.* |
 
-| Mission Debriefing (Game Over) | Visual Preview Switchboard |
-| :---: | :---: |
-| ![Mission Debriefing](docs/screenshots/gameover_modal.png) | ![Preview Switchboard](docs/screenshots/preview_switchboard.png) |
-| *Post-combat telemetry: accuracy, WPM, streak, and performance rating.* | *Developer switchboard with typography validation sheets (?preview=1).* |
+---
+
+### Visual Preview Switchboard (?preview=1)
+![Preview Switchboard](docs/screenshots/preview_switchboard.png)
+*Developer switchboard with typography validation sheets, 200% zoom inspection, and modal state testing.*
 
 ---
 

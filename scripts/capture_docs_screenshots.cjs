@@ -29,19 +29,13 @@ const { chromium } = require('@playwright/test');
   await page.screenshot({ path: path.join(screenshotsDir, 'gameplay_combat.png') });
   console.log('Saved gameplay_combat.png');
 
-  console.log('3. Capturing Pause Modal...');
-  await page.keyboard.press('Escape');
-  await page.waitForTimeout(300);
-  await page.screenshot({ path: path.join(screenshotsDir, 'pause_modal.png') });
-  console.log('Saved pause_modal.png');
-
-  console.log('4. Capturing Visual Preview Switchboard...');
+  console.log('3. Capturing Visual Preview Switchboard...');
   await page.goto('http://localhost:3000/?preview=1');
   await page.waitForTimeout(1500);
   await page.screenshot({ path: path.join(screenshotsDir, 'preview_switchboard.png') });
   console.log('Saved preview_switchboard.png');
 
-  console.log('5. Capturing Game Over Modal...');
+  console.log('4. Capturing Game Over Modal...');
   await page.click('button:has-text("PREVIEW GAME OVER")');
   await page.waitForTimeout(400);
   await page.screenshot({ path: path.join(screenshotsDir, 'gameover_modal.png') });
