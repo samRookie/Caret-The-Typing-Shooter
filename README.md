@@ -1,4 +1,4 @@
-# Futuristic Typing Shooter (Phase 1)
+# Futuristic Typing Shooter
 
 A minimalist dark sci-fi typing shooter built with **React**, **TypeScript**, and **Phaser 3**.
 
@@ -12,7 +12,28 @@ A minimalist dark sci-fi typing shooter built with **React**, **TypeScript**, an
   * Dominant Accent: Electric Amber (`#ffb84a`).
   * Text: White (`#f3f7fa`) for high-priority telemetry; Muted Gray (`#8995a1`) for context.
   * Surfaces: Dark translucent glass (`rgba(18, 24, 31, 0.88)`) with subtle amber borders.
-* **Typography:** Kenney Future display font for scores & HUD; high-contrast sans-serif for words and menu items.
+* **Typography:** Tektur monospace font for crisp, fixed-width combat legibility, word labels, and telemetry.
+
+---
+
+## Visual Showcase
+
+### Active Combat & Dynamic Aim Tracking
+![Combat Gameplay](docs/screenshots/gameplay_combat.png)
+*Real-time engagement demonstrating active target typing lock, spacecraft dynamic angular aim tracking, aerodynamic golden laser bolts, HUD telemetry top-strip, and wing-anchored streak/score boxes.*
+
+---
+
+### Command Headquarters & Debriefing Modals
+| Tactical Command Menu | Tactical Pause Screen |
+| :---: | :---: |
+| ![Command Menu](docs/screenshots/menu_screen.png) | ![Tactical Pause](docs/screenshots/pause_modal.png) |
+| *Mission briefing, engagement directives, and launch controls.* | *Combat thread suspension with restart and motion accessibility controls.* |
+
+| Mission Debriefing (Game Over) | Visual Preview Switchboard |
+| :---: | :---: |
+| ![Mission Debriefing](docs/screenshots/gameover_modal.png) | ![Preview Switchboard](docs/screenshots/preview_switchboard.png) |
+| *Post-combat telemetry: accuracy, WPM, streak, and performance rating.* | *Developer switchboard with typography validation sheets (?preview=1).* |
 
 ---
 
@@ -21,6 +42,7 @@ A minimalist dark sci-fi typing shooter built with **React**, **TypeScript**, an
 ```text
 PROJECT 11 - TYPING SHOOTING GAME/
 ├── docs/
+│   ├── screenshots/        # High-resolution UI & gameplay visual captures
 │   └── source-assets/      # Source asset packages & provenance archives
 ├── public/
 │   └── assets/
