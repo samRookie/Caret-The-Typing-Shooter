@@ -10,6 +10,7 @@ import { MenuScreen } from '@/ui/components/MenuScreen';
 import { PauseModal } from '@/ui/components/PauseModal';
 import { GameOverModal } from '@/ui/components/GameOverModal';
 import { SettingsModal } from '@/ui/components/SettingsModal';
+import { DangerVignette } from '@/ui/components/DangerVignette';
 import { GameController } from '@/game/controller/GameController';
 import { installDevCaretHook } from '@/game/controller/devCaretHook';
 import { useHistory, historyStore } from '@/shared/history/historyStore';
@@ -312,6 +313,12 @@ export const App: React.FC = () => {
           onGameReady={(game) => {
             gameInstanceRef.current = game;
           }}
+        />
+
+        {/* Tactical Low-Health Danger Vignette (hull === 1) */}
+        <DangerVignette
+          active={gameState.screen === 'running' && gameState.hud.hull === 1}
+          reducedMotion={effectiveReducedMotion}
         />
 
         {/* Tactical Wing Boxes (rendered during active or paused gameplay, or in preview mode) */}

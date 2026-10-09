@@ -6,6 +6,7 @@ interface TacticalFrameProps {
   children: React.ReactNode;
   style?: CSSProperties;
   className?: string;
+  bracketColor?: string;
 }
 
 export const TacticalFrame: React.FC<TacticalFrameProps> = ({
@@ -14,7 +15,9 @@ export const TacticalFrame: React.FC<TacticalFrameProps> = ({
   children,
   style,
   className = '',
+  bracketColor,
 }) => {
+  const activeBracketColor = bracketColor ?? 'var(--accent)';
   return (
     <div
       className={`tactical-frame ${className}`}
@@ -37,8 +40,8 @@ export const TacticalFrame: React.FC<TacticalFrameProps> = ({
           left: -1,
           width: 8,
           height: 8,
-          borderTop: '2px solid var(--accent)',
-          borderLeft: '2px solid var(--accent)',
+          borderTop: `2px solid ${activeBracketColor}`,
+          borderLeft: `2px solid ${activeBracketColor}`,
         }}
       />
       <div
@@ -48,8 +51,8 @@ export const TacticalFrame: React.FC<TacticalFrameProps> = ({
           right: -1,
           width: 8,
           height: 8,
-          borderTop: '2px solid var(--accent)',
-          borderRight: '2px solid var(--accent)',
+          borderTop: `2px solid ${activeBracketColor}`,
+          borderRight: `2px solid ${activeBracketColor}`,
         }}
       />
       <div
@@ -59,8 +62,8 @@ export const TacticalFrame: React.FC<TacticalFrameProps> = ({
           left: -1,
           width: 8,
           height: 8,
-          borderBottom: '2px solid var(--accent)',
-          borderLeft: '2px solid var(--accent)',
+          borderBottom: `2px solid ${activeBracketColor}`,
+          borderLeft: `2px solid ${activeBracketColor}`,
         }}
       />
       <div
@@ -70,8 +73,8 @@ export const TacticalFrame: React.FC<TacticalFrameProps> = ({
           right: -1,
           width: 8,
           height: 8,
-          borderBottom: '2px solid var(--accent)',
-          borderRight: '2px solid var(--accent)',
+          borderBottom: `2px solid ${activeBracketColor}`,
+          borderRight: `2px solid ${activeBracketColor}`,
         }}
       />
 

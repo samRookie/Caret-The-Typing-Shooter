@@ -63,7 +63,7 @@ describe('Pure Effect Planner (Section 2 & 8)', () => {
     };
 
     const nonFinalCmds = planEffects(nonFinalEvent, CTX_STANDARD, DEFAULT_MOTION_POLICY);
-    expect(nonFinalCmds).toEqual([{ type: 'sound', cue: 'laser', volume: 0.35 }]);
+    expect(nonFinalCmds).toEqual([{ type: 'sound', cue: 'laser', volume: 0.22 }]);
 
     const finalEvent: GameEvent = {
       type: 'INPUT_MATCH',
@@ -76,8 +76,8 @@ describe('Pure Effect Planner (Section 2 & 8)', () => {
 
     const finalCmds = planEffects(finalEvent, CTX_STANDARD, DEFAULT_MOTION_POLICY);
     expect(finalCmds).toEqual([
-      { type: 'sound', cue: 'laser', volume: 0.35 },
-      { type: 'sound', cue: 'destroy', volume: 0.8 },
+      { type: 'sound', cue: 'laser', volume: 0.22 },
+      { type: 'sound', cue: 'destroy', volume: 0.92 },
     ]);
   });
 
@@ -96,7 +96,7 @@ describe('Pure Effect Planner (Section 2 & 8)', () => {
         type: 'bolt',
         from: { x: 640, y: 620 },
         to: { x: 300, y: 200 },
-        travelMs: 90,
+        travelMs: 140,
         trailSegments: 3,
       },
     ]);
@@ -107,7 +107,7 @@ describe('Pure Effect Planner (Section 2 & 8)', () => {
         type: 'bolt',
         from: { x: 640, y: 620 },
         to: { x: 300, y: 200 },
-        travelMs: 90,
+        travelMs: 140,
         trailSegments: 0,
       },
     ]);

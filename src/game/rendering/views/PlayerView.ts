@@ -7,8 +7,10 @@ import { PlayerState } from '@/shared/domain';
 export class PlayerView {
   private sprite: Phaser.GameObjects.Image;
   private engineGlow?: Phaser.GameObjects.Graphics;
+  private muzzleFlash?: Phaser.GameObjects.Graphics;
   private glowTween?: Phaser.Tweens.Tween;
   private damageTimer: number = 0;
+  private muzzleFlashTimer: number = 0;
 
   constructor(scene: Phaser.Scene, reducedMotion: boolean = false) {
     this.sprite = scene.add.image(PLAYER_START.x, PLAYER_START.y, 'player-ship');
@@ -36,6 +38,12 @@ export class PlayerView {
         } else if (this.engineGlow.setAlpha) {
           this.engineGlow.setAlpha(0.85);
         }
+      }
+
+      const flash = scene.add.graphics();
+      if (flash) {
+        this.muzzleFlash = flash;
+        this.muzzleFlash.setDepth?.(DEPTHS.PROJECTILES + 1);
       }
     }
   }
@@ -96,6 +104,42 @@ export class PlayerView {
         this.sprite.clearTint();
       }
     }
+
+    if (this.muzzleFlashTimer > 0) {
+      this.muzzleFlashTimer -= deltaSeconds;
+      if (this.muzzleFlashTimer <= 0) {
+        this.muzzleFlashTimer = 0;
+        this.muzzleFlash?.clear?.();
+      } else {
+        this.renderMuzzleFlash();
+      }
+    }
+  }
+
+  getNosePosition(): { x: number; y: number } {
+    const angle = this.sprite.rotation ?? 0;
+    const halfHeight = TARGET_SHIP_SIZE.height * 0.45;
+    return {
+      x: this.sprite.x + Math.sin(angle) * halfHeight,
+      y: this.sprite.y - Math.cos(angle) * halfHeight,
+    };
+  }
+
+  triggerMuzzleFlash(): void {
+    this.muzzleFlashTimer = 0.05; // 50ms intense plasma discharge
+    this.renderMuzzleFlash();
+  }
+
+  private renderMuzzleFlash(): void {
+    if (!this.muzzleFlash || typeof this.muzzleFlash.fillStyle !== 'function') return;
+    const nose = this.getNosePosition();
+    this.muzzleFlash.clear();
+    // Radiant golden plasma halo
+    this.muzzleFlash.fillStyle(0xffa834, 0.75);
+    this.muzzleFlash.fillCircle(nose.x, nose.y, 9);
+    // Incandescent white-hot core
+    this.muzzleFlash.fillStyle(0xffffff, 1.0);
+    this.muzzleFlash.fillCircle(nose.x, nose.y, 4.5);
   }
 
   triggerDamageTint(): void {
@@ -106,6 +150,7 @@ export class PlayerView {
   setVisible(visible: boolean): void {
     this.sprite.setVisible(visible);
     this.engineGlow?.setVisible?.(visible);
+    this.muzzleFlash?.setVisible?.(visible);
   }
 
   get x(): number {
@@ -130,6 +175,8 @@ export class PlayerView {
 
   reset(): void {
     this.damageTimer = 0;
+    this.muzzleFlashTimer = 0;
+    this.muzzleFlash?.clear?.();
     this.sprite.clearTint();
     this.sprite.rotation = 0;
     this.sprite.setPosition(PLAYER_START.x, PLAYER_START.y);
@@ -142,6 +189,8 @@ export class PlayerView {
   destroy(): void {
     this.glowTween?.stop();
     this.engineGlow?.destroy?.();
+    this.muzzleFlash?.destroy?.();
     this.sprite.destroy();
   }
 }
+

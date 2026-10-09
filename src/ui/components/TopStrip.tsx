@@ -41,6 +41,7 @@ export const TopStrip: React.FC<TopStripProps> = ({
     <header
       className="top-strip"
       style={{
+        position: 'relative',
         height: 'var(--top-strip-height, 46px)',
         display: 'flex',
         alignItems: 'center',
@@ -71,8 +72,18 @@ export const TopStrip: React.FC<TopStripProps> = ({
         <span style={{ color: 'var(--text-secondary)' }}>{formattedAccuracy}</span>
       </div>
 
-      {/* Center Cluster: 3-pip Hull */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      {/* Center Cluster: 3-pip Hull (exact horizontal center) */}
+      <div
+        style={{
+          position: 'absolute',
+          left: '50%',
+          top: '50%',
+          transform: 'translate(-50%, -50%)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
         <HullPips currentHealth={hull} maxHealth={maxHull} />
       </div>
 

@@ -125,19 +125,19 @@ export function planEffects(
     }
 
     case 'INPUT_MATCH': {
-      // Correct letter, not final -> laser vol 0.35
-      // Correct final letter -> laser vol 0.35 AND destroy vol 0.8
+      // Correct letter, not final -> laser vol 0.22 (down-volumed for rapid comfort)
+      // Correct final letter -> laser vol 0.22 AND destroy vol 0.92 (up-volumed drone blast)
       commands.push({
         type: 'sound',
         cue: 'laser',
-        volume: 0.35,
+        volume: 0.22,
       });
 
       if (event.remainingWord.length === 0) {
         commands.push({
           type: 'sound',
           cue: 'destroy',
-          volume: 0.8,
+          volume: 0.92,
         });
       }
       break;

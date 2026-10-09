@@ -352,3 +352,15 @@ body {
     filter: drop-shadow(0 0 6px rgba(255, 184, 74, 0.9));
   }
 }
+
+@keyframes dangerVignettePulse {
+  0%, 100% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.92;
+    transform: scale(1.008);
+  }
+}
+

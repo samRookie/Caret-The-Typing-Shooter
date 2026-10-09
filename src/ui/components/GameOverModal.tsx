@@ -2,7 +2,6 @@ import React from 'react';
 import { TacticalFrame } from './TacticalFrame';
 import { TacticalButton } from './TacticalButton';
 import { MetricCard } from './MetricCard';
-import { ClockBadge } from './ClockBadge';
 import { ProgressChart } from './ProgressChart';
 import { useFocusTrap } from '../hooks/useFocusTrap';
 import { GameResult } from '@/shared/domain';
@@ -109,9 +108,6 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
       aria-labelledby="game-over-dialog-title"
       style={{ overflowY: 'auto', padding: '16px 0' }}
     >
-      <div style={{ position: 'absolute', top: 16, right: 16, zIndex: 10 }}>
-        <ClockBadge />
-      </div>
       <div
         ref={trapRef}
         style={{
@@ -123,9 +119,12 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
         <TacticalFrame
           title="MISSION DEBRIEFING"
           subtitle="HULL INTEGRITY COMPROMISED"
+          bracketColor="#ff2b42"
           style={{
             padding: '24px',
-            border: '1px solid rgba(255, 95, 95, 0.4)',
+            border: '2.5px solid #ff2b42',
+            boxShadow:
+              '0 0 32px rgba(255, 43, 66, 0.45), 0 0 10px rgba(255, 43, 66, 0.75), inset 0 0 18px rgba(255, 43, 66, 0.16)',
           }}
         >
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
