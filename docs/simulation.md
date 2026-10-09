@@ -138,7 +138,6 @@ Because the simulation state transitions are 100% deterministic and driven stric
    {
      "seed": 1337,
      "tickRate": 60,
-     "difficulty": "normal",
      "playerStart": { "x": 640, "y": 620 }
    }
    ```
