@@ -27,6 +27,7 @@ Hostile drone vessels descend through deep space, each protected by an encrypted
 * **Calibrated Word Selection:** Early waves field punchy 3-to-4 letter targets; deeper waves demand focus against complex vocabulary and challenging keystrokes.
 * **Three-Point Hull Protection:** Your vessel carries 3 hull integrity pips, giving you resilience to withstand two collisions before systems fail.
 * **Real-Time Performance Feedback:** Monitor your current streak, accuracy percentage, words per minute, and final tactical rank across every run.
+* **Tactile Combat Audio & Effects:** Responsive plasma laser bolts, impact sparks, detonation rings, and crisp retro sound cues engineered with voice concurrency caps.
 * **Instant In-Browser Action:** Jump directly into combat with no sign-ups, downloads, or external accounts required.
 
 ---
@@ -81,7 +82,8 @@ At the conclusion of each engagement, the Mission Debriefing console provides a 
 
 ## Comfort and Accessibility
 
-* **Reduced Motion:** Toggle reduced motion anytime from the tactical pause menu to disable rapid visual oscillations.
+* **Audio Controls & Comfort:** Built-in SFX toggles with safe volume clamping, voice concurrency caps, and zero audio clipping.
+* **Reduced Motion:** Toggle reduced motion anytime from the tactical pause menu to disable screen shake, edge flashes, and particle bursts.
 * **Hardware Recommendation:** Best played on a desktop or laptop with a physical keyboard.
 
 ---
