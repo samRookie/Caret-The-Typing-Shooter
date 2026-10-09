@@ -1,0 +1,48 @@
+/**
+ * Named effect, timing, and audio constants (Rule R6).
+ */
+export const EFFECT_CONFIG = {
+  MASTER_GAIN: 0.6,
+  GAME_OVER_PANEL_DELAY_MS: 900,
+  GAME_OVER_PANEL_DELAY_REDUCED_MS: 300,
+
+  // Entity and pool caps
+  MAX_LIVE_PARTICLES: 40,
+  MAX_LIVE_BOLTS: 12,
+  MAX_LIVE_RINGS: 8,
+  MAX_GHOSTS: 20,
+
+  // Audio caps and timings
+  LASER_CONCURRENCY_CAP: 4,
+  LASER_MIN_SPACING_MS: 30,
+  LAST_LIFE_DELAY_MS: 250,
+  NEW_RECORD_MIN_DELAY_MS: 600,
+  NEW_RECORD_PANEL_OFFSET_MS: 50,
+
+  // Effect timings
+  SPAWN_RING_MS: 220,
+  DRONE_FADE_IN_MS: 200,
+  TARGET_PULSE_MS: 100,
+  BOLT_TRAVEL_MS: 90,
+  BOLT_TRAIL_SEGMENTS: 3,
+  HIT_FLASH_MS: 60,
+  DESTROY_RING_MS: 300,
+  DESTROY_BURST_LIFE_MS: 350,
+  COLLISION_BURST_LIFE_MS: 300,
+  PLAYER_DAMAGE_TINT_MS: 100,
+  PLAYER_EDGE_FLASH_MS: 120,
+  PLAYER_EDGE_FLASH_ALPHA: 0.15,
+  PLAYER_SHAKE_PX: 2,
+  PLAYER_SHAKE_MS: 100,
+  GAME_OVER_RING_MS: 500,
+  GAME_OVER_RING_REDUCED_MS: 300,
+  GAME_OVER_BURST_LIFE_MS: 600,
+} as const;
+
+export type SoundCue =
+  | 'laser'
+  | 'destroy'
+  | 'hit'
+  | 'wrong-input'
+  | 'wave-complete'
+  | 'ui-click';
