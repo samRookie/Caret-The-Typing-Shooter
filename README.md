@@ -12,7 +12,6 @@
 [![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)](https://react.dev/)
 [![Phaser](https://img.shields.io/badge/Phaser-3.88+-E03C11?logo=phaser&logoColor=white)](https://phaser.io/)
 [![Vite](https://img.shields.io/badge/Vite-6.x-646CFF?logo=vite&logoColor=white)](https://vitejs.dev/)
-[![Phase 1 Complete](https://img.shields.io/badge/Status-Phase%201%20Complete-00ffcc.svg)](docs/PHASE1_REPORT.md)
 
 <br />
 
