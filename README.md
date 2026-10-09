@@ -8,6 +8,14 @@
 
 <br />
 
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)](https://react.dev/)
+[![Phaser](https://img.shields.io/badge/Phaser-3.88+-E03C11?logo=phaser&logoColor=white)](https://phaser.io/)
+[![Vite](https://img.shields.io/badge/Vite-6.x-646CFF?logo=vite&logoColor=white)](https://vitejs.dev/)
+[![Phase 1 Complete](https://img.shields.io/badge/Status-Phase%201%20Complete-00ffcc.svg)](docs/PHASE1_REPORT.md)
+
+<br />
+
 <img src="docs/screenshots/gameplay_combat.png" alt="Caret active gameplay combat scene showing spacecraft aiming at target enemy drone" width="800" />
 
 </div>
@@ -20,32 +28,36 @@ Hostile drone vessels descend through deep space, each protected by an encrypted
 
 ---
 
-## Why You'll Like It
+## Key Tactical Features
 
-* **Pure Keyboard Control:** Zero mouse reliance. Every movement, lock-on, firing sequence, and menu command responds straight from your home row.
-* **Progressive Wave Escalation:** Battles build naturally from steady introductory skirmishes into high-pressure hostile swarms.
-* **Calibrated Word Selection:** Early waves field punchy 3-to-4 letter targets; deeper waves demand focus against complex vocabulary and challenging keystrokes.
-* **Three-Point Hull Protection:** Your vessel carries 3 hull integrity pips, giving you resilience to withstand two collisions before systems fail.
-* **Real-Time Performance Feedback:** Monitor your current streak, accuracy percentage, words per minute, and final tactical rank across every run.
-* **Tactile Combat Audio & Effects:** Responsive plasma laser bolts, impact sparks, detonation rings, and crisp retro sound cues engineered with voice concurrency caps.
-* **Instant In-Browser Action:** Jump directly into combat with no sign-ups, downloads, or external accounts required.
+* **Pure Keyboard Control:** Zero mouse reliance. Every target acquisition, firing sequence, lock-release (`Tab`), and tactical pause (`Esc`) responds straight from your home row.
+* **Tactical Hostile UAV Drones:** Redesigned hexacopter drone vessels equipped with animated navigation beacons, high-contrast armor plates, and crystal-clear letter illumination.
+* **Dual High-Energy Plasma Lasers:** Spacecraft forward emitter ports fire twin golden-cyan plasma laser bolts along dynamic trajectory angles with muzzle flash and impact particle bursts.
+* **Dynamic Cosmic Environment:** A 3-layer parallax starfield featuring occasional celestial planets drifting every 3 waves and distant spiral galaxies traversing the field on Wave 8 and beyond.
+* **Emergency Hull Breach Alert:** Precision-centered hull integrity monitor and a pulsating crimson perimeter vignette that activates when your vessel drops to critical condition.
+* **Three-Point Hull Protection:** Your vessel carries 3 hull integrity pips, giving you resilience to withstand two collisions before catastrophic systems failure.
+* **Calibrated Word Selection:** Early waves field punchy 3-to-4 letter targets; deeper waves demand precision against complex vocabulary and rapid multi-target concurrency.
+* **Persistent Settings & Local Best:** Audio volume sliders, quick HUD mute, reduced-motion preferences, and your all-time unverified local best score survive browser reloads safely (`caret.settings.v1`).
+* **Tactile Combat Audio:** Responsive laser discharges, distinctive drone detonation blasts, and heavy metallic hull collision audio engineered with voice concurrency caps and volume scaling.
 
 ---
 
 ## How to Play
 
-1. **Acquire Target:** Type the initial letter of any hostile drone's word to establish a firing lock and align your vessel.
-2. **Execute Salvo:** Finish typing the remaining letters accurately to discharge golden plasma bolts and detonate the drone.
-3. **Defend Hull:** Destroy incoming hostiles before their flight paths reach the bottom of the screen and collide with your ship.
+1. **Acquire Target:** Type the initial letter of any incoming hostile drone to lock on and align your spacecraft's firing vectors.
+2. **Execute Salvo:** Finish typing the remaining letters accurately to discharge twin plasma bolts and detonate the hostile before collision.
+3. **Prioritize Threats:** Press `Tab` at any moment to break target lock and switch focus to an emergency hostile closer to your perimeter.
+4. **Defend Hull:** Drones colliding with your ship deal 1 damage. Survive across escalating waves to achieve a legendary tactical ranking.
 
 ### Flight Controls
 
-| Key | Tactical Action |
+| Key / Control | Tactical Action |
 | :--- | :--- |
-| Letters (A–Z) | Lock onto a matching hostile and fire plasma bolts |
-| Tab | Release current target lock to switch priorities |
-| Esc | Pause combat engagement and review flight options |
-| Enter | Launch engagement from command menu or restart after debriefing |
+| **Letters (A–Z)** | Lock onto a matching hostile and discharge plasma lasers |
+| **Tab** | Release current target lock to switch firing priorities |
+| **Esc** | Pause combat engagement, review options, or access settings |
+| **Enter** | Launch engagement from command menu or restart after debriefing |
+| **[SFX ON / MUTED]** | Quick HUD toggle in the top bar to mute or unmute combat sound effects |
 
 ---
 
@@ -56,7 +68,7 @@ Hostile drone vessels descend through deep space, each protected by an encrypted
 | Command Headquarters | Mission Debriefing |
 | :---: | :---: |
 | <img src="docs/screenshots/menu_screen.png" alt="Command Headquarters briefing menu screen" width="380" /> | <img src="docs/screenshots/gameover_modal.png" alt="Mission debriefing results screen displaying combat statistics" width="380" /> |
-| *Mission briefing, engagement directives, and launch controls.* | *End-of-run telemetry: final score, wave, streak, accuracy, WPM, and tactical rank.* |
+| *Mission briefing, engagement directives, and launch controls.* | *Cyber-neon debriefing: score, wave, streak, accuracy, WPM, and tactical rank.* |
 
 <br />
 
@@ -70,30 +82,51 @@ Hostile drone vessels descend through deep space, each protected by an encrypted
 
 ## Track Your Progress
 
-At the conclusion of each engagement, the Mission Debriefing console provides a comprehensive combat analysis:
+At the conclusion of each engagement, the Mission Debriefing console provides comprehensive telemetry:
 
-* **Final Score:** One base point awarded for every accurate character typed.
+* **Final Score:** Exactly one base point awarded for every accurate character typed.
 * **Wave Reached:** Deepest hostile wave cleared during your deployment.
 * **Max Streak:** Your longest uninterrupted sequence of accurate keystrokes.
 * **Accuracy & Speed:** Keystroke accuracy percentage paired with net words-per-minute calculations.
-* **Tactical Rank:** Operational grade awarded from D up to rank S based on your shooting performance.
+* **Tactical Rank:** Operational grade awarded from D up to rank S based on your shooting precision and survival.
+* **Local Best Badge:** Automatically records your personal best wave and score locally (`LOCAL BEST (not verified)`).
 
 ---
 
-## Comfort and Accessibility
+## Comfort & Accessibility
 
-* **Audio Controls & Comfort:** Built-in SFX toggles with safe volume clamping, voice concurrency caps, and zero audio clipping.
-* **Reduced Motion:** Toggle reduced motion anytime from the tactical pause menu to disable screen shake, edge flashes, and particle bursts.
-* **Hardware Recommendation:** Best played on a desktop or laptop with a physical keyboard.
-
----
-
-## Credits
-
-* **Typography:** Font family **Tektur** by The Tektur Project Authors, licensed under the SIL Open Font License 1.1.
-* **Audio Assets:** Sound effects created by **Kenney**.
-* See [CREDITS.md](CREDITS.md) for details.
+* **Audio Controls:** Dedicated SFX volume slider (0–100%) and instant mute toggle accessible via the HUD top strip and Settings modal.
+* **Reduced Motion:** 3-way toggle (**System** / **On** / **Off**) to suppress camera shake, edge flashes, scanlines, and high-frequency starfield velocity (respects OS `prefers-reduced-motion`).
+* **Offline-Safe Persistence:** Local settings and personal bests are validated per field, falling back gracefully to memory if browser storage is blocked.
+* **High-Contrast Legibility:** In-world tactical plates and letter underline indicators maintain full contrast and legibility even under monochrome/grayscale conditions.
+* **Hardware Recommendation:** Best experienced on desktop and laptop displays with a physical home-row keyboard.
 
 ---
 
-Made by @samRookie
+## Architecture & Technology
+
+Caret is built from the ground up for strict deterministic fidelity and responsiveness:
+
+* **Deterministic Simulation Core:** 60 Hz fixed-timestep physics and logic decoupled from wall-clock time and rendering (100% pure TypeScript).
+* **Phaser 3.90 Renderer:** Hardware-accelerated 2D visuals with particle systems, dynamic starfield parallax, and laser trajectory calculations.
+* **React 18 Tactical HUD:** Overlay UI with real-time status updates, cyber scanline effects, and interactive settings dialogs.
+* **Zero Runtime Overhead:** Hand-crafted physics, input queues, and audio routing without external bloat or telemetry tracking.
+
+For technical audits, benchmarks, and performance metrics, see the [Phase 1 Final Report](docs/PHASE1_REPORT.md).
+
+---
+
+## Credits & Licensing
+
+* **Typography:** Font family **Tektur** by Ondrej Jób & The Tektur Project Authors, licensed under the [SIL Open Font License 1.1](third_party/tektur/OFL.txt).
+* **Audio Assets:** Sound effects created by **Kenney** ([kenney.nl](https://kenney.nl)), licensed under [Creative Commons Zero (CC0 1.0 Universal)](https://creativecommons.org/publicdomain/zero/1.0/).
+* **Visual Design & Code:** Original in-house assets and implementation licensed under the MIT License.
+* See [CREDITS.md](CREDITS.md) for detailed asset provenance and third-party notices.
+
+---
+
+<div align="center">
+
+Made with precision by [@samRookie](https://github.com/samRookie)
+
+</div>
