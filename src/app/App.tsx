@@ -17,6 +17,7 @@ import { evaluateRecords, RecordEvaluation } from '@/shared/history/statsMath';
 import { buildRunRecord } from '@/app/history/buildRunRecord';
 import { useSettings, settingsStore } from '@/shared/settings/settingsStore';
 import type { GameScene } from '@/game/scenes/GameScene';
+import { audioManager } from '@/game/rendering/audio/AudioManager';
 
 // Gated strictly to dev mode: absent from production bundle
 const DebugOverlay = import.meta.env.DEV
@@ -125,6 +126,31 @@ export const App: React.FC = () => {
       document.documentElement.removeAttribute('data-reduced-motion');
     }
   }, [effectiveReducedMotion]);
+
+  // Audio context unlock and UI click sound delegation
+  useEffect(() => {
+    const handleFirstInteraction = () => {
+      audioManager.unlock();
+    };
+
+    const handleClick = (e: MouseEvent) => {
+      audioManager.unlock();
+      const target = e.target as HTMLElement | null;
+      if (target && target.closest('button, [role="button"]')) {
+        audioManager.play('ui-click', { volume: 0.5 });
+      }
+    };
+
+    window.addEventListener('pointerdown', handleFirstInteraction, { once: true });
+    window.addEventListener('keydown', handleFirstInteraction, { once: true });
+    document.addEventListener('click', handleClick);
+
+    return () => {
+      window.removeEventListener('pointerdown', handleFirstInteraction);
+      window.removeEventListener('keydown', handleFirstInteraction);
+      document.removeEventListener('click', handleClick);
+    };
+  }, []);
 
   const handleToggleReducedMotion = () => {
     const nextPref = settings.reducedMotion === 'on' ? 'off' : 'on';

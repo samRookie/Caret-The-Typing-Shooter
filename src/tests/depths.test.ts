@@ -10,7 +10,7 @@ describe('Render Depths Invariants (Section 3 & 8)', () => {
     expect(DEPTHS.PROJECTILES).toBe(12);
     expect(DEPTHS.GHOSTS).toBe(14);
     expect(DEPTHS.EFFECTS_MIN).toBe(15);
-    expect(DEPTHS.EFFECTS_MAX).toBe(18);
+    expect(DEPTHS.EFFECTS_MAX).toBe(19);
     expect(DEPTHS.EDGE_FLASH).toBe(19);
     expect(DEPTHS.LABELS).toBe(25);
   });

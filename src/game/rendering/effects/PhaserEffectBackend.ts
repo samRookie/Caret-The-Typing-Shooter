@@ -52,58 +52,68 @@ export class PhaserEffectBackend implements EffectBackend {
   }
 
   private initParticleTextures(): void {
-    if (!this.scene.textures.exists('particle-spark')) {
-      const g = this.scene.make.graphics({ x: 0, y: 0 });
-      g.fillStyle(0xfff0c2, 1);
-      g.fillCircle(4, 4, 3);
-      g.generateTexture('particle-spark', 8, 8);
-      g.destroy();
-    }
+    if (this.scene.textures && typeof this.scene.textures.exists === 'function') {
+      if (!this.scene.textures.exists('particle-spark')) {
+        const g = this.scene.make?.graphics?.({ x: 0, y: 0 });
+        if (g) {
+          g.fillStyle(0xfff0c2, 1);
+          g.fillCircle(4, 4, 3);
+          g.generateTexture('particle-spark', 8, 8);
+          g.destroy();
+        }
+      }
 
-    if (!this.scene.textures.exists('particle-burst')) {
-      const g = this.scene.make.graphics({ x: 0, y: 0 });
-      g.fillStyle(0xffb84a, 1);
-      g.fillCircle(6, 6, 5);
-      g.generateTexture('particle-burst', 12, 12);
-      g.destroy();
+      if (!this.scene.textures.exists('particle-burst')) {
+        const g = this.scene.make?.graphics?.({ x: 0, y: 0 });
+        if (g) {
+          g.fillStyle(0xffb84a, 1);
+          g.fillCircle(6, 6, 5);
+          g.generateTexture('particle-burst', 12, 12);
+          g.destroy();
+        }
+      }
     }
   }
 
   private initEmitters(): void {
-    // 1. Sparks emitter family (hit sparks, subtle debris)
-    this.sparkEmitter = this.scene.add.particles(0, 0, 'particle-spark', {
-      emitting: false,
-      lifespan: { min: 100, max: 250 },
-      speed: { min: 40, max: 100 },
-      scale: { start: 1, end: 0 },
-      alpha: { start: 1, end: 0 },
-      blendMode: 'ADD',
-    });
-    this.sparkEmitter.setDepth(DEPTHS.EFFECTS_MIN);
+    if (this.scene.add && typeof this.scene.add.particles === 'function') {
+      // 1. Sparks emitter family (hit sparks, subtle debris)
+      this.sparkEmitter = this.scene.add.particles(0, 0, 'particle-spark', {
+        emitting: false,
+        lifespan: { min: 100, max: 250 },
+        speed: { min: 40, max: 100 },
+        scale: { start: 1, end: 0 },
+        alpha: { start: 1, end: 0 },
+        blendMode: 'ADD',
+      });
+      this.sparkEmitter.setDepth(DEPTHS.EFFECTS_MIN);
 
-    // 2. Burst emitter family (drone destruction, ship collision, game over)
-    this.burstEmitter = this.scene.add.particles(0, 0, 'particle-burst', {
-      emitting: false,
-      lifespan: { min: 250, max: 500 },
-      speed: { min: 60, max: 160 },
-      scale: { start: 1.2, end: 0 },
-      alpha: { start: 1, end: 0 },
-      blendMode: 'ADD',
-    });
-    this.burstEmitter.setDepth(DEPTHS.EFFECTS_MAX);
+      // 2. Burst emitter family (drone destruction, ship collision, game over)
+      this.burstEmitter = this.scene.add.particles(0, 0, 'particle-burst', {
+        emitting: false,
+        lifespan: { min: 250, max: 500 },
+        speed: { min: 60, max: 160 },
+        scale: { start: 1.2, end: 0 },
+        alpha: { start: 1, end: 0 },
+        blendMode: 'ADD',
+      });
+      this.burstEmitter.setDepth(18);
+    }
   }
 
   private initEdgeFlash(): void {
-    const w = this.scene.cameras.main.width || 1280;
-    const h = this.scene.cameras.main.height || 720;
+    if (this.scene.add && typeof this.scene.add.graphics === 'function') {
+      const w = this.scene.cameras?.main?.width || 1280;
+      const h = this.scene.cameras?.main?.height || 720;
 
-    this.edgeFlashGraphics = this.scene.add.graphics();
-    this.edgeFlashGraphics.setDepth(DEPTHS.EDGE_FLASH);
-    this.edgeFlashGraphics.setAlpha(0);
+      this.edgeFlashGraphics = this.scene.add.graphics();
+      this.edgeFlashGraphics.setDepth?.(DEPTHS.EDGE_FLASH);
+      this.edgeFlashGraphics.setAlpha?.(0);
 
-    // Thin 4px tactical border overlay
-    this.edgeFlashGraphics.lineStyle(4, THEME.phaserColors.danger, 1);
-    this.edgeFlashGraphics.strokeRect(2, 2, w - 4, h - 4);
+      // Thin 4px tactical border overlay
+      this.edgeFlashGraphics.lineStyle?.(4, THEME.phaserColors.danger, 1);
+      this.edgeFlashGraphics.strokeRect?.(2, 2, w - 4, h - 4);
+    }
   }
 
   spawnRing(at: Vector2, fromRadius: number, toRadius: number, ms: number): void {
@@ -146,7 +156,7 @@ export class PhaserEffectBackend implements EffectBackend {
     emitter.explode(count, at.x, at.y);
 
     // Decrement particle counter when lifespan concludes
-    this.scene.time.delayedCall(lifeMs, () => {
+    this.scene.time?.delayedCall(lifeMs, () => {
       this.liveParticleCount = Math.max(0, this.liveParticleCount - count);
     });
   }
@@ -193,7 +203,7 @@ export class PhaserEffectBackend implements EffectBackend {
   }
 
   shakeCamera(px: number, ms: number): void {
-    const cam = this.scene.cameras.main;
+    const cam = this.scene.cameras?.main;
     if (!cam) return;
 
     this.shakeCount++;
@@ -224,7 +234,7 @@ export class PhaserEffectBackend implements EffectBackend {
     this.activeRings = [];
     this.liveParticleCount = 0;
     if (this.edgeFlashGraphics) {
-      this.edgeFlashGraphics.setAlpha(0);
+      this.edgeFlashGraphics.setAlpha?.(0);
     }
   }
 

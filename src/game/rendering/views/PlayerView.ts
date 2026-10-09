@@ -6,7 +6,7 @@ import { PlayerState } from '@/shared/domain';
 
 export class PlayerView {
   private sprite: Phaser.GameObjects.Image;
-  private engineGlow: Phaser.GameObjects.Graphics;
+  private engineGlow?: Phaser.GameObjects.Graphics;
   private glowTween?: Phaser.Tweens.Tween;
   private damageTimer: number = 0;
 
@@ -17,25 +17,31 @@ export class PlayerView {
     this.sprite.setOrigin(0.5, 0.5);
     this.sprite.rotation = 0;
 
-    this.engineGlow = scene.add.graphics();
-    this.engineGlow.setDepth(DEPTHS.PLAYER - 1);
-    this.drawEngineGlow();
+    if (scene.add && typeof scene.add.graphics === 'function') {
+      const g = scene.add.graphics();
+      if (g) {
+        this.engineGlow = g;
+        this.engineGlow.setDepth?.(DEPTHS.PLAYER - 1);
+        this.drawEngineGlow();
 
-    if (!reducedMotion && scene.tweens) {
-      this.glowTween = scene.tweens.add({
-        targets: this.engineGlow,
-        alpha: { from: 0.6, to: 1.0 },
-        duration: 600,
-        yoyo: true,
-        repeat: -1,
-        ease: 'Sine.easeInOut',
-      });
-    } else {
-      this.engineGlow.setAlpha(0.85);
+        if (!reducedMotion && scene.tweens && typeof scene.tweens.add === 'function') {
+          this.glowTween = scene.tweens.add({
+            targets: this.engineGlow,
+            alpha: { from: 0.6, to: 1.0 },
+            duration: 600,
+            yoyo: true,
+            repeat: -1,
+            ease: 'Sine.easeInOut',
+          });
+        } else if (this.engineGlow.setAlpha) {
+          this.engineGlow.setAlpha(0.85);
+        }
+      }
     }
   }
 
   private drawEngineGlow(): void {
+    if (!this.engineGlow || typeof this.engineGlow.fillCircle !== 'function') return;
     this.engineGlow.clear();
     this.engineGlow.fillStyle(0xffb84a, 0.6);
     this.engineGlow.fillCircle(0, TARGET_SHIP_SIZE.height / 2 + 4, 8);
@@ -80,8 +86,8 @@ export class PlayerView {
     }
 
     // Synchronize engine glow
-    this.engineGlow.setPosition(this.sprite.x, this.sprite.y);
-    this.engineGlow.setRotation(this.sprite.rotation);
+    this.engineGlow?.setPosition?.(this.sprite.x, this.sprite.y);
+    this.engineGlow?.setRotation?.(this.sprite.rotation);
 
     if (this.damageTimer > 0) {
       this.damageTimer -= deltaSeconds;
@@ -99,7 +105,7 @@ export class PlayerView {
 
   setVisible(visible: boolean): void {
     this.sprite.setVisible(visible);
-    this.engineGlow.setVisible(visible);
+    this.engineGlow?.setVisible?.(visible);
   }
 
   get x(): number {
@@ -128,14 +134,14 @@ export class PlayerView {
     this.sprite.rotation = 0;
     this.sprite.setPosition(PLAYER_START.x, PLAYER_START.y);
     this.sprite.setVisible(true);
-    this.engineGlow.setPosition(PLAYER_START.x, PLAYER_START.y);
-    this.engineGlow.setRotation(0);
-    this.engineGlow.setVisible(true);
+    this.engineGlow?.setPosition?.(PLAYER_START.x, PLAYER_START.y);
+    this.engineGlow?.setRotation?.(0);
+    this.engineGlow?.setVisible?.(true);
   }
 
   destroy(): void {
     this.glowTween?.stop();
-    this.engineGlow.destroy();
+    this.engineGlow?.destroy?.();
     this.sprite.destroy();
   }
 }

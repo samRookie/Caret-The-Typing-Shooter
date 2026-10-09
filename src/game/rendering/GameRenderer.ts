@@ -17,6 +17,7 @@ import { PhaserEffectBackend } from './effects/PhaserEffectBackend';
 import { EffectCounts } from './effects/EffectBackend';
 import { planEffects, EffectContext } from './effects/planEffects';
 import { getMotionPolicy } from '@/shared/motion';
+import { audioManager } from './audio/AudioManager';
 
 export class GameRenderer {
   private readonly scene: Phaser.Scene;
@@ -108,6 +109,23 @@ export class GameRenderer {
       const priority =
         event.type === 'PLAYER_DAMAGED' || event.type === 'GAME_OVER' ? 'high' : 'normal';
       this.effectsManager.execute(commands, priority);
+
+      // Route sound commands to audioManager
+      const isKeypress = event.type === 'INPUT_MATCH' || event.type === 'INPUT_MISMATCH';
+      if (isKeypress) {
+        audioManager.beginKeypress();
+      }
+      for (const cmd of commands) {
+        if (cmd.type === 'sound') {
+          audioManager.play(cmd.cue, {
+            volume: cmd.volume,
+            rate: cmd.rate,
+            delayMs: cmd.delayMs,
+            isKeypress,
+            simStatus: snapshot.status,
+          });
+        }
+      }
 
       if (event.type === 'ENEMY_DESTROYED') {
         this.ghosts.spawn(event.position.x, event.position.y);

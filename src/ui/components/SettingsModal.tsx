@@ -8,7 +8,7 @@ import {
   ReducedMotionPreference,
 } from '@/shared/settings/settingsStore';
 import { historyStore } from '@/shared/history/historyStore';
-import { musicAvailable } from '@/shared/audio/capabilities';
+import { isMusicAvailable } from '@/shared/audio/capabilities';
 
 export interface SettingsModalProps {
   isOpen: boolean;
@@ -170,8 +170,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 </TacticalButton>
               </div>
 
-              {/* Music Row (strictly hidden when musicAvailable === false per Decision D6) */}
-              {musicAvailable && (
+              {/* Music Row (strictly hidden when isMusicAvailable() === false per Decision D6) */}
+              {isMusicAvailable() && (
                 <div
                   style={{
                     display: 'flex',
