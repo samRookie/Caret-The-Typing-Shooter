@@ -18,6 +18,7 @@ export class BootScene extends Phaser.Scene {
     // Sprites
     this.load.svg('player-ship', `${baseUrl}assets/vfx/player-ship-original.svg`);
     this.load.svg('drone', `${baseUrl}assets/vfx/drone-original.svg`);
+    this.load.svg('elite-drone', `${baseUrl}assets/vfx/elite-drone.svg`);
     this.load.svg(
       'projectile-reticle',
       `${baseUrl}assets/vfx/projectile-and-reticle-original.svg`

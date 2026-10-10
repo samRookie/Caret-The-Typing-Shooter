@@ -52,6 +52,12 @@ export const DRONE_ARCHETYPE: EnemyArchetypeConfig = {
   hitboxRadius: Math.round(0.8 * (TARGET_DRONE_WIDTH / 2)),
 };
 
+export const ELITE_ARCHETYPE: EnemyArchetypeConfig = {
+  type: 'elite',
+  healthPerLetter: 1,
+  hitboxRadius: Math.round(0.85 * (TARGET_DRONE_WIDTH / 2)),
+};
+
 export const DEFAULT_SCORING_RULES: ScoringRules = {
   scorePerChar: 1,
 };

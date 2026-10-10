@@ -28,16 +28,20 @@ export class EnemyView {
   private lastIsTargeted: boolean = false;
   private plateWidth: number;
   private plateHeight: number = RENDERER_CONFIG.plateHeightPx;
+  private isElite: boolean = false;
 
   constructor(scene: Phaser.Scene, enemy: EnemyState, isTargeted: boolean = false) {
     this.id = enemy.id;
     this.word = enemy.word;
     this.lastRemainingWord = enemy.remainingWord;
     this.lastIsTargeted = isTargeted;
+    this.isElite = enemy.type === 'elite';
 
-    // 1. Drone Image (Depth 10, display size 44x44 px)
-    this.droneImage = scene.add.image(enemy.position.x, enemy.position.y, 'drone');
-    this.droneImage.setDisplaySize(TARGET_DRONE_WIDTH, TARGET_DRONE_WIDTH);
+    // 1. Drone Image (Depth 10, display size 44x44 px, elite 52x52 px)
+    const spriteKey = this.isElite ? 'elite-drone' : 'drone';
+    const displaySize = this.isElite ? Math.round(TARGET_DRONE_WIDTH * 1.18) : TARGET_DRONE_WIDTH;
+    this.droneImage = scene.add.image(enemy.position.x, enemy.position.y, spriteKey);
+    this.droneImage.setDisplaySize(displaySize, displaySize);
     this.droneImage.setDepth(DEPTHS.ENEMIES);
     this.droneImage.setOrigin(0.5, 0.5);
 
@@ -126,12 +130,20 @@ export class EnemyView {
     this.plateGraphics.fillStyle(0x0a0e14, 0.92);
     this.plateGraphics.fillRoundedRect(-halfW, -halfH, this.plateWidth, this.plateHeight, 4);
 
-    if (isTargeted) {
-      // 2px plate border in accent color
-      this.plateGraphics.lineStyle(2, THEME.phaserColors.amber, 1);
+    if (this.isElite) {
+      if (isTargeted) {
+        this.plateGraphics.lineStyle(2.5, 0xff3322, 1);
+      } else {
+        this.plateGraphics.lineStyle(1.5, 0xdd4422, 0.85);
+      }
     } else {
-      // 1px subtle border
-      this.plateGraphics.lineStyle(1, 0x3a4856, 0.7);
+      if (isTargeted) {
+        // 2px plate border in accent color
+        this.plateGraphics.lineStyle(2, THEME.phaserColors.amber, 1);
+      } else {
+        // 1px subtle border
+        this.plateGraphics.lineStyle(1, 0x3a4856, 0.7);
+      }
     }
     this.plateGraphics.strokeRoundedRect(-halfW, -halfH, this.plateWidth, this.plateHeight, 4);
 
@@ -142,7 +154,8 @@ export class EnemyView {
       if (nextLetter) {
         const halfAdv = RENDERER_CONFIG.labelCharWidthPx / 2;
         const lineY = halfH - 4;
-        this.underlineGraphics.lineStyle(2, THEME.phaserColors.amber, 1);
+        const lineColor = this.isElite ? 0xff3322 : THEME.phaserColors.amber;
+        this.underlineGraphics.lineStyle(2, lineColor, 1);
         this.underlineGraphics.lineBetween(
           nextLetter.x - halfAdv + 1,
           lineY,

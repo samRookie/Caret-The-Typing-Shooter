@@ -11,6 +11,7 @@ export interface TopStripProps {
   misses?: number;
   hull: number;
   maxHull?: number;
+  showHull?: boolean;
   onPause?: () => void;
   muted?: boolean;
   onToggleMute?: () => void;
@@ -22,7 +23,7 @@ export interface TopStripProps {
  * External HUD strip positioned above the canvas in row 1 of .game-shell.
  * Renders:
  * - Left: WAVE 0N, TIME mm:ss, ACCURACY 00.0% (tabular figures).
- * - Center: 3-pip Hull status with distinct active/depleted shapes.
+ * - Center: 3-pip Hull status with distinct active/depleted shapes (optional).
  * - Right: MUTE button, PAUSE button and clock widget slot.
  */
 export const TopStrip: React.FC<TopStripProps> = ({
@@ -32,6 +33,7 @@ export const TopStrip: React.FC<TopStripProps> = ({
   misses = 0,
   hull,
   maxHull = 3,
+  showHull = true,
   onPause,
   muted = false,
   onToggleMute,
@@ -77,19 +79,21 @@ export const TopStrip: React.FC<TopStripProps> = ({
       </div>
 
       {/* Center Cluster: 3-pip Hull (exact horizontal center) */}
-      <div
-        style={{
-          position: 'absolute',
-          left: '50%',
-          top: '50%',
-          transform: 'translate(-50%, -50%)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <HullPips currentHealth={hull} maxHealth={maxHull} />
-      </div>
+      {showHull && (
+        <div
+          style={{
+            position: 'absolute',
+            left: '50%',
+            top: '50%',
+            transform: 'translate(-50%, -50%)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <HullPips currentHealth={hull} maxHealth={maxHull} />
+        </div>
+      )}
 
       {/* Right Cluster: Mute button, PAUSE button and clock / slot */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>

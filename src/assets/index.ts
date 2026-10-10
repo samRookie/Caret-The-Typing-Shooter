@@ -5,6 +5,7 @@ export const ASSET_KEYS = {
   sprites: {
     player: 'player-ship',
     drone: 'drone',
+    eliteDrone: 'elite-drone',
     projectileReticle: 'projectile-reticle',
   },
   audio: {

@@ -11,6 +11,7 @@ import { PauseModal } from '@/ui/components/PauseModal';
 import { GameOverModal } from '@/ui/components/GameOverModal';
 import { SettingsModal } from '@/ui/components/SettingsModal';
 import { DangerVignette } from '@/ui/components/DangerVignette';
+import { HullPips } from '@/ui/components/HullPips';
 import { GameController } from '@/game/controller/GameController';
 import { installDevCaretHook } from '@/game/controller/devCaretHook';
 import { useHistory, historyStore } from '@/shared/history/historyStore';
@@ -286,6 +287,7 @@ export const App: React.FC = () => {
           misses={gameState.hud.misses ?? 0}
           hull={gameState.hud.hull}
           maxHull={gameState.hud.maxHull}
+          showHull={false}
           onPause={gameState.screen === 'running' ? () => controller.pause() : undefined}
           muted={settings.muted}
           onToggleMute={() => settingsStore.updateSettings({ muted: !settings.muted, sfxEnabled: settings.muted })}
@@ -294,30 +296,54 @@ export const App: React.FC = () => {
 
       {/* Row 2: Tactical Viewport Area */}
       <div className="viewport-area">
-        <div ref={viewportRef} className="viewport-container">
-        {/* Live Phaser Viewport */}
-        <PhaserContainer
-          controller={controller}
-          runtime={controller.runtime}
-          onGameReady={(game) => {
-            gameInstanceRef.current = game;
-          }}
-        />
-
-        {/* Tactical Low-Health Danger Vignette (hull === 1) */}
+        {/* Tactical Low-Health Danger Vignette (hull === 1) covering full viewport-area edge to edge */}
         <DangerVignette
           active={gameState.screen === 'running' && gameState.hud.hull === 1}
         />
 
-        {/* Tactical Wing Boxes (rendered during active or paused gameplay, or in preview mode) */}
-        {(gameState.screen === 'running' ||
-          gameState.screen === 'paused' ||
-          (Boolean(import.meta.env.DEV) && isPreview)) && (
-          <ShipWingBoxes
-            streak={isPreview ? 8 : gameState.hud.streak}
-            score={isPreview ? 1450 : gameState.hud.score}
+        <div ref={viewportRef} className="viewport-container">
+          {/* Live Phaser Viewport */}
+          <PhaserContainer
+            controller={controller}
+            runtime={controller.runtime}
+            onGameReady={(game) => {
+              gameInstanceRef.current = game;
+            }}
           />
-        )}
+
+          {/* Tactical Hull Counter positioned behind & below the spacecraft in exact center */}
+          {(gameState.screen === 'running' ||
+            gameState.screen === 'paused' ||
+            (Boolean(import.meta.env.DEV) && isPreview)) && (
+            <div
+              style={{
+                position: 'absolute',
+                left: '50%',
+                top: '93.5%',
+                transform: 'translate(-50%, -50%)',
+                zIndex: 22,
+                pointerEvents: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <HullPips
+                currentHealth={isPreview ? 2 : gameState.hud.hull}
+                maxHealth={isPreview ? 3 : gameState.hud.maxHull}
+              />
+            </div>
+          )}
+
+          {/* Tactical Wing Boxes (rendered during active or paused gameplay, or in preview mode) */}
+          {(gameState.screen === 'running' ||
+            gameState.screen === 'paused' ||
+            (Boolean(import.meta.env.DEV) && isPreview)) && (
+            <ShipWingBoxes
+              streak={isPreview ? 8 : gameState.hud.streak}
+              score={isPreview ? 1450 : gameState.hud.score}
+            />
+          )}
 
         {/* Tactical Wave Announcement Banner (Spec 5.G) */}
         {(gameState.screen === 'running' || gameState.screen === 'paused') && (

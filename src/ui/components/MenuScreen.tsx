@@ -60,14 +60,10 @@ export const MenuScreen: React.FC<MenuScreenProps> = ({
         justifyContent: 'center',
       }}
     >
-      <div style={{ position: 'absolute', top: 10, right: 12, zIndex: 10 }}>
-        <ClockBadge />
-      </div>
-
       <div
         style={{
           width: '100%',
-          maxWidth: '520px',
+          maxWidth: '560px',
           maxHeight: '98%',
           display: 'flex',
           flexDirection: 'column',
@@ -84,36 +80,52 @@ export const MenuScreen: React.FC<MenuScreenProps> = ({
           subtitle="MISSION DISPATCH READY"
           style={{
             width: '100%',
-            padding: '12px 18px',
+            padding: '14px 22px',
             boxSizing: 'border-box',
           }}
         >
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {/* Header & Branding */}
-            <div style={{ textAlign: 'center' }}>
-              <h1
-                style={{
-                  fontFamily: 'var(--font-display, Tektur)',
-                  fontSize: '18px',
-                  color: 'var(--accent-bright, #ffd37a)',
-                  letterSpacing: '0.12em',
-                  marginBottom: '2px',
-                  textShadow: 'var(--glow-accent)',
-                }}
-              >
-                {GAME_TITLE}
-              </h1>
-              <p
-                style={{
-                  margin: 0,
-                  fontFamily: 'var(--font-condensed)',
-                  fontSize: '10px',
-                  color: 'var(--text-secondary, #8995a1)',
-                  letterSpacing: '0.07em',
-                }}
-              >
-                {GAME_SUBTITLE}
-              </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {/* Header & Branding Row: Title on Left, System Clock on Right */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                width: '100%',
+                paddingBottom: '6px',
+                borderBottom: '1px solid rgba(255, 184, 74, 0.15)',
+              }}
+            >
+              <div style={{ textAlign: 'left' }}>
+                <h1
+                  style={{
+                    fontFamily: 'var(--font-display, Tektur)',
+                    fontSize: '18px',
+                    color: 'var(--accent-bright, #ffd37a)',
+                    letterSpacing: '0.12em',
+                    margin: 0,
+                    textShadow: 'var(--glow-accent)',
+                  }}
+                >
+                  {GAME_TITLE}
+                </h1>
+                <p
+                  style={{
+                    margin: 0,
+                    marginTop: '2px',
+                    fontFamily: 'var(--font-condensed)',
+                    fontSize: '10.5px',
+                    color: 'var(--text-secondary, #8995a1)',
+                    letterSpacing: '0.07em',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  {GAME_SUBTITLE}
+                </p>
+              </div>
+              <div style={{ flexShrink: 0, marginLeft: '12px' }}>
+                <ClockBadge />
+              </div>
             </div>
 
             {/* Career Pilot Records Telemetry */}

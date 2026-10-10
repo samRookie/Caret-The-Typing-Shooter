@@ -64,6 +64,7 @@ import {
   DEFAULT_RUN_CONFIG,
   DEFAULT_SCORING_RULES,
   DRONE_ARCHETYPE,
+  ELITE_ARCHETYPE,
 } from '@/shared/config/defaultConfig';
 import {
   commonalityForWave,
@@ -80,6 +81,7 @@ import {
   DefaultWordProvider,
   IWordProvider,
   WordProviderStats,
+  pickEliteWord,
 } from './words';
 import { EntityIdGenerator, compareEntityIds } from './entityId';
 import {
@@ -124,6 +126,7 @@ export class GameSimulation {
   private waveNumber: number = 1;
   private waveSpawnedCount: number = 0;
   private waveQuota: number = 6;
+  private waveWrongLetters: number = 0;
   private spawnCountdownTicks: number = 0;
   private intermissionCountdownTicks: number = 0;
   private isIntermission: boolean = false;
@@ -223,6 +226,7 @@ export class GameSimulation {
     if (durationTicks > 0) {
       this.waveNumber = 1;
       this.waveSpawnedCount = 0;
+      this.waveWrongLetters = 0;
       this.isIntermission = true;
       this.intermissionCountdownTicks = durationTicks;
       this.calculateWaveParams();
@@ -238,6 +242,7 @@ export class GameSimulation {
     } else {
       this.waveNumber = 1;
       this.waveSpawnedCount = 0;
+      this.waveWrongLetters = 0;
       this.isIntermission = false;
       this.intermissionCountdownTicks = 0;
       this.calculateWaveParams();
@@ -485,6 +490,14 @@ export class GameSimulation {
   private processMismatch(char: string, lockedEnemyId: string | null): void {
     this.misses++;
     this.streak = 0;
+    this.waveWrongLetters++;
+
+    if (this.waveNumber >= 5 && !this.isIntermission) {
+      const activeElites = this.enemies.filter((e) => e.alive && e.type === 'elite').length;
+      if (activeElites === 0) {
+        this.spawnEliteEnemy();
+      }
+    }
 
     this.emit({
       type: 'INPUT_MISMATCH',
@@ -521,6 +534,7 @@ export class GameSimulation {
       if (this.intermissionCountdownTicks <= 0) {
         this.isIntermission = false;
         this.waveSpawnedCount = 0;
+        this.waveWrongLetters = 0;
         this.calculateWaveParams();
         this.spawnCountdownTicks =
           this.waveNumber === 1
@@ -685,14 +699,78 @@ export class GameSimulation {
     });
   }
 
+  private spawnEliteEnemy(): void {
+    const simConfig = this.config.simulation;
+    const width = this.config.virtualResolution.width;
+
+    const activeFirstChars = new Set<string>();
+    const activeWords = new Set<string>();
+    for (const e of this.enemies) {
+      if (e.alive && e.remainingWord.length > 0) {
+        const first = e.remainingWord[0];
+        if (first) activeFirstChars.add(first);
+        activeWords.add(e.word);
+      }
+    }
+
+    const assignedWord = pickEliteWord(
+      this.rngStreams.wordRng,
+      activeFirstChars,
+      activeWords
+    );
+
+    const minX = simConfig.spawnMarginX + 40;
+    const maxX = width - simConfig.spawnMarginX - 40;
+    const chosenX = this.rngStreams.spawnRng.intBetween(minX, maxX);
+
+    this.recentSpawns.push({
+      x: chosenX,
+      wordLength: assignedWord.length,
+      tick: this.currentTick,
+    });
+
+    const enemyId = this.idGenerator.next();
+    const spawnPos: Vector2 = { x: chosenX, y: simConfig.spawnY };
+
+    const dx = this.player.position.x - spawnPos.x;
+    const dy = this.player.position.y - spawnPos.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    const speedPerTick = this.getWaveSpeedPerTick();
+
+    const velocity: Vector2 = {
+      x: dist > 0 ? (dx / dist) * speedPerTick : 0,
+      y: dist > 0 ? (dy / dist) * speedPerTick : speedPerTick,
+    };
+
+    const enemy: InternalEnemy = {
+      id: enemyId,
+      type: 'elite',
+      position: spawnPos,
+      velocity,
+      word: assignedWord,
+      remainingWord: assignedWord,
+      health: assignedWord.length * ELITE_ARCHETYPE.healthPerLetter,
+      maxHealth: assignedWord.length * ELITE_ARCHETYPE.healthPerLetter,
+      alive: true,
+      spawnTick: this.currentTick,
+    };
+
+    this.enemies.push(enemy);
+
+    this.emit({
+      type: 'ENEMY_SPAWNED',
+      enemyId,
+      position: { ...spawnPos },
+      tick: this.currentTick,
+    });
+  }
+
   // --------------------------------------------------------------------------
   // COLLISIONS & DEFEAT (B2)
   // --------------------------------------------------------------------------
 
   private checkCollisions(): void {
     const simConfig = this.config.simulation;
-    const collisionThreshold = DRONE_ARCHETYPE.hitboxRadius + simConfig.hullRadius;
-    const thresholdSq = collisionThreshold * collisionThreshold;
 
     const aliveEnemies = this.enemies
       .filter((e) => e.alive)
@@ -700,6 +778,13 @@ export class GameSimulation {
 
     for (const enemy of aliveEnemies) {
       if (!enemy.alive) continue;
+
+      const radius =
+        enemy.type === 'elite'
+          ? ELITE_ARCHETYPE.hitboxRadius
+          : DRONE_ARCHETYPE.hitboxRadius;
+      const collisionThreshold = radius + simConfig.hullRadius;
+      const thresholdSq = collisionThreshold * collisionThreshold;
 
       const distSq = this.squaredDist(enemy.position, this.player.position);
       if (distSq <= thresholdSq) {

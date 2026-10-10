@@ -3,7 +3,7 @@ import { Vector2 } from './geometry';
 /**
  * Recognized enemy archetype classifications.
  */
-export type EnemyType = 'drone';
+export type EnemyType = 'drone' | 'elite';
 
 /**
  * State representation of an individual enemy unit.

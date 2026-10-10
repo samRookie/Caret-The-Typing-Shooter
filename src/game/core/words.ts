@@ -4,6 +4,7 @@ import tier5 from './data/words/tier-5.json';
 import tier6 from './data/words/tier-6.json';
 import tier7 from './data/words/tier-7.json';
 import tier8 from './data/words/tier-8.json';
+import elite10 from './data/words/elite-10.json';
 import { Mulberry32 } from './prng';
 import {
   WordLengthWeights,
@@ -11,6 +12,28 @@ import {
 } from '../../shared/config/progression';
 
 export type WordTiers = Readonly<Record<number, readonly string[]>>;
+
+export const ELITE_10_WORDS: readonly string[] = elite10;
+
+export function pickEliteWord(
+  rng: Mulberry32,
+  excludeFirstLetters: ReadonlySet<string>,
+  excludeWords: ReadonlySet<string>
+): string {
+  const candidates = ELITE_10_WORDS.filter(
+    (w) => !excludeWords.has(w) && !excludeFirstLetters.has(w[0] ?? '')
+  );
+  if (candidates.length > 0) {
+    return rng.pick(candidates);
+  }
+
+  const wordCandidates = ELITE_10_WORDS.filter((w) => !excludeWords.has(w));
+  if (wordCandidates.length > 0) {
+    return rng.pick(wordCandidates);
+  }
+
+  return rng.pick(ELITE_10_WORDS);
+}
 
 export const WORDS_BY_LENGTH: WordTiers = {
   3: tier3,
