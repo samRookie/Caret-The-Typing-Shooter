@@ -21,7 +21,6 @@ export const MenuScreen: React.FC<MenuScreenProps> = ({
   onPlay,
   onOpenSettings,
   runs: propRuns,
-  reducedMotion = false,
 }) => {
   const historyRuns = useHistory();
   const activeRuns = propRuns ?? historyRuns;
@@ -53,44 +52,52 @@ export const MenuScreen: React.FC<MenuScreenProps> = ({
       className="tactical-modal-backdrop"
       role="dialog"
       aria-modal="true"
-      style={{ overflowY: 'auto', padding: '16px 0' }}
+      style={{
+        overflow: 'hidden',
+        padding: '8px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
     >
-      <div style={{ position: 'absolute', top: 16, right: 16, zIndex: 10 }}>
+      <div style={{ position: 'absolute', top: 10, right: 12, zIndex: 10 }}>
         <ClockBadge />
       </div>
 
       <div
         style={{
-          width: '90%',
-          maxWidth: '560px',
+          width: '100%',
+          maxWidth: '520px',
+          maxHeight: '98%',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
+          justifyContent: 'center',
           margin: 'auto',
         }}
       >
         {/* Ephemeral Boot Status Line (Decision D9) */}
-        <BootStatusLine reducedMotion={reducedMotion} />
+        <BootStatusLine />
 
         <TacticalFrame
           title="COMMAND HEADQUARTERS"
           subtitle="MISSION DISPATCH READY"
           style={{
             width: '100%',
-            padding: '24px 28px',
+            padding: '12px 18px',
             boxSizing: 'border-box',
           }}
         >
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {/* Header & Branding */}
             <div style={{ textAlign: 'center' }}>
               <h1
                 style={{
                   fontFamily: 'var(--font-display, Tektur)',
-                  fontSize: '22px',
+                  fontSize: '18px',
                   color: 'var(--accent-bright, #ffd37a)',
-                  letterSpacing: '0.14em',
-                  marginBottom: '4px',
+                  letterSpacing: '0.12em',
+                  marginBottom: '2px',
                   textShadow: 'var(--glow-accent)',
                 }}
               >
@@ -100,9 +107,9 @@ export const MenuScreen: React.FC<MenuScreenProps> = ({
                 style={{
                   margin: 0,
                   fontFamily: 'var(--font-condensed)',
-                  fontSize: '11px',
+                  fontSize: '10px',
                   color: 'var(--text-secondary, #8995a1)',
-                  letterSpacing: '0.08em',
+                  letterSpacing: '0.07em',
                 }}
               >
                 {GAME_SUBTITLE}
@@ -110,21 +117,21 @@ export const MenuScreen: React.FC<MenuScreenProps> = ({
             </div>
 
             {/* Career Pilot Records Telemetry */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
               <div
                 style={{
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
                   fontFamily: 'var(--font-condensed)',
-                  fontSize: '11px',
+                  fontSize: '10px',
                   color: 'var(--accent, #ffb84a)',
-                  letterSpacing: '0.08em',
+                  letterSpacing: '0.07em',
                   fontWeight: 'bold',
                 }}
               >
                 <span>PILOT TELEMETRY & CAREER RECORDS</span>
-                <span style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>
+                <span style={{ fontSize: '9px', color: 'var(--text-secondary)' }}>
                   MISSIONS: {stats.totalRuns}
                 </span>
               </div>
@@ -133,7 +140,7 @@ export const MenuScreen: React.FC<MenuScreenProps> = ({
                 style={{
                   display: 'grid',
                   gridTemplateColumns: 'repeat(3, 1fr)',
-                  gap: '6px',
+                  gap: '4px',
                 }}
               >
                 <StatCard
@@ -175,30 +182,18 @@ export const MenuScreen: React.FC<MenuScreenProps> = ({
                   variant="default"
                 />
               </div>
-
-              <span
-                style={{
-                  fontFamily: 'var(--font-condensed)',
-                  fontSize: '9px',
-                  color: 'var(--text-muted, #556270)',
-                  textAlign: 'right',
-                  fontStyle: 'italic',
-                }}
-              >
-                * WPM reflects net combat throughput including enemy wait times.
-              </span>
             </div>
 
             {/* Last Mission Summary Row */}
             {stats.lastRun && (
               <div
                 style={{
-                  padding: '6px 10px',
+                  padding: '4px 8px',
                   background: 'rgba(255, 184, 74, 0.05)',
                   border: '1px solid rgba(255, 184, 74, 0.15)',
                   borderRadius: 'var(--radius-sm, 3px)',
                   fontFamily: 'var(--font-mono, monospace)',
-                  fontSize: '10px',
+                  fontSize: '9.5px',
                   color: 'var(--text-secondary, #8995a1)',
                   letterSpacing: '0.04em',
                   display: 'flex',
@@ -222,20 +217,19 @@ export const MenuScreen: React.FC<MenuScreenProps> = ({
             {stats.totalRuns >= GRAPH_MIN_RUNS ? (
               <ProgressChart
                 runs={activeRuns}
-                reducedMotion={reducedMotion}
               />
             ) : (
               <div
                 style={{
-                  padding: '8px 12px',
+                  padding: '6px 10px',
                   background: 'rgba(0, 0, 0, 0.3)',
                   border: '1px dashed rgba(255, 184, 74, 0.25)',
-                  borderRadius: 'var(--radius-sm, 4px)',
+                  borderRadius: 'var(--radius-sm, 3px)',
                   textAlign: 'center',
                   fontFamily: 'var(--font-mono, monospace)',
-                  fontSize: '10px',
+                  fontSize: '9.5px',
                   color: 'var(--text-muted, #556270)',
-                  letterSpacing: '0.06em',
+                  letterSpacing: '0.05em',
                 }}
               >
                 [TACTICAL TELEMETRY LOCKED: COMPLETE {runsNeededForChart} MORE RUN(S) TO UNLOCK PROGRESS GRAPH]
@@ -243,15 +237,15 @@ export const MenuScreen: React.FC<MenuScreenProps> = ({
             )}
 
             {/* Action Buttons */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
               <TacticalButton
                 ref={playButtonRef}
                 variant="primary"
-                size="lg"
+                size="md"
                 onClick={onPlay}
                 data-autofocus="true"
                 aria-label="NEW GAME / INITIATE ENGAGEMENT [ENTER]"
-                style={{ width: '100%' }}
+                style={{ width: '100%', padding: '8px 16px', fontSize: '13px' }}
               >
                 NEW GAME [ENTER]
               </TacticalButton>
@@ -259,9 +253,9 @@ export const MenuScreen: React.FC<MenuScreenProps> = ({
               {onOpenSettings && (
                 <TacticalButton
                   variant="default"
-                  size="md"
+                  size="sm"
                   onClick={onOpenSettings}
-                  style={{ width: '100%' }}
+                  style={{ width: '100%', padding: '6px 12px', fontSize: '11px' }}
                 >
                   TACTICAL SETTINGS
                 </TacticalButton>
@@ -271,10 +265,10 @@ export const MenuScreen: React.FC<MenuScreenProps> = ({
             {/* How to Play Section */}
             <div
               style={{
-                padding: '8px 12px',
+                padding: '4px 8px',
                 background: 'rgba(0, 0, 0, 0.4)',
                 border: '1px solid var(--border, rgba(255, 184, 74, 0.2))',
-                borderRadius: 'var(--radius-sm, 4px)',
+                borderRadius: 'var(--radius-sm, 3px)',
                 textAlign: 'center',
               }}
             >
@@ -282,10 +276,10 @@ export const MenuScreen: React.FC<MenuScreenProps> = ({
                 style={{
                   display: 'block',
                   fontFamily: 'var(--font-condensed)',
-                  fontSize: '10px',
+                  fontSize: '9px',
                   color: 'var(--accent, #ffb84a)',
-                  letterSpacing: '0.08em',
-                  marginBottom: '2px',
+                  letterSpacing: '0.07em',
+                  marginBottom: '1px',
                   fontWeight: 'bold',
                 }}
               >
@@ -295,10 +289,10 @@ export const MenuScreen: React.FC<MenuScreenProps> = ({
                 style={{
                   margin: 0,
                   fontFamily: 'var(--font-condensed)',
-                  fontSize: '11px',
+                  fontSize: '9.5px',
                   color: 'var(--text-secondary, #8995a1)',
-                  lineHeight: 1.4,
-                  letterSpacing: '0.03em',
+                  lineHeight: 1.3,
+                  letterSpacing: '0.02em',
                 }}
               >
                 {HOW_TO_PLAY_TEXT}

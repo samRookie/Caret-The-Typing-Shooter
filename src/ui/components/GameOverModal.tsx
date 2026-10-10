@@ -24,7 +24,6 @@ export interface GameOverModalProps {
   } | null;
   localBest?: { score: number; wave: number } | null;
   runs?: readonly RunRecord[];
-  reducedMotion?: boolean;
   onRestart: () => void;
   onQuitToMenu?: () => void;
 }
@@ -40,7 +39,6 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
   comparison,
   localBest,
   runs = [],
-  reducedMotion = false,
   onRestart,
   onQuitToMenu,
 }) => {
@@ -269,7 +267,6 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
               <ProgressChart
                 runs={runs}
                 highlightLatest={true}
-                reducedMotion={reducedMotion}
               />
             )}
 

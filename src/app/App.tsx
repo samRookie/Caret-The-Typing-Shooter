@@ -86,16 +86,6 @@ export const App: React.FC = () => {
     return () => window.clearTimeout(timer);
   }, []);
 
-  // Compute effective reduced motion from settingsStore
-  const effectiveReducedMotion =
-    settings.reducedMotion === 'on'
-      ? true
-      : settings.reducedMotion === 'off'
-      ? false
-      : typeof window !== 'undefined' &&
-        typeof window.matchMedia === 'function' &&
-        window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
   // Cleanup controller on window unload
   useEffect(() => {
     const handleUnload = () => {
@@ -128,15 +118,6 @@ export const App: React.FC = () => {
     }
   }, [controller]);
 
-  // Sync document element attribute with effective reduced motion
-  useEffect(() => {
-    if (effectiveReducedMotion) {
-      document.documentElement.setAttribute('data-reduced-motion', 'true');
-    } else {
-      document.documentElement.removeAttribute('data-reduced-motion');
-    }
-  }, [effectiveReducedMotion]);
-
   // Audio context unlock and UI click sound delegation
   useEffect(() => {
     const handleFirstInteraction = () => {
@@ -161,11 +142,6 @@ export const App: React.FC = () => {
       document.removeEventListener('click', handleClick);
     };
   }, []);
-
-  const handleToggleReducedMotion = () => {
-    const nextPref = settings.reducedMotion === 'on' ? 'off' : 'on';
-    settingsStore.set({ reducedMotion: nextPref });
-  };
 
   // Run-ID Deduplication & Record Evaluation Guard (Decision D13)
   useEffect(() => {
@@ -331,7 +307,6 @@ export const App: React.FC = () => {
         {/* Tactical Low-Health Danger Vignette (hull === 1) */}
         <DangerVignette
           active={gameState.screen === 'running' && gameState.hud.hull === 1}
-          reducedMotion={effectiveReducedMotion}
         />
 
         {/* Tactical Wing Boxes (rendered during active or paused gameplay, or in preview mode) */}
@@ -349,7 +324,6 @@ export const App: React.FC = () => {
           <WaveBanner
             wave={gameState.hud.wave}
             visible={Boolean(gameState.hud.isIntermission)}
-            reducedMotion={effectiveReducedMotion}
           />
         )}
 
@@ -363,7 +337,6 @@ export const App: React.FC = () => {
             onPlay={() => controller.start()}
             onOpenSettings={() => setIsSettingsOpen(true)}
             runs={historyRuns}
-            reducedMotion={effectiveReducedMotion}
           />
         )}
 
@@ -373,8 +346,6 @@ export const App: React.FC = () => {
             onRestart={() => controller.restart()}
             onQuitToMenu={() => controller.quitToMenu()}
             onOpenSettings={() => setIsSettingsOpen(true)}
-            reducedMotion={effectiveReducedMotion}
-            onToggleReducedMotion={handleToggleReducedMotion}
           />
         )}
 
@@ -390,7 +361,6 @@ export const App: React.FC = () => {
             comparison={comparison}
             localBest={settings.highScore}
             runs={historyRuns}
-            reducedMotion={effectiveReducedMotion}
             onRestart={() => controller.restart()}
             onQuitToMenu={() => controller.quitToMenu()}
           />
@@ -413,8 +383,6 @@ export const App: React.FC = () => {
             onRestart={() => setShowPreviewPause(false)}
             onQuitToMenu={() => setShowPreviewPause(false)}
             onOpenSettings={() => setIsSettingsOpen(true)}
-            reducedMotion={effectiveReducedMotion}
-            onToggleReducedMotion={handleToggleReducedMotion}
           />
         )}
 

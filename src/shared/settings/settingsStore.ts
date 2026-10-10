@@ -17,7 +17,7 @@ import { SafeStorage, safeStorage } from '../storage/safeStorage';
 
 export const SETTINGS_STORAGE_KEY = 'caret.settings.v1';
 
-export type ReducedMotionPreference = 'system' | 'on' | 'off';
+export type ReducedMotionPreference = 'off';
 
 export interface LocalHighScore {
   readonly score: number;
@@ -30,7 +30,6 @@ export interface SettingsV1 {
   readonly muted: boolean;                          // default false
   readonly sfxEnabled: boolean;                     // synced with !muted
   readonly musicEnabled: boolean;                   // default true
-  readonly reducedMotion: ReducedMotionPreference;  // default 'system'
   readonly highScore: LocalHighScore | null;        // default null
 }
 
@@ -44,7 +43,6 @@ export const DEFAULT_SETTINGS: SettingsV1 = {
   muted: false,
   sfxEnabled: true,
   musicEnabled: true,
-  reducedMotion: 'system',
   highScore: null,
 };
 
@@ -97,15 +95,6 @@ export function parseSettings(raw: string | null): SettingsV1 {
   const musicEnabled =
     typeof obj.musicEnabled === 'boolean' ? obj.musicEnabled : DEFAULT_SETTINGS.musicEnabled;
 
-  let reducedMotion: ReducedMotionPreference = DEFAULT_SETTINGS.reducedMotion;
-  if (
-    obj.reducedMotion === 'system' ||
-    obj.reducedMotion === 'on' ||
-    obj.reducedMotion === 'off'
-  ) {
-    reducedMotion = obj.reducedMotion;
-  }
-
   // High score record validation (unverified local best)
   let highScore: LocalHighScore | null = null;
   if (
@@ -135,7 +124,6 @@ export function parseSettings(raw: string | null): SettingsV1 {
     muted,
     sfxEnabled,
     musicEnabled,
-    reducedMotion,
     highScore,
   };
 }
@@ -195,7 +183,6 @@ export class SettingsStore {
       this.cachedState.muted !== this.currentSettings.muted ||
       this.cachedState.sfxEnabled !== this.currentSettings.sfxEnabled ||
       this.cachedState.musicEnabled !== this.currentSettings.musicEnabled ||
-      this.cachedState.reducedMotion !== this.currentSettings.reducedMotion ||
       this.cachedState.highScore !== this.currentSettings.highScore
     ) {
       this.cachedState = {
@@ -248,12 +235,6 @@ export class SettingsStore {
         typeof patch.musicEnabled === 'boolean'
           ? patch.musicEnabled
           : this.currentSettings.musicEnabled,
-      reducedMotion:
-        patch.reducedMotion === 'system' ||
-        patch.reducedMotion === 'on' ||
-        patch.reducedMotion === 'off'
-          ? patch.reducedMotion
-          : this.currentSettings.reducedMotion,
       highScore,
     };
 

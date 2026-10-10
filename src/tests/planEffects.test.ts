@@ -63,7 +63,7 @@ describe('Pure Effect Planner (Section 2 & 8)', () => {
     };
 
     const nonFinalCmds = planEffects(nonFinalEvent, CTX_STANDARD, DEFAULT_MOTION_POLICY);
-    expect(nonFinalCmds).toEqual([{ type: 'sound', cue: 'laser', volume: 0.22 }]);
+    expect(nonFinalCmds).toEqual([{ type: 'sound', cue: 'laser', volume: 0.38 }]);
 
     const finalEvent: GameEvent = {
       type: 'INPUT_MATCH',
@@ -76,8 +76,8 @@ describe('Pure Effect Planner (Section 2 & 8)', () => {
 
     const finalCmds = planEffects(finalEvent, CTX_STANDARD, DEFAULT_MOTION_POLICY);
     expect(finalCmds).toEqual([
-      { type: 'sound', cue: 'laser', volume: 0.22 },
-      { type: 'sound', cue: 'destroy', volume: 0.92 },
+      { type: 'sound', cue: 'laser', volume: 0.38 },
+      { type: 'sound', cue: 'destroy', volume: 0.45 },
     ]);
   });
 

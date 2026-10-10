@@ -7,8 +7,6 @@ export interface PauseModalProps {
   onResume: () => void;
   onRestart?: () => void;
   onQuitToMenu?: () => void;
-  reducedMotion?: boolean;
-  onToggleReducedMotion?: () => void;
   onOpenSettings?: () => void;
 }
 
@@ -16,8 +14,6 @@ export const PauseModal: React.FC<PauseModalProps> = ({
   onResume,
   onRestart,
   onQuitToMenu,
-  reducedMotion = false,
-  onToggleReducedMotion,
   onOpenSettings,
 }) => {
   const trapRef = useFocusTrap<HTMLDivElement>(true);
@@ -80,21 +76,6 @@ export const PauseModal: React.FC<PauseModalProps> = ({
               {onQuitToMenu && (
                 <TacticalButton variant="default" size="md" onClick={onQuitToMenu}>
                   QUIT TO MENU
-                </TacticalButton>
-              )}
-
-              {onToggleReducedMotion && (
-                <TacticalButton
-                  variant="default"
-                  size="sm"
-                  onClick={onToggleReducedMotion}
-                  style={{
-                    borderColor: reducedMotion ? 'var(--accent)' : 'var(--border)',
-                    color: reducedMotion ? 'var(--accent-bright)' : 'var(--text-secondary)',
-                    letterSpacing: '0.06em',
-                  }}
-                >
-                  REDUCED MOTION [{reducedMotion ? 'ENABLED' : 'DISABLED'}]
                 </TacticalButton>
               )}
             </div>

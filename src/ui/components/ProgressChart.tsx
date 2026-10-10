@@ -6,7 +6,6 @@ export interface ProgressChartProps {
   runs: readonly RunRecord[];
   initialMetric?: TrendMetric;
   highlightLatest?: boolean;
-  reducedMotion?: boolean;
 }
 
 interface MetricItem {
@@ -32,7 +31,6 @@ export const ProgressChart: React.FC<ProgressChartProps> = ({
   runs,
   initialMetric = 'wave',
   highlightLatest = false,
-  reducedMotion = false,
 }) => {
   const [metric, setMetric] = useState<TrendMetric>(initialMetric);
 
@@ -55,13 +53,13 @@ export const ProgressChart: React.FC<ProgressChartProps> = ({
     }
   };
 
-  // Dimensions & bounds
+  // Dimensions & bounds (compact 80px height)
   const width = 400;
-  const height = 150;
-  const padLeft = 40;
-  const padRight = 20;
-  const padTop = 20;
-  const padBottom = 30;
+  const height = 80;
+  const padLeft = 32;
+  const padRight = 14;
+  const padTop = 10;
+  const padBottom = 18;
 
   const chartW = width - padLeft - padRight;
   const chartH = height - padTop - padBottom;
@@ -99,11 +97,11 @@ export const ProgressChart: React.FC<ProgressChartProps> = ({
       style={{
         display: 'flex',
         flexDirection: 'column',
-        gap: '8px',
-        padding: '12px 14px',
+        gap: '4px',
+        padding: '6px 8px',
         background: 'rgba(0, 0, 0, 0.45)',
         border: '1px solid var(--border, rgba(255, 184, 74, 0.2))',
-        borderRadius: 'var(--radius-sm, 4px)',
+        borderRadius: 'var(--radius-sm, 3px)',
         width: '100%',
         boxSizing: 'border-box',
       }}
@@ -115,7 +113,7 @@ export const ProgressChart: React.FC<ProgressChartProps> = ({
         style={{
           display: 'flex',
           justifyContent: 'center',
-          gap: '6px',
+          gap: '4px',
         }}
       >
         {METRICS.map((m, idx) => {
@@ -131,16 +129,16 @@ export const ProgressChart: React.FC<ProgressChartProps> = ({
               onKeyDown={(e) => handleKeyDown(e, idx)}
               style={{
                 fontFamily: 'var(--font-condensed, sans-serif)',
-                fontSize: '10px',
+                fontSize: '9px',
                 fontWeight: isSelected ? 700 : 400,
-                letterSpacing: '0.08em',
-                padding: '4px 8px',
+                letterSpacing: '0.07em',
+                padding: '2px 6px',
                 background: isSelected ? 'rgba(255, 184, 74, 0.2)' : 'transparent',
                 color: isSelected ? 'var(--accent-bright, #ffd37a)' : 'var(--text-secondary, #8995a1)',
                 border: isSelected ? '1px solid var(--accent, #ffb84a)' : '1px solid transparent',
-                borderRadius: 'var(--radius-sm, 3px)',
+                borderRadius: 'var(--radius-sm, 2px)',
                 cursor: 'pointer',
-                transition: reducedMotion ? 'none' : 'all 0.15s ease',
+                transition: 'all 0.15s ease',
               }}
             >
               {m.label}
@@ -247,7 +245,7 @@ export const ProgressChart: React.FC<ProgressChartProps> = ({
                 {/* X Axis Run Indices */}
                 <text
                   x={p.x}
-                  y={height - 10}
+                  y={height - 4}
                   textAnchor="middle"
                   fill="var(--text-secondary, #8995a1)"
                   fontFamily="var(--font-mono, monospace)"

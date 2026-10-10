@@ -5,7 +5,6 @@ import { useFocusTrap } from '../hooks/useFocusTrap';
 import {
   useSettings,
   settingsStore,
-  ReducedMotionPreference,
 } from '@/shared/settings/settingsStore';
 import { historyStore } from '@/shared/history/historyStore';
 import { isMusicAvailable } from '@/shared/audio/capabilities';
@@ -51,26 +50,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
   const handleResetSettings = () => {
     settingsStore.resetSettings();
-  };
-
-  const handleReducedMotionChange = (pref: ReducedMotionPreference) => {
-    settingsStore.updateSettings({ reducedMotion: pref });
-    if (pref === 'on') {
-      document.documentElement.setAttribute('data-reduced-motion', 'true');
-    } else if (pref === 'off') {
-      document.documentElement.removeAttribute('data-reduced-motion');
-    } else {
-      // system preference
-      const isReduce =
-        typeof window !== 'undefined' &&
-        typeof window.matchMedia === 'function' &&
-        window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      if (isReduce) {
-        document.documentElement.setAttribute('data-reduced-motion', 'true');
-      } else {
-        document.documentElement.removeAttribute('data-reduced-motion');
-      }
-    }
   };
 
   const handleConfirmReset = () => {
@@ -302,90 +281,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             </div>
 
             {/* Reduced Motion Settings */}
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '8px',
-                padding: '10px 12px',
-                background: 'rgba(0, 0, 0, 0.35)',
-                border: '1px solid var(--border, rgba(255, 184, 74, 0.2))',
-                borderRadius: 'var(--radius-sm, 4px)',
-              }}
-            >
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                }}
-              >
-                <span
-                  style={{
-                    fontFamily: 'var(--font-condensed)',
-                    fontSize: '11px',
-                    color: 'var(--accent, #ffb84a)',
-                    fontWeight: 'bold',
-                    letterSpacing: '0.08em',
-                  }}
-                >
-                  REDUCED MOTION
-                </span>
-                <span
-                  style={{
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: '10px',
-                    color: 'var(--text-secondary)',
-                  }}
-                >
-                  CURRENT: {settings.reducedMotion.toUpperCase()}
-                </span>
-              </div>
-
-              <div
-                role="radiogroup"
-                aria-label="Reduced Motion Preference"
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(3, 1fr)',
-                  gap: '6px',
-                }}
-              >
-                {(['system', 'on', 'off'] as const).map((pref) => {
-                  const isSelected = settings.reducedMotion === pref;
-                  return (
-                    <button
-                      key={pref}
-                      type="button"
-                      role="radio"
-                      aria-checked={isSelected}
-                      onClick={() => handleReducedMotionChange(pref)}
-                      style={{
-                        padding: '6px 8px',
-                        fontFamily: 'var(--font-condensed)',
-                        fontSize: '11px',
-                        letterSpacing: '0.08em',
-                        background: isSelected
-                          ? 'rgba(255, 184, 74, 0.2)'
-                          : 'transparent',
-                        color: isSelected
-                          ? 'var(--accent-bright)'
-                          : 'var(--text-secondary)',
-                        border: isSelected
-                          ? '1px solid var(--accent)'
-                          : '1px solid var(--border)',
-                        borderRadius: 'var(--radius-sm, 3px)',
-                        cursor: 'pointer',
-                        textTransform: 'uppercase',
-                      }}
-                    >
-                      {pref.toUpperCase()}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
             {/* Data Management & Statistics Reset */}
             <div
               style={{

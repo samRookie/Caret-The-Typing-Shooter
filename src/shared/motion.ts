@@ -1,5 +1,4 @@
-import { useEffect, useState } from 'react';
-import { settingsStore, ReducedMotionPreference } from './settings/settingsStore';
+import { ReducedMotionPreference } from './settings/settingsStore';
 
 export interface MotionPolicy {
   readonly reduced: boolean;
@@ -25,98 +24,28 @@ export const REDUCED_MOTION_POLICY: MotionPolicy = {
   tweenScale: 0.5,
 };
 
-function querySystemPrefersReducedMotion(): boolean {
-  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
-    return false;
-  }
-  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-}
-
-export function isReducedMotionActive(preference?: ReducedMotionPreference): boolean {
-  const pref = preference ?? settingsStore.getSettings().reducedMotion;
-  if (pref === 'on') return true;
-  if (pref === 'off') return false;
-  return querySystemPrefersReducedMotion();
+export function isReducedMotionActive(_preference?: ReducedMotionPreference): boolean {
+  return false;
 }
 
 /**
- * Synchronizes data-reduced-motion attribute on <html> with current effective motion policy.
+ * Synchronizes data-reduced-motion attribute on <html> (cleans it up).
  */
-export function syncDocumentReducedMotion(preference?: ReducedMotionPreference): void {
+export function syncDocumentReducedMotion(_preference?: ReducedMotionPreference): void {
   if (typeof document === 'undefined') return;
-  const active = isReducedMotionActive(preference);
-  if (active) {
-    document.documentElement.setAttribute('data-reduced-motion', 'true');
-  } else {
-    document.documentElement.removeAttribute('data-reduced-motion');
-  }
+  document.documentElement.removeAttribute('data-reduced-motion');
 }
 
 /**
- * Returns current motion policy for Phaser and headless logic.
- * Evaluated when an effect fires so mid-run changes apply immediately.
+ * Returns current motion policy (always full/standard motion).
  */
-export function getMotionPolicy(preference?: ReducedMotionPreference): MotionPolicy {
-  return isReducedMotionActive(preference) ? REDUCED_MOTION_POLICY : DEFAULT_MOTION_POLICY;
+export function getMotionPolicy(_preference?: ReducedMotionPreference): MotionPolicy {
+  return DEFAULT_MOTION_POLICY;
 }
 
 /**
- * React hook that subscribes to settingsStore and system matchMedia change events.
+ * React hook returning standard motion policy.
  */
 export function useMotionPolicy(): MotionPolicy {
-  const [policy, setPolicy] = useState<MotionPolicy>(() => {
-    syncDocumentReducedMotion();
-    return getMotionPolicy();
-  });
-
-  useEffect(() => {
-    const update = () => {
-      syncDocumentReducedMotion();
-      setPolicy(getMotionPolicy());
-    };
-
-    syncDocumentReducedMotion();
-
-    // Subscribe to settings store changes
-    const unsubscribeStore = settingsStore.subscribe(update);
-
-    // Subscribe to system matchMedia changes
-    let mql: MediaQueryList | null = null;
-    let mqlHandler: ((e: MediaQueryListEvent) => void) | null = null;
-
-    if (typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
-      try {
-        mql = window.matchMedia('(prefers-reduced-motion: reduce)');
-        mqlHandler = () => {
-          if (settingsStore.getSettings().reducedMotion === 'system') {
-            update();
-          }
-        };
-        if (typeof mql.addEventListener === 'function') {
-          mql.addEventListener('change', mqlHandler);
-        } else if (
-          typeof (mql as unknown as { addListener?: unknown }).addListener === 'function'
-        ) {
-          (mql as unknown as { addListener: (h: unknown) => void }).addListener(mqlHandler);
-        }
-      } catch {
-        // Safe fallback for environments with partial matchMedia support
-      }
-    }
-
-    return () => {
-      unsubscribeStore();
-      if (mql && mqlHandler) {
-        if (typeof mql.removeEventListener === 'function') {
-          mql.removeEventListener('change', mqlHandler);
-        } else if (
-          typeof (mql as unknown as { removeListener?: unknown }).removeListener === 'function'
-        ) {
-          (mql as unknown as { removeListener: (h: unknown) => void }).removeListener(mqlHandler);
-        }
-      }
-    };
-  }, []);
-
-  return policy;
+  return DEFAULT_MOTION_POLICY;
 }

@@ -130,25 +130,14 @@ describe('Persistence Layer & Statistics (Phase P3)', () => {
         version: 1,
         sfxEnabled: 'not-a-bool', // corrupted
         musicEnabled: false,       // valid
-        reducedMotion: 'on',       // valid
+        sfxVolume: 0.8,            // valid
       });
       const parsed = parseSettings(partialCorrupt);
       expect(parsed.sfxEnabled).toBe(true); // restored to default
       expect(parsed.musicEnabled).toBe(false); // kept
-      expect(parsed.reducedMotion).toBe('on'); // kept
+      expect(parsed.sfxVolume).toBe(0.8); // kept
     });
 
-    it('restores reducedMotion to system when invalid value supplied', () => {
-      const invalidMotion = JSON.stringify({
-        version: 1,
-        sfxEnabled: false,
-        musicEnabled: false,
-        reducedMotion: 'hyperactive', // invalid
-      });
-      const parsed = parseSettings(invalidMotion);
-      expect(parsed.reducedMotion).toBe('system');
-      expect(parsed.sfxEnabled).toBe(false);
-    });
 
     it('clamps sfxVolume strictly to [0, 1] and restores default for bad values', () => {
       expect(parseSettings(JSON.stringify({ version: 1, sfxVolume: 1.5 })).sfxVolume).toBe(1.0);

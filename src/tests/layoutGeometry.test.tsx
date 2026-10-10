@@ -153,23 +153,17 @@ describe('ClockBadge Fake Timers & Alignment (Spec 5.C, 5.H)', () => {
   });
 });
 
-describe('WaveBanner Visibility Logic & Reduced Motion Branch (Spec 5.G, 5.H)', () => {
+describe('WaveBanner Visibility Logic (Spec 5.G, 5.H)', () => {
   it('renders visible wave banner with opacity 1 and alert role', () => {
-    render(<WaveBanner wave={1} visible={true} reducedMotion={false} />);
+    render(<WaveBanner wave={1} visible={true} />);
     const banner = screen.getByTestId('wave-banner');
-    expect(banner).toHaveStyle({ opacity: '1' });
+    expect(banner).toHaveStyle({ opacity: '1', visibility: 'visible' });
     expect(screen.getByText('WAVE 01')).toBeInTheDocument();
   });
 
   it('hides wave banner with opacity 0 when visible is false', () => {
-    render(<WaveBanner wave={2} visible={false} reducedMotion={false} />);
+    render(<WaveBanner wave={2} visible={false} />);
     const banner = screen.getByTestId('wave-banner');
-    expect(banner).toHaveStyle({ opacity: '0' });
-  });
-
-  it('disables transitions and sets visibility hidden when reducedMotion is true and visible is false', () => {
-    render(<WaveBanner wave={3} visible={false} reducedMotion={true} />);
-    const banner = screen.getByTestId('wave-banner');
-    expect(banner).toHaveStyle({ transition: 'none', visibility: 'hidden' });
+    expect(banner).toHaveStyle({ opacity: '0', visibility: 'hidden' });
   });
 });

@@ -31,13 +31,13 @@ Hostile drone vessels descend through deep space, each protected by an encrypted
 
 * **Pure Keyboard Control:** Zero mouse reliance. Every target acquisition, firing sequence, lock-release (`Tab`), and tactical pause (`Esc`) responds straight from your home row.
 * **Tactical Hostile UAV Drones:** Redesigned hexacopter drone vessels equipped with animated navigation beacons, high-contrast armor plates, and crystal-clear letter illumination.
-* **Dual High-Energy Plasma Lasers:** Spacecraft forward emitter ports fire twin golden-cyan plasma laser bolts along dynamic trajectory angles with muzzle flash and impact particle bursts.
+* **Dual Plasma Lasers:** Spacecraft forward emitter cannons fire golden plasma laser bolts along flight trajectories with impact particle bursts.
 * **Dynamic Cosmic Environment:** A 3-layer parallax starfield featuring occasional celestial planets drifting every 3 waves and distant spiral galaxies traversing the field on Wave 8 and beyond.
 * **Emergency Hull Breach Alert:** Precision-centered hull integrity monitor and a pulsating crimson perimeter vignette that activates when your vessel drops to critical condition.
 * **Three-Point Hull Protection:** Your vessel carries 3 hull integrity pips, giving you resilience to withstand two collisions before catastrophic systems failure.
 * **Calibrated Word Selection:** Early waves field punchy 3-to-4 letter targets; deeper waves demand precision against complex vocabulary and rapid multi-target concurrency.
-* **Persistent Settings & Local Best:** Audio volume sliders, quick HUD mute, reduced-motion preferences, and your all-time unverified local best score survive browser reloads safely (`caret.settings.v1`).
-* **Tactile Combat Audio:** Responsive laser discharges, distinctive drone detonation blasts, and heavy metallic hull collision audio engineered with voice concurrency caps and volume scaling.
+* **Persistent Settings & Local Best:** Audio volume sliders, quick HUD mute toggle, and your all-time unverified local best score survive browser reloads safely (`caret.settings.v1`).
+* **Tactile Combat Audio:** Responsive laser discharges, crisp drone detonation blasts, and heavy metallic hull collision audio engineered with voice concurrency caps and volume scaling.
 
 ---
 
@@ -95,7 +95,6 @@ At the conclusion of each engagement, the Mission Debriefing console provides co
 ## Comfort & Accessibility
 
 * **Audio Controls:** Dedicated SFX volume slider (0–100%) and instant mute toggle accessible via the HUD top strip and Settings modal.
-* **Reduced Motion:** 3-way toggle (**System** / **On** / **Off**) to suppress camera shake, edge flashes, scanlines, and high-frequency starfield velocity (respects OS `prefers-reduced-motion`).
 * **Offline-Safe Persistence:** Local settings and personal bests are validated per field, falling back gracefully to memory if browser storage is blocked.
 * **High-Contrast Legibility:** In-world tactical plates and letter underline indicators maintain full contrast and legibility even under monochrome/grayscale conditions.
 * **Hardware Recommendation:** Best experienced on desktop and laptop displays with a physical home-row keyboard.

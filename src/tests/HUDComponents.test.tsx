@@ -52,21 +52,15 @@ describe('LoadingOverlay Component', () => {
 });
 
 describe('PauseModal Component', () => {
-  it('handles resume and reduced-motion toggle', () => {
+  it('handles resume', () => {
     const handleResume = vi.fn();
-    const handleToggle = vi.fn();
     render(
       <PauseModal
         onResume={handleResume}
-        reducedMotion={false}
-        onToggleReducedMotion={handleToggle}
       />
     );
     fireEvent.click(screen.getByText(/RESUME ENGAGEMENT/i));
     expect(handleResume).toHaveBeenCalledTimes(1);
-
-    fireEvent.click(screen.getByText(/REDUCED MOTION/i));
-    expect(handleToggle).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -155,13 +149,9 @@ describe('WaveBanner Component (Spec 5.G)', () => {
     expect(banner).toHaveStyle({ opacity: '1' });
   });
 
-  it('respects visibility false and handles reducedMotion', () => {
-    const { rerender } = render(<WaveBanner wave={2} visible={false} reducedMotion={false} />);
+  it('respects visibility false', () => {
+    render(<WaveBanner wave={2} visible={false} />);
     const banner = screen.getByTestId('wave-banner');
-    expect(banner).toHaveStyle({ opacity: '0' });
-
-    // With reducedMotion, transition is 'none' and visibility is hidden when not visible
-    rerender(<WaveBanner wave={2} visible={false} reducedMotion={true} />);
-    expect(banner).toHaveStyle({ transition: 'none', visibility: 'hidden' });
+    expect(banner).toHaveStyle({ opacity: '0', visibility: 'hidden' });
   });
 });

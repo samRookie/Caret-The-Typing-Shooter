@@ -82,11 +82,11 @@ export class ProjectilePool {
     const currX = proj.from.x + (proj.to.x - proj.from.x) * progress;
     const currY = proj.from.y + (proj.to.y - proj.from.y) * progress;
 
-    // Aerodynamic elongated plasma laser: up to 48px length along flight vector
+    // Aerodynamic golden plasma bolt: calibrated ~26px length along flight vector
     const dx = proj.to.x - proj.from.x;
     const dy = proj.to.y - proj.from.y;
     const dist = Math.sqrt(dx * dx + dy * dy);
-    const boltLen = Math.min(48, dist * progress);
+    const boltLen = Math.min(26, dist * progress);
 
     const nx = dist > 0 ? dx / dist : 0;
     const ny = dist > 0 ? dy / dist : 0;
@@ -97,31 +97,31 @@ export class ProjectilePool {
     const g = proj.graphics;
     g.clear();
 
-    // 1. Outer Warm Golden Energy Bloom (radiant plasma field)
-    g.lineStyle(10, 0xff8800, 0.4);
+    // 1. Outer Warm Golden Bloom (soft radiant halo matching reference image)
+    g.lineStyle(8, 0xff9900, 0.35);
     g.lineBetween(tailX, tailY, currX, currY);
 
-    // 2. Focused Electric Amber Plasma Core (high energy beam)
-    g.lineStyle(5.2, 0xffb84a, 0.92);
+    // 2. Shiny Intense Golden Energy Body (electric gold beam)
+    g.lineStyle(4.8, 0xffd500, 0.88);
     g.lineBetween(tailX + nx * 2, tailY + ny * 2, currX, currY);
 
-    // 3. Super-Hot Incandescent Laser Needle (pure white-hot center streak)
-    g.lineStyle(2.0, 0xffffff, 1.0);
+    // 3. Super-Hot White Core Needle (laser plasma center streak)
+    g.lineStyle(1.8, 0xffffff, 1.0);
     g.lineBetween(
-      tailX + nx * (boltLen * 0.15),
-      tailY + ny * (boltLen * 0.15),
+      tailX + nx * (boltLen * 0.2),
+      tailY + ny * (boltLen * 0.2),
       currX,
       currY
     );
 
-    // 4. Leading Plasma Sphere Head
+    // 4. Rounded Golden Plasma Nose Cap
     if (typeof g.fillStyle === 'function' && typeof g.fillCircle === 'function') {
-      // Golden plasma corona
-      g.fillStyle(0xffaa22, 0.85);
-      g.fillCircle(currX, currY, 4.8);
-      // Incandescent white plasma core
+      // Golden outer nose cap
+      g.fillStyle(0xffc400, 0.8);
+      g.fillCircle(currX, currY, 3.8);
+      // White-hot plasma core cap
       g.fillStyle(0xffffff, 1.0);
-      g.fillCircle(currX, currY, 2.5);
+      g.fillCircle(currX, currY, 2.0);
     }
   }
 

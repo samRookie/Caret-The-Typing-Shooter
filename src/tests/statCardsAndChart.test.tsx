@@ -122,19 +122,13 @@ describe('P6 Tactical Telemetry, Charts & Settings Tests', () => {
       expect(screen.getByRole('button', { name: /MUTED/i })).toBeInTheDocument();
     });
 
-    it('updates reduced motion preference and sets DOM attribute', () => {
+    it('adjusts combat SFX volume slider and updates settingsStore', () => {
       const onClose = vi.fn();
       render(<SettingsModal isOpen={true} onClose={onClose} />);
 
-      const onBtn = screen.getByRole('radio', { name: 'ON' });
-      fireEvent.click(onBtn);
-      expect(settingsStore.getSettings().reducedMotion).toBe('on');
-      expect(document.documentElement.getAttribute('data-reduced-motion')).toBe('true');
-
-      const offBtn = screen.getByRole('radio', { name: 'OFF' });
-      fireEvent.click(offBtn);
-      expect(settingsStore.getSettings().reducedMotion).toBe('off');
-      expect(document.documentElement.getAttribute('data-reduced-motion')).toBeNull();
+      const slider = screen.getByRole('slider', { name: /Combat SFX Volume/i });
+      fireEvent.change(slider, { target: { value: '0.8' } });
+      expect(settingsStore.getSettings().sfxVolume).toBe(0.8);
     });
 
     it('handles career statistics reset with confirmation safeguard', () => {

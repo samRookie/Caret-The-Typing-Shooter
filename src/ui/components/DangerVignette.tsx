@@ -7,13 +7,12 @@ export interface DangerVignetteProps {
 
 export const DangerVignette: React.FC<DangerVignetteProps> = ({
   active,
-  reducedMotion = false,
 }) => {
   if (!active) return null;
 
   return (
     <div
-      className={`danger-vignette-overlay ${reducedMotion ? 'reduced-motion' : ''}`}
+      className="danger-vignette-overlay"
       aria-hidden="true"
       style={{
         position: 'absolute',
@@ -32,9 +31,7 @@ export const DangerVignette: React.FC<DangerVignetteProps> = ({
             'radial-gradient(ellipse at center, transparent 60%, rgba(255, 30, 30, 0.12) 80%, rgba(255, 10, 10, 0.35) 94%, rgba(230, 5, 20, 0.55) 100%)',
           boxShadow:
             'inset 0 0 45px rgba(255, 20, 35, 0.4), inset 0 0 100px rgba(255, 10, 20, 0.25)',
-          animation: reducedMotion
-            ? 'none'
-            : 'dangerVignettePulse 1.4s ease-in-out infinite',
+          animation: 'dangerVignettePulse 1.4s ease-in-out infinite',
         }}
       />
     </div>

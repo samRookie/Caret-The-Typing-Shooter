@@ -33,7 +33,7 @@ describe('Tactical Command Console App Shell', () => {
     expect(screen.getByText(/COMBAT THREAD SUSPENDED/i)).toBeInTheDocument();
   });
 
-  it('allows toggling reduced motion mode', () => {
+  it('allows pausing and resuming the engagement', () => {
     render(<App />);
     const playBtn = screen.getByRole('button', { name: /INITIATE ENGAGEMENT/i });
     fireEvent.click(playBtn);
@@ -41,9 +41,10 @@ describe('Tactical Command Console App Shell', () => {
     const pauseBtn = screen.getByRole('button', { name: /PAUSE · ESC/i });
     fireEvent.click(pauseBtn);
 
-    const toggleBtn = screen.getByRole('button', { name: /REDUCED MOTION/i });
-    expect(toggleBtn).toBeInTheDocument();
-    fireEvent.click(toggleBtn);
-    expect(screen.getByRole('button', { name: /REDUCED MOTION \[ENABLED\]/i })).toBeInTheDocument();
+    expect(screen.getByText(/COMBAT THREAD SUSPENDED/i)).toBeInTheDocument();
+    const resumeBtn = screen.getByRole('button', { name: /RESUME ENGAGEMENT/i });
+    expect(resumeBtn).toBeInTheDocument();
+    fireEvent.click(resumeBtn);
+    expect(screen.queryByText(/COMBAT THREAD SUSPENDED/i)).toBeNull();
   });
 });

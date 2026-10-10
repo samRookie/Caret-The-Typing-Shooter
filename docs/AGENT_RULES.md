@@ -16,3 +16,11 @@ R13 GIT. One commit per numbered sub-section of the step, message format "step-N
 R14 SCOPE REPORTING. List every file you created, changed, or deleted. If you touched a file outside the step's stated scope, explain why.
 R15 AMBIGUITY. If an instruction is ambiguous or two instructions conflict, stop and ask. Do not guess silently.
 R16 TWO STRIKES. If the same failure persists after two fix attempts, stop and report the evidence instead of trying more variations.
+R17 DATA-DRIVEN BEHAVIOR. New enemy types, abilities, packs and modes are validated data plus registry entries. No `if (type === "...")` chains in the simulation loop. Registry lookups fail loudly in tests and fall back safely at runtime.
+R18 RNG DISCIPLINE. Every random draw uses a named seeded stream (spawnRng, wordRng). A change to the number or order of draws changes every golden hash and every stored replay: say so in the report, update the golden in its own commit, and explain it. When a spawn has only one possible choice, make NO draw (this keeps older goldens valid).
+R19 COMMANDS. Everything the player can do that affects the simulation is a member of GameCommand, is applied through handleCommand at a tick, appears in runtime.commandLog, and has a replay test.
+R20 FIXTURES. Every new gameplay feature ships with a named fixture (DEV only, absent from dist/) and an e2e spec that uses it.
+R21 CANONICAL STATE. State hashing and replay comparison use canonical serialization (sorted keys, no undefined, no -0, one number formatter). Never hash raw JSON.stringify output.
+R22 PERSISTENCE. New stored fields are additive with per-field defaults. Changing or removing the meaning of a stored field needs a version bump, a migration function, and a test using a stored old-version fixture.
+R23 DOCUMENT TRUTH. Every file path or symbol named in README.md, docs/ARCHITECTURE.md, docs/simulation.md, docs/effects.md, or any report must exist in the repository. `npm run docs:check` (Step 1) enforces this and is part of `npm run verify`. Never describe a feature you did not see in the code or the running game; mark anything unobserved UNVERIFIED.
+R24 VERIFY GATE. `npm run verify` (lint + tests + build + leftover audit + docs check) must pass and its raw output must be pasted in every report. A report without it is incomplete.

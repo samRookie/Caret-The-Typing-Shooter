@@ -14,7 +14,6 @@ export interface WaveBannerProps {
 export const WaveBanner: React.FC<WaveBannerProps> = ({
   wave,
   visible,
-  reducedMotion = false,
 }) => {
   const formattedWave = `WAVE ${String(wave).padStart(2, '0')}`;
 
@@ -41,8 +40,8 @@ export const WaveBanner: React.FC<WaveBannerProps> = ({
         userSelect: 'none',
         zIndex: 30,
         opacity: visible ? 1 : 0,
-        transition: reducedMotion ? 'none' : 'opacity 0.25s ease-out',
-        visibility: visible || !reducedMotion ? 'visible' : 'hidden',
+        transition: 'opacity 0.25s ease-out',
+        visibility: visible ? 'visible' : 'hidden',
       }}
     >
       <span

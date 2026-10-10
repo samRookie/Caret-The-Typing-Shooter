@@ -178,9 +178,7 @@ export class PhaserEffectBackend implements EffectBackend {
   }
 
   spawnBolt(from: Vector2, to: Vector2, travelMs: number, _trailSegments: number): void {
-    const nosePos = this.playerView?.getNosePosition?.() ?? from;
-    this.playerView?.triggerMuzzleFlash?.();
-    this.projectilePool.spawn(nosePos, to, travelMs);
+    this.projectilePool.spawn(from, to, travelMs);
   }
 
   tintShip(_color: number, _ms: number): void {

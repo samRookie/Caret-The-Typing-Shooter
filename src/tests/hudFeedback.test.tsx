@@ -6,7 +6,6 @@ import { GameController } from '@/game/controller/GameController';
 import { feedbackBus } from '@/game/controller/FeedbackBus';
 import { settingsStore } from '@/shared/settings/settingsStore';
 import { historyStore } from '@/shared/history/historyStore';
-import { EFFECT_CONFIG } from '@/shared/config/effectsConfig';
 
 describe('HUD Feedback & Game-Over Sequence (Section 4 & 8)', () => {
   beforeEach(() => {
@@ -95,8 +94,7 @@ describe('HUD Feedback & Game-Over Sequence (Section 4 & 8)', () => {
     expect(streakBox.style.border).toContain('var(--border)');
   });
 
-  it('GameController: enters game-over-pending, delays 900ms (300ms reduced), ignores inputs, opens panel', () => {
-    settingsStore.set({ reducedMotion: 'off' });
+  it('GameController: enters game-over-pending, delays 900ms, ignores inputs, opens panel', () => {
     const controller = new GameController();
     controller.start();
 
@@ -122,26 +120,6 @@ describe('HUD Feedback & Game-Over Sequence (Section 4 & 8)', () => {
     // Advance remaining 150ms -> reaches game-over
     act(() => {
       vi.advanceTimersByTime(150);
-    });
-    expect(controller.getState().screen).toBe('game-over');
-
-    controller.destroy();
-  });
-
-  it('GameController: reduced motion uses 300ms delay', () => {
-    settingsStore.set({ reducedMotion: 'on' });
-    const controller = new GameController();
-    controller.start();
-
-    const sim = controller.runtime!.simulation;
-    while (sim.getSnapshot().status !== 'game-over') {
-      controller.frame(0.05);
-    }
-    controller.frame(0.016);
-    expect(controller.getState().screen).toBe('game-over-pending');
-
-    act(() => {
-      vi.advanceTimersByTime(EFFECT_CONFIG.GAME_OVER_PANEL_DELAY_REDUCED_MS + 20);
     });
     expect(controller.getState().screen).toBe('game-over');
 

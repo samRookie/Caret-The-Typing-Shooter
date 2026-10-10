@@ -291,32 +291,6 @@ body {
   animation: pulseSubtle 2.5s infinite ease-in-out;
 }
 
-/* Reduced Motion Mode Support */
-@media (prefers-reduced-motion: reduce) {
-  *,
-  ::before,
-  ::after {
-    animation-duration: 0.001ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.001ms !important;
-  }
-  .anim-pulse {
-    animation: none !important;
-  }
-}
-
-[data-reduced-motion='true'] *,
-[data-reduced-motion='true'] ::before,
-[data-reduced-motion='true'] ::after {
-  animation-duration: 0.001ms !important;
-  animation-iteration-count: 1 !important;
-  transition-duration: 0.001ms !important;
-}
-
-[data-reduced-motion='true'] .anim-pulse {
-  animation: none !important;
-}
-
 /* Scrollbars */
 ::-webkit-scrollbar {
   width: 6px;

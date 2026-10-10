@@ -37,21 +37,21 @@ export const StatCard: React.FC<StatCardProps> = ({
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'center',
-        padding: '8px 10px',
+        padding: '3px 8px',
         background: 'rgba(0, 0, 0, 0.45)',
         border: '1px solid var(--border, rgba(255, 184, 74, 0.2))',
-        borderRadius: 'var(--radius-sm, 4px)',
-        minWidth: '85px',
+        borderRadius: 'var(--radius-sm, 3px)',
+        minWidth: '75px',
       }}
     >
       <span
         style={{
           fontFamily: 'var(--font-condensed)',
-          fontSize: '10px',
+          fontSize: '8.5px',
           color: 'var(--text-secondary, #8995a1)',
-          letterSpacing: '0.08em',
+          letterSpacing: '0.07em',
           textTransform: 'uppercase',
-          marginBottom: '2px',
+          marginBottom: '1px',
         }}
       >
         {label}
@@ -66,11 +66,11 @@ export const StatCard: React.FC<StatCardProps> = ({
         <span
           style={{
             fontFamily: 'var(--font-display, Tektur)',
-            fontSize: '16px',
+            fontSize: '13px',
             fontWeight: 700,
             color: getColor(),
-            letterSpacing: '0.05em',
-            lineHeight: 1.2,
+            letterSpacing: '0.04em',
+            lineHeight: 1.15,
           }}
         >
           {displayValue}
@@ -79,7 +79,7 @@ export const StatCard: React.FC<StatCardProps> = ({
           <span
             style={{
               fontFamily: 'var(--font-condensed)',
-              fontSize: '10px',
+              fontSize: '8.5px',
               color: 'var(--text-secondary, #8995a1)',
             }}
           >

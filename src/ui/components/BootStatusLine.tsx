@@ -11,26 +11,17 @@ export interface BootStatusLineProps {
   reducedMotion?: boolean;
 }
 
-export const BootStatusLine: React.FC<BootStatusLineProps> = ({
-  reducedMotion = false,
-}) => {
+export const BootStatusLine: React.FC<BootStatusLineProps> = () => {
   const [shouldRender, setShouldRender] = useState<boolean>(() => {
     if (hasDisplayedBootStatusSession) return false;
     hasDisplayedBootStatusSession = true;
     return true;
   });
 
-  const [opacity, setOpacity] = useState(reducedMotion ? 1 : 0);
+  const [opacity, setOpacity] = useState(0);
 
   useEffect(() => {
     if (!shouldRender) return;
-
-    if (reducedMotion) {
-      const timer = setTimeout(() => {
-        setShouldRender(false);
-      }, 2500);
-      return () => clearTimeout(timer);
-    }
 
     // 1. Fade-in over 200ms
     const fadeInTimer = setTimeout(() => {
@@ -52,7 +43,7 @@ export const BootStatusLine: React.FC<BootStatusLineProps> = ({
       clearTimeout(fadeOutTimer);
       clearTimeout(unmountTimer);
     };
-  }, [shouldRender, reducedMotion]);
+  }, [shouldRender]);
 
   if (!shouldRender) {
     return null;
@@ -74,7 +65,7 @@ export const BootStatusLine: React.FC<BootStatusLineProps> = ({
         border: '1px solid rgba(255, 184, 74, 0.25)',
         borderRadius: 'var(--radius-sm, 4px)',
         opacity,
-        transition: reducedMotion ? 'none' : 'opacity 0.2s ease-in-out',
+        transition: 'opacity 0.2s ease-in-out',
         userSelect: 'none',
       }}
     >
