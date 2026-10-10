@@ -47,56 +47,87 @@ describe('progression configuration', () => {
     expect((weights[5] ?? 0) + (weights[6] ?? 0)).toBe(50);
   });
 
-  it('preserves monotonicity of speed across waves 1 to 25 with max cap 72', () => {
+  it('preserves monotonicity of speed across waves 1 to 25 with max cap 120 and faster initial speed', () => {
     let prev = speedForWave(1);
-    expect(prev).toBe(30);
+    expect(prev).toBe(38);
 
     for (let w = 2; w <= 25; w++) {
       const curr = speedForWave(w);
       expect(curr).toBeGreaterThanOrEqual(prev);
-      expect(curr).toBeLessThanOrEqual(72);
+      expect(curr).toBeLessThanOrEqual(120);
       prev = curr;
     }
-    expect(speedForWave(100)).toBe(72);
+    // Ensures difficulty continues scaling after wave 18
+    expect(speedForWave(18)).toBeGreaterThan(speedForWave(8));
+    expect(speedForWave(25)).toBeGreaterThan(speedForWave(18));
+    expect(speedForWave(100)).toBe(120);
   });
 
-  it('preserves monotonicity of spawn cadence across waves 1 to 25 with min floor 1.0s', () => {
+  it('preserves monotonicity of spawn cadence across waves 1 to 25 with min floor 0.75s and faster initial generation', () => {
     let prev = spawnIntervalSeconds(1);
-    expect(prev).toBeCloseTo(2.8, 4);
+    expect(prev).toBeCloseTo(2.3, 4);
 
     for (let w = 2; w <= 25; w++) {
       const curr = spawnIntervalSeconds(w);
       expect(curr).toBeLessThanOrEqual(prev);
-      expect(curr).toBeGreaterThanOrEqual(1.0);
+      expect(curr).toBeGreaterThanOrEqual(0.75);
       prev = curr;
     }
-    expect(spawnIntervalSeconds(100)).toBe(1.0);
+    // Ensures generation continues intensifying after wave 18
+    expect(spawnIntervalSeconds(18)).toBeLessThan(spawnIntervalSeconds(8));
+    expect(spawnIntervalSeconds(25)).toBeLessThanOrEqual(spawnIntervalSeconds(18));
+    expect(spawnIntervalSeconds(100)).toBe(0.75);
   });
 
-  it('preserves monotonicity of concurrency cap across waves 1 to 25 with max cap 6', () => {
+  it('preserves monotonicity of concurrency cap across waves 1 to 25 with max cap 8', () => {
     let prev = concurrentCapForWave(1);
     expect(prev).toBe(2);
 
     for (let w = 2; w <= 25; w++) {
       const curr = concurrentCapForWave(w);
       expect(curr).toBeGreaterThanOrEqual(prev);
-      expect(curr).toBeLessThanOrEqual(6);
+      expect(curr).toBeLessThanOrEqual(8);
       prev = curr;
     }
-    expect(concurrentCapForWave(100)).toBe(6);
+    expect(concurrentCapForWave(100)).toBe(8);
   });
 
-  it('preserves monotonicity of quota across waves 1 to 25 with max cap 30', () => {
-    let prev = quotaForWave(1);
-    expect(prev).toBe(5);
+  it('conforms to stepped quota scaling: every 2 waves until wave 8, each wave until wave 18, frozen thereafter', () => {
+    // Waves 1 to 8: increases every 2 waves
+    expect(quotaForWave(1)).toBe(5);
+    expect(quotaForWave(2)).toBe(5);
+    expect(quotaForWave(3)).toBe(7);
+    expect(quotaForWave(4)).toBe(7);
+    expect(quotaForWave(5)).toBe(9);
+    expect(quotaForWave(6)).toBe(9);
+    expect(quotaForWave(7)).toBe(11);
+    expect(quotaForWave(8)).toBe(11);
 
+    // Waves 9 to 18: increases for each wave up to wave 18
+    expect(quotaForWave(9)).toBe(13);
+    expect(quotaForWave(10)).toBe(15);
+    expect(quotaForWave(11)).toBe(17);
+    expect(quotaForWave(12)).toBe(19);
+    expect(quotaForWave(13)).toBe(21);
+    expect(quotaForWave(14)).toBe(23);
+    expect(quotaForWave(15)).toBe(25);
+    expect(quotaForWave(16)).toBe(27);
+    expect(quotaForWave(17)).toBe(29);
+    expect(quotaForWave(18)).toBe(30);
+
+    // After wave 18: same quantity of words (frozen at 30)
+    expect(quotaForWave(19)).toBe(30);
+    expect(quotaForWave(20)).toBe(30);
+    expect(quotaForWave(25)).toBe(30);
+    expect(quotaForWave(100)).toBe(30);
+
+    // Monotonicity check
+    let prev = quotaForWave(1);
     for (let w = 2; w <= 25; w++) {
       const curr = quotaForWave(w);
       expect(curr).toBeGreaterThanOrEqual(prev);
-      expect(curr).toBeLessThanOrEqual(30);
       prev = curr;
     }
-    expect(quotaForWave(100)).toBe(30);
   });
 
   it('preserves monotonicity of mean word length across waves 1 to 25', () => {

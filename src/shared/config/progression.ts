@@ -20,38 +20,55 @@ export const WAVE_INTERMISSION_SECONDS = 1.5;
 
 /**
  * Computes enemy drone approach speed in virtual pixels per second.
- * Formula: min(30 + 2.5 * (w - 1), 72)
+ * Slightly faster initial speed (38 px/s) scaling up smoothly.
+ * Keeps scaling after wave 18 up to cap 120 px/s to ensure sustained difficulty.
+ * Formula: min(round(38 + 2.8 * (w - 1)), 120)
  */
 export function speedForWave(w: number): number {
   const wave = Math.max(1, Math.floor(w));
-  return Math.min(30 + 2.5 * (wave - 1), 72);
+  return Math.min(Math.round(38 + 2.8 * (wave - 1)), 120);
 }
 
 /**
  * Computes spawn cadence delay between enemy drones in seconds.
- * Formula: max(1.0, 2.8 * 0.95^(w - 1))
+ * Slightly faster initial generation (2.3s) decaying with wave progress.
+ * Floor reduced to 0.75s to allow high-intensity spawning in late waves (w >= 18).
+ * Formula: max(0.75, 2.3 * 0.95^(w - 1))
  */
 export function spawnIntervalSeconds(w: number): number {
   const wave = Math.max(1, Math.floor(w));
-  return Math.max(1.0, 2.8 * Math.pow(0.95, wave - 1));
+  return Math.max(0.75, 2.3 * Math.pow(0.95, wave - 1));
 }
 
 /**
  * Computes maximum simultaneously active enemies permitted on screen.
- * Formula: min(2 + floor((w - 1) / 3), 6)
+ * Increases cap up to 8 enemies in late waves (w >= 18) for elevated pressure.
+ * Formula: min(2 + floor((w - 1) / 3), 8)
  */
 export function concurrentCapForWave(w: number): number {
   const wave = Math.max(1, Math.floor(w));
-  return Math.min(2 + Math.floor((wave - 1) / 3), 6);
+  return Math.min(2 + Math.floor((wave - 1) / 3), 8);
 }
 
 /**
  * Computes total enemy drone quota required to clear the wave.
- * Formula: min(5 + 2 * (w - 1), 30)
+ * Rules:
+ * - Waves 1 to 8: Quantity increases every 2 waves:
+ *   Waves 1-2 = 5, Waves 3-4 = 7, Waves 5-6 = 9, Waves 7-8 = 11.
+ * - Waves 9 to 18: Quantity increases each wave by +2 words:
+ *   Wave 9 = 13, Wave 10 = 15, ..., Wave 18 = 30.
+ * - After Wave 18: Same quantity of words as Wave 18 (frozen at 30 words),
+ *   while difficulty scales via approach speed, spawn cadence, and concurrency.
  */
 export function quotaForWave(w: number): number {
   const wave = Math.max(1, Math.floor(w));
-  return Math.min(5 + 2 * (wave - 1), 30);
+  if (wave <= 8) {
+    return 5 + 2 * Math.floor((wave - 1) / 2);
+  }
+  if (wave <= 18) {
+    return Math.min(30, 11 + 2 * (wave - 8));
+  }
+  return 30;
 }
 
 /**
