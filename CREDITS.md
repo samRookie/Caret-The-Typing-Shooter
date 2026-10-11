@@ -19,13 +19,18 @@ This document catalogues every third-party asset currently residing in `public/`
 
 ---
 
-## 2. Bundled Font Software (`@fontsource/tektur`)
+## 2. Bundled Font Software (`@fontsource/tektur` & JMH Typewriter)
 
 * **Font Family:** Tektur
 * **Package Source:** `@fontsource/tektur` (npm)
 * **License:** SIL Open Font License 1.1 (`OFL-1.1`)
 * **License File:** Stored at `third_party/tektur/OFL.txt`
 * **Copyright Notice:** `Copyright 2023 The Tektur Project Authors (https://www.github.com/hyvyys/Tektur)`
+
+* **Font Family:** JMH Typewriter (used restrictively for drone target words)
+* **Author / Owner:** Jorge Morón (joorgemoron@gmail.com)
+* **License:** Free for Personal Use Only
+* **License File:** Stored at `third_party/jmh-typewriter/Personal Use Only-User Terms Agreement.txt`
 
 ---
 

@@ -40,6 +40,7 @@ export class BootScene extends Phaser.Scene {
           document.fonts.load('600 18px Tektur'),
           document.fonts.load('500 16px Tektur'),
           document.fonts.load('700 48px Tektur'),
+          document.fonts.load('600 18px "JMH Typewriter"'),
         ]);
       } catch {
         // Fall back gracefully if font loading throws

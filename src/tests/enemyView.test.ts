@@ -62,6 +62,7 @@ describe('EnemyView (7.C)', () => {
     // Construct view: 6 characters in "COMBAT" -> creates exactly 6 Text objects
     const view = new EnemyView(mockScene, enemy, false);
     expect(textCreationCount).toBe(6);
+    expect(vi.mocked(mockScene.add.text).mock.calls[0]?.[3]?.fontFamily).toBe('JMH Typewriter');
 
     // Simulate 120 idle frames (2 seconds at 60Hz) where enemy moves down but remainingWord is unchanged
     for (let frame = 1; frame <= 120; frame++) {

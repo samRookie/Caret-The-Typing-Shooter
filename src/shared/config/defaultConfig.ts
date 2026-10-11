@@ -30,6 +30,7 @@ export const RENDERER_CONFIG = {
   labelPaddingPx: 12,
   labelFontSizePx: 18,
   labelFontFamily: 'Tektur',
+  droneWordFontFamily: 'JMH Typewriter',
   plateHeightPx: 26,
 } as const;
 

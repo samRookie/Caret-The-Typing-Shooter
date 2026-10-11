@@ -13,6 +13,10 @@ describe('Typography & Tektur Migration (Spec 4.E)', () => {
     expect(RENDERER_CONFIG.labelFontFamily).toBe('Tektur');
   });
 
+  it('configures RENDERER_CONFIG.droneWordFontFamily as JMH Typewriter', () => {
+    expect(RENDERER_CONFIG.droneWordFontFamily).toBe('JMH Typewriter');
+  });
+
   it('defines all THEME typography tokens with Tektur', () => {
     expect(THEME.typography.fontDisplay).toContain('Tektur');
     expect(THEME.typography.fontCondensed).toContain('Tektur');
@@ -26,6 +30,16 @@ describe('Typography & Tektur Migration (Spec 4.E)', () => {
     const content = fs.readFileSync(oflPath, 'utf8');
     expect(content).toContain('SIL OPEN FONT LICENSE Version 1.1');
     expect(content).toContain('Copyright 2023 The Tektur Project Authors');
+  });
+
+  it('preserves JMH Typewriter user agreement in third_party/jmh-typewriter', () => {
+    const agreementPath = path.resolve(
+      process.cwd(),
+      'third_party/jmh-typewriter/Personal Use Only-User Terms Agreement.txt'
+    );
+    expect(fs.existsSync(agreementPath)).toBe(true);
+    const content = fs.readFileSync(agreementPath, 'utf8');
+    expect(content).toContain('JMH Typewriter');
   });
 
   it('contains zero source references to legacy Kenney fonts in src/', () => {
