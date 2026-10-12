@@ -97,6 +97,30 @@ if (distFiles.length === 0) {
   }
 }
 
+// 4. Design-note footer audit for src/ and dist/
+console.log('\n--- 4. AUDITING SRC AND DIST FOR RETIRED DESIGN-NOTE FOOTER TOKENS ---');
+const designNoteTokens = ['TACTICAL RESOLUTION', 'DOMINANT ACCENT'];
+const auditDirs = ['src', 'dist'];
+for (const dir of auditDirs) {
+  if (!fs.existsSync(dir)) continue;
+  const files = walkDir(dir, f => /\.(ts|tsx|js|html|css)$/.test(f));
+  for (const token of designNoteTokens) {
+    const matches = [];
+    for (const file of files) {
+      const content = fs.readFileSync(file, 'utf8');
+      if (content.includes(token)) {
+        matches.push(file);
+      }
+    }
+    if (matches.length > 0) {
+      console.error(`FAIL: Token "${token}" found in ${dir}/: ${matches.join(', ')}`);
+      failureCount++;
+    } else {
+      console.log(`PASS: Zero occurrences of "${token}" in ${dir}/`);
+    }
+  }
+}
+
 console.log('========================================================================');
 if (failureCount === 0) {
   console.log('LEFTOVER CODE & CORE PURITY AUDIT: 100% PASS');

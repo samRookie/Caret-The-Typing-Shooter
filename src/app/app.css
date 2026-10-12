@@ -108,7 +108,6 @@ body {
 /* Game Shell Grid Layout (5.A) */
 :root {
   --top-strip-height: 46px;
-  --footer-height: 24px;
 }
 
 .game-shell {
@@ -116,7 +115,7 @@ body {
   width: 100vw;
   height: 100dvh;
   display: grid;
-  grid-template-rows: auto 1fr auto;
+  grid-template-rows: auto 1fr;
   background: var(--bg-0);
   overflow: hidden;
 }
@@ -136,9 +135,9 @@ body {
 .viewport-container {
   position: relative;
   aspect-ratio: 16 / 9;
-  width: min(100%, calc((100dvh - var(--top-strip-height, 46px) - var(--footer-height, 24px)) * 16 / 9));
+  width: min(100%, calc((100dvh - var(--top-strip-height, 46px)) * 16 / 9));
   max-width: 100%;
-  max-height: calc(100dvh - var(--top-strip-height, 46px) - var(--footer-height, 24px));
+  max-height: calc(100dvh - var(--top-strip-height, 46px));
   margin: 0 auto;
   overflow: hidden;
   border-radius: var(--radius-sm);

@@ -78,15 +78,6 @@ export const App: React.FC = () => {
   const [showPreviewPause, setShowPreviewPause] = useState(false);
   const [showPreviewGameOver, setShowPreviewGameOver] = useState(false);
 
-  // Footer status note: briefly visible for 3 seconds on startup, then fades out completely
-  const [showFooterNotes, setShowFooterNotes] = useState(true);
-  useEffect(() => {
-    const timer = window.setTimeout(() => {
-      setShowFooterNotes(false);
-    }, 3000);
-    return () => window.clearTimeout(timer);
-  }, []);
-
   // Cleanup controller on window unload
   useEffect(() => {
     const handleUnload = () => {
@@ -453,26 +444,6 @@ export const App: React.FC = () => {
         </div>
       </div>
 
-      {/* Viewport Dimension & Status Footer (briefly visible on startup, then fades out completely) */}
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          fontFamily: 'var(--font-condensed)',
-          fontSize: '11px',
-          color: 'var(--text-secondary)',
-          padding: '0 4px',
-          flexShrink: 0,
-          opacity: showFooterNotes ? 1 : 0,
-          visibility: showFooterNotes ? 'visible' : 'hidden',
-          transition: 'opacity 0.8s ease-out, visibility 0.8s ease-out',
-          pointerEvents: 'none',
-        }}
-      >
-        <span>TACTICAL RESOLUTION: ADAPTIVE [DESKTOP OPTIMIZED 1280×720 / 1440×900]</span>
-        <span>DOMINANT ACCENT: ELECTRIC AMBER (#FFB84A) // ZERO RAINBOW GRADIENTS</span>
-      </div>
     </div>
   );
 };
