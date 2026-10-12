@@ -5,8 +5,7 @@
 
 @font-face {
   font-family: 'JMH Typewriter';
-  src: url('/assets/fonts/JMH Typewriter.otf') format('opentype'),
-       url('/assets/fonts/JMH Typewriter.ttf') format('truetype');
+  src: url('/assets/fonts/JMH Typewriter.otf') format('opentype');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -14,8 +13,7 @@
 
 @font-face {
   font-family: 'JMH Typewriter';
-  src: url('/assets/fonts/JMH Typewriter-Bold.otf') format('opentype'),
-       url('/assets/fonts/JMH Typewriter-Bold.ttf') format('truetype');
+  src: url('/assets/fonts/JMH Typewriter-Bold.otf') format('opentype');
   font-weight: 600 700;
   font-style: normal;
   font-display: swap;
