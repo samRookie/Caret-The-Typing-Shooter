@@ -1,6 +1,6 @@
-# Deployment Guide — Futuristic Typing Shooter
+# Deployment Guide — Caret: The Typing Shooter
 
-This document provides deployment instructions for hosting the production build of **Futuristic Typing Shooter** on static hosting providers: **Vercel**, **Netlify**, and **GitHub Pages**.
+This document provides deployment instructions for hosting the production build of **Caret: The Typing Shooter** on static hosting providers: **Vercel**, **Netlify**, and **GitHub Pages**.
 
 > **Note**: You (the repository owner) perform the deployment using your own provider account and credentials.
 
