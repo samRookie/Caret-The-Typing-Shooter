@@ -130,7 +130,7 @@ describe('Persistence Layer & Statistics (Phase P3)', () => {
       const migrated = migrateToV2(raw);
       expect(migrated.version).toBe(2);
       expect(migrated.sfxEnabled).toBe(true);
-      expect((migrated as Record<string, unknown>).muted).toBeUndefined();
+      expect((migrated as unknown as Record<string, unknown>).muted).toBeUndefined();
     });
 
     it('migrates v1 with { muted: true } (no sfxEnabled) -> v2 { sfxEnabled: false }', () => {
@@ -138,7 +138,7 @@ describe('Persistence Layer & Statistics (Phase P3)', () => {
       const migrated = migrateToV2(raw);
       expect(migrated.version).toBe(2);
       expect(migrated.sfxEnabled).toBe(false);
-      expect((migrated as Record<string, unknown>).muted).toBeUndefined();
+      expect((migrated as unknown as Record<string, unknown>).muted).toBeUndefined();
     });
 
     it('migrates v1 with { muted: false, highScore: 1234 } -> v2 { sfxEnabled: true } and discards highScore', () => {
@@ -146,7 +146,7 @@ describe('Persistence Layer & Statistics (Phase P3)', () => {
       const migrated = migrateToV2(raw);
       expect(migrated.version).toBe(2);
       expect(migrated.sfxEnabled).toBe(true);
-      expect((migrated as Record<string, unknown>).highScore).toBeUndefined();
+      expect((migrated as unknown as Record<string, unknown>).highScore).toBeUndefined();
     });
 
     it('preserves existing v2 configuration without changes', () => {

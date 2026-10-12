@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen, fireEvent, renderHook, act } from '@testing-library/react';
-import React from 'react';
 import { usePrimaryInputIsTouch, TOUCH_MEDIA_QUERY } from '@/ui/hooks/usePrimaryInputIsTouch';
 import { MenuScreen, DISMISS_MOBILE_NOTICE_KEY } from '@/ui/components/MenuScreen';
 
