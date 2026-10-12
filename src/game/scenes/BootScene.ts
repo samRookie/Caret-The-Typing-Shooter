@@ -57,6 +57,14 @@ export class BootScene extends Phaser.Scene {
       typeof window !== 'undefined' &&
       new URLSearchParams(window.location.search).get('preview') === '1';
 
-    this.scene.start(isPreview ? 'VisualPreviewScene' : 'GameScene');
+    if (import.meta.env.DEV && isPreview) {
+      const { VisualPreviewScene } = await import('./VisualPreviewScene');
+      if (!this.scene.get('VisualPreviewScene')) {
+        this.scene.add('VisualPreviewScene', VisualPreviewScene, false);
+      }
+      this.scene.start('VisualPreviewScene');
+    } else {
+      this.scene.start('GameScene');
+    }
   }
 }
