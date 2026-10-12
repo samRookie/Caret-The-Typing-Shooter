@@ -1,5 +1,5 @@
 {
-  "name": "Caret: The Typing Shooter",
+  "name": "Caret: Space typing simulator",
   "short_name": "Caret",
   "description": "A typing shooter: lock onto each ship's word, type it to destroy the ship, and survive the waves.",
   "start_url": "./",
