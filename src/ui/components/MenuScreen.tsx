@@ -13,6 +13,11 @@ import { usePrimaryInputIsTouch } from '../hooks/usePrimaryInputIsTouch';
 
 export const DISMISS_MOBILE_NOTICE_KEY = 'caret.dismiss_mobile_notice';
 
+export interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>;
+}
+
 export interface MenuScreenProps {
   onPlay: () => void;
   onOpenSettings?: () => void;
@@ -28,6 +33,47 @@ export const MenuScreen: React.FC<MenuScreenProps> = ({
   const historyRuns = useHistory();
   const activeRuns = propRuns ?? historyRuns;
   const stats = computeStats(activeRuns);
+
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const isStandalone =
+      window.matchMedia?.('(display-mode: standalone)').matches ||
+      (window.navigator as unknown as { standalone?: boolean }).standalone === true;
+    if (isStandalone) return;
+
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e as BeforeInstallPromptEvent);
+    };
+
+    const handleAppInstalled = () => {
+      setDeferredPrompt(null);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('appinstalled', handleAppInstalled);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('appinstalled', handleAppInstalled);
+    };
+  }, []);
+
+  const handleInstall = async () => {
+    if (!deferredPrompt) return;
+    try {
+      await deferredPrompt.prompt();
+      const choice = await deferredPrompt.userChoice;
+      if (choice.outcome === 'accepted') {
+        setDeferredPrompt(null);
+      }
+    } catch (err) {
+      console.warn('Install prompt error:', err);
+    }
+  };
 
   const isTouchPrimary = usePrimaryInputIsTouch();
   const [isNoticeDismissed, setIsNoticeDismissed] = useState<boolean>(() => {
@@ -335,6 +381,23 @@ export const MenuScreen: React.FC<MenuScreenProps> = ({
               >
                 NEW GAME [ENTER]
               </TacticalButton>
+
+              {deferredPrompt && (
+                <TacticalButton
+                  variant="default"
+                  size="sm"
+                  onClick={handleInstall}
+                  aria-label="Install Caret as Desktop Application"
+                  style={{
+                    width: '100%',
+                    padding: '6px 12px',
+                    fontSize: '11px',
+                    borderColor: 'var(--accent, #ffb84a)',
+                  }}
+                >
+                  INSTALL CARET
+                </TacticalButton>
+              )}
 
               {onOpenSettings && (
                 <TacticalButton
