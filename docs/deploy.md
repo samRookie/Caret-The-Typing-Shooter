@@ -185,3 +185,9 @@ Once deployed to your staging or production URL:
 3. **Verify Dev Hooks are Absent**:
    - In browser console, evaluate `window.__caret`.
    - Confirm it returns `undefined`.
+4. **Verify Progressive Web App & Desktop Installation**:
+   - In Chrome or Edge, verify the omnibox install icon appears, or the menu displays **INSTALL CARET**.
+   - Inspect DevTools → Application → Manifest: verify name is `Caret: Space typing simulator`, icons match 192/512 sizes, and status is valid.
+   - Inspect Service Workers: verify active registration under `./sw.js` and scope `./`.
+   - See detailed documentation in [docs/pwa.md](pwa.md).
+

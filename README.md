@@ -37,6 +37,7 @@ Hostile drone vessels descend through deep space, each protected by an encrypted
 * **Three-Point Hull Protection:** Your vessel carries 3 hull integrity pips, giving you resilience to withstand two collisions before catastrophic systems failure.
 * **Calibrated Word Selection:** Early waves field punchy 3-to-4 letter targets; deeper waves demand precision against complex vocabulary and rapid multi-target concurrency.
 * **Persistent Settings & Local Best:** Audio volume sliders, quick HUD mute toggle, and your all-time unverified local best score survive browser reloads safely (`caret.settings.v1`).
+* **Desktop App Installation (PWA):** Installable as a standalone desktop app on Chrome and Edge (Windows & macOS) under `"Caret: Space typing simulator"`. Enjoy borderless, low-latency home-row action with offline support and dedicated application launching.
 * **Tactile Combat Audio:** Responsive laser discharges, crisp drone detonation blasts, and heavy metallic hull collision audio engineered with voice concurrency caps and volume scaling.
 
 ---
