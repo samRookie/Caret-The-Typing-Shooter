@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { SafeStorage } from '@/shared/storage/safeStorage';
 import {
   parseSettings,
+  migrateToV2,
   SettingsStore,
   DEFAULT_SETTINGS,
 } from '@/shared/settings/settingsStore';
@@ -107,80 +108,78 @@ describe('Persistence Layer & Statistics (Phase P3)', () => {
     });
   });
 
-  describe('SettingsStore & Validation (3.B)', () => {
+  describe('SettingsStore & Validation (3.B) - v1 to v2 Migration', () => {
     it('returns default settings for null or malformed JSON', () => {
       expect(parseSettings(null)).toEqual(DEFAULT_SETTINGS);
       expect(parseSettings('invalid json')).toEqual(DEFAULT_SETTINGS);
       expect(parseSettings('123')).toEqual(DEFAULT_SETTINGS);
       expect(parseSettings('[]')).toEqual(DEFAULT_SETTINGS);
+      expect(migrateToV2('corrupted {')).toEqual(DEFAULT_SETTINGS);
     });
 
-    it('returns default settings if version is not 1', () => {
+    it('returns default settings if unknown schema version', () => {
       const wrongVersion = JSON.stringify({
-        version: 2,
+        version: 99,
         sfxEnabled: false,
-        musicEnabled: false,
-        reducedMotion: 'on',
       });
       expect(parseSettings(wrongVersion)).toEqual(DEFAULT_SETTINGS);
     });
 
-    it('performs per-field validation, restoring bad fields while preserving good fields', () => {
+    it('migrates v1 with { muted: true, sfxEnabled: true } -> v2 { sfxEnabled: true } (sfxEnabled wins)', () => {
+      const raw = { version: 1, muted: true, sfxEnabled: true };
+      const migrated = migrateToV2(raw);
+      expect(migrated.version).toBe(2);
+      expect(migrated.sfxEnabled).toBe(true);
+      expect((migrated as Record<string, unknown>).muted).toBeUndefined();
+    });
+
+    it('migrates v1 with { muted: true } (no sfxEnabled) -> v2 { sfxEnabled: false }', () => {
+      const raw = { version: 1, muted: true };
+      const migrated = migrateToV2(raw);
+      expect(migrated.version).toBe(2);
+      expect(migrated.sfxEnabled).toBe(false);
+      expect((migrated as Record<string, unknown>).muted).toBeUndefined();
+    });
+
+    it('migrates v1 with { muted: false, highScore: 1234 } -> v2 { sfxEnabled: true } and discards highScore', () => {
+      const raw = { version: 1, muted: false, highScore: { score: 1234, wave: 5 } };
+      const migrated = migrateToV2(raw);
+      expect(migrated.version).toBe(2);
+      expect(migrated.sfxEnabled).toBe(true);
+      expect((migrated as Record<string, unknown>).highScore).toBeUndefined();
+    });
+
+    it('preserves existing v2 configuration without changes', () => {
+      const v2Config = {
+        version: 2 as const,
+        sfxVolume: 0.8,
+        musicVolume: 0.4,
+        sfxEnabled: false,
+        musicEnabled: true,
+      };
+      const result = migrateToV2(v2Config);
+      expect(result).toEqual(v2Config);
+    });
+
+    it('performs per-field validation and clamping on v2 schema', () => {
       const partialCorrupt = JSON.stringify({
-        version: 1,
+        version: 2,
         sfxEnabled: 'not-a-bool', // corrupted
         musicEnabled: false,       // valid
-        sfxVolume: 0.8,            // valid
+        sfxVolume: 1.5,            // clamped
       });
       const parsed = parseSettings(partialCorrupt);
-      expect(parsed.sfxEnabled).toBe(true); // restored to default
+      expect(parsed.sfxEnabled).toBe(true); // default
       expect(parsed.musicEnabled).toBe(false); // kept
-      expect(parsed.sfxVolume).toBe(0.8); // kept
+      expect(parsed.sfxVolume).toBe(1.0); // clamped
     });
-
 
     it('clamps sfxVolume strictly to [0, 1] and restores default for bad values', () => {
-      expect(parseSettings(JSON.stringify({ version: 1, sfxVolume: 1.5 })).sfxVolume).toBe(1.0);
-      expect(parseSettings(JSON.stringify({ version: 1, sfxVolume: -0.2 })).sfxVolume).toBe(0.0);
-      expect(parseSettings(JSON.stringify({ version: 1, sfxVolume: 0.45 })).sfxVolume).toBeCloseTo(0.45);
-      expect(parseSettings(JSON.stringify({ version: 1, sfxVolume: 'loud' })).sfxVolume).toBe(0.6);
-      expect(parseSettings(JSON.stringify({ version: 1, sfxVolume: NaN })).sfxVolume).toBe(0.6);
-    });
-
-    it('parses muted boolean and synchronizes sfxEnabled', () => {
-      const mutedSettings = parseSettings(JSON.stringify({ version: 1, muted: true }));
-      expect(mutedSettings.muted).toBe(true);
-      expect(mutedSettings.sfxEnabled).toBe(false);
-
-      const unmutedSettings = parseSettings(JSON.stringify({ version: 1, muted: false }));
-      expect(unmutedSettings.muted).toBe(false);
-      expect(unmutedSettings.sfxEnabled).toBe(true);
-
-      const legacyDisabled = parseSettings(JSON.stringify({ version: 1, sfxEnabled: false }));
-      expect(legacyDisabled.sfxEnabled).toBe(false);
-      expect(legacyDisabled.muted).toBe(true);
-    });
-
-    it('validates local highScore record structure and discards malformed entries', () => {
-      const valid = parseSettings(
-        JSON.stringify({ version: 1, highScore: { score: 1500, wave: 4 } })
-      );
-      expect(valid.highScore).toEqual({ score: 1500, wave: 4 });
-
-      const invalidScore = parseSettings(
-        JSON.stringify({ version: 1, highScore: { score: -10, wave: 2 } })
-      );
-      expect(invalidScore.highScore).toBeNull();
-
-      const invalidWave = parseSettings(
-        JSON.stringify({ version: 1, highScore: { score: 100, wave: 0 } })
-      );
-      expect(invalidWave.highScore).toBeNull();
-
-      const nonObject = parseSettings(
-        JSON.stringify({ version: 1, highScore: 'high' })
-      );
-      expect(nonObject.highScore).toBeNull();
+      expect(parseSettings(JSON.stringify({ version: 2, sfxVolume: 1.5 })).sfxVolume).toBe(1.0);
+      expect(parseSettings(JSON.stringify({ version: 2, sfxVolume: -0.2 })).sfxVolume).toBe(0.0);
+      expect(parseSettings(JSON.stringify({ version: 2, sfxVolume: 0.45 })).sfxVolume).toBeCloseTo(0.45);
+      expect(parseSettings(JSON.stringify({ version: 2, sfxVolume: 'loud' })).sfxVolume).toBe(0.6);
+      expect(parseSettings(JSON.stringify({ version: 2, sfxVolume: NaN })).sfxVolume).toBe(0.6);
     });
 
     it('notifies subscribers on update and reset in SettingsStore', () => {
@@ -194,25 +193,19 @@ describe('Persistence Layer & Statistics (Phase P3)', () => {
       store.updateSettings({ sfxEnabled: false });
       expect(listener).toHaveBeenCalledTimes(1);
       expect(store.getSettings().sfxEnabled).toBe(false);
-      expect(store.getSettings().muted).toBe(true);
 
       store.updateSettings({ sfxVolume: 0.25 });
       expect(listener).toHaveBeenCalledTimes(2);
       expect(store.getSettings().sfxVolume).toBe(0.25);
 
-      store.updateSettings({ highScore: { score: 2000, wave: 5 } });
-      expect(listener).toHaveBeenCalledTimes(3);
-      expect(store.getSettings().highScore).toEqual({ score: 2000, wave: 5 });
-
       store.resetSettings();
-      expect(listener).toHaveBeenCalledTimes(4);
+      expect(listener).toHaveBeenCalledTimes(3);
       expect(store.getSettings().sfxEnabled).toBe(true);
       expect(store.getSettings().sfxVolume).toBe(0.6);
-      expect(store.getSettings().muted).toBe(false);
 
       unsubscribe();
       store.updateSettings({ musicEnabled: false });
-      expect(listener).toHaveBeenCalledTimes(4);
+      expect(listener).toHaveBeenCalledTimes(3);
     });
 
     it('exposes storageAvailable boolean via getState and reflects storage availability', () => {

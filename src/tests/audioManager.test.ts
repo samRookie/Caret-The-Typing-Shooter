@@ -141,16 +141,16 @@ describe('AudioManager', () => {
     mgr.destroy();
   });
 
-  it('mutes playback and stops all active sounds when muted is true', () => {
+  it('mutes playback and stops all active sounds when setMuted or setSfxEnabled is called', () => {
     const mgr = new AudioManager({ backend, clock: () => mockTime });
-    settingsStore.updateSettings({ muted: true });
+    mgr.setMuted(true);
 
     mgr.play('hit');
     expect(playedList.length).toBe(0);
     expect(stopped).toBe(true);
 
     // Unmute
-    settingsStore.updateSettings({ muted: false });
+    mgr.setSfxEnabled(true);
     mgr.play('hit');
     expect(playedList.length).toBe(1);
     mgr.destroy();

@@ -13,8 +13,8 @@ export interface TopStripProps {
   maxHull?: number;
   showHull?: boolean;
   onPause?: () => void;
-  muted?: boolean;
-  onToggleMute?: () => void;
+  sfxEnabled?: boolean;
+  onToggleSound?: () => void;
   rightSlot?: React.ReactNode;
 }
 
@@ -24,7 +24,7 @@ export interface TopStripProps {
  * Renders:
  * - Left: WAVE 0N, TIME mm:ss, ACCURACY 00.0% (tabular figures).
  * - Center: 3-pip Hull status with distinct active/depleted shapes (optional).
- * - Right: MUTE button, PAUSE button and clock widget slot.
+ * - Right: SFX sound toggle button, PAUSE button and clock widget slot.
  */
 export const TopStrip: React.FC<TopStripProps> = ({
   wave,
@@ -35,8 +35,8 @@ export const TopStrip: React.FC<TopStripProps> = ({
   maxHull = 3,
   showHull = true,
   onPause,
-  muted = false,
-  onToggleMute,
+  sfxEnabled = true,
+  onToggleSound,
   rightSlot,
 }) => {
   const formattedWave = `WAVE ${String(wave).padStart(2, '0')}`;
@@ -95,22 +95,22 @@ export const TopStrip: React.FC<TopStripProps> = ({
         </div>
       )}
 
-      {/* Right Cluster: Mute button, PAUSE button and clock / slot */}
+      {/* Right Cluster: SFX toggle button, PAUSE button and clock / slot */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-        {onToggleMute && (
+        {onToggleSound && (
           <TacticalButton
             size="sm"
             variant="default"
-            onClick={onToggleMute}
-            aria-label={muted ? 'Unmute sound effects' : 'Mute sound effects'}
+            onClick={onToggleSound}
+            aria-label={sfxEnabled ? 'Mute sound effects' : 'Unmute sound effects'}
             style={{
-              borderColor: muted ? 'var(--danger, #ff5f5f)' : 'var(--border)',
-              color: muted ? 'var(--danger, #ff5f5f)' : 'var(--text-secondary)',
+              borderColor: !sfxEnabled ? 'var(--danger, #ff5f5f)' : 'var(--border)',
+              color: !sfxEnabled ? 'var(--danger, #ff5f5f)' : 'var(--text-secondary)',
               fontSize: '11px',
               padding: '4px 8px',
             }}
           >
-            {muted ? 'SFX: MUTED' : 'SFX: ON'}
+            {sfxEnabled ? 'SFX: ON' : 'SFX: MUTED'}
           </TacticalButton>
         )}
         {onPause && (

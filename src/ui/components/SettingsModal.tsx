@@ -39,9 +39,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
   if (!isOpen) return null;
 
-  const handleToggleMute = () => {
-    const nextMuted = !settings.muted;
-    settingsStore.updateSettings({ muted: nextMuted, sfxEnabled: !nextMuted });
+  const handleToggleSfx = () => {
+    settingsStore.updateSettings({ sfxEnabled: !settings.sfxEnabled });
   };
 
   const handleToggleMusic = () => {
@@ -115,30 +114,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 ⚠️ Settings won&apos;t be saved in this browser
               </div>
             )}
-
-            {/* Local Best Display */}
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                padding: '8px 12px',
-                background: 'rgba(0, 0, 0, 0.35)',
-                border: '1px solid var(--border, rgba(255, 184, 74, 0.2))',
-                borderRadius: 'var(--radius-sm, 4px)',
-                fontFamily: 'var(--font-condensed)',
-                fontSize: '11px',
-              }}
-            >
-              <span style={{ color: 'var(--text-secondary, #8995a1)', letterSpacing: '0.06em' }}>
-                LOCAL BEST (not verified)
-              </span>
-              <span style={{ color: 'var(--accent-bright, #ffd37a)', fontWeight: 'bold' }}>
-                {settings.highScore
-                  ? `${settings.highScore.score.toLocaleString()} PTS · WAVE ${String(settings.highScore.wave).padStart(2, '0')}`
-                  : '--'}
-              </span>
-            </div>
 
             {/* Audio Settings */}
             <div
@@ -233,15 +208,15 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 <TacticalButton
                   variant="default"
                   size="sm"
-                  onClick={handleToggleMute}
+                  onClick={handleToggleSfx}
                   style={{
-                    borderColor: !settings.muted && settings.sfxEnabled ? 'var(--accent)' : 'var(--border)',
-                    color: !settings.muted && settings.sfxEnabled
+                    borderColor: settings.sfxEnabled ? 'var(--accent)' : 'var(--border)',
+                    color: settings.sfxEnabled
                       ? 'var(--accent-bright)'
                       : 'var(--text-secondary)',
                   }}
                 >
-                  {!settings.muted && settings.sfxEnabled ? 'ENABLED' : 'MUTED'}
+                  {settings.sfxEnabled ? 'ENABLED' : 'MUTED'}
                 </TacticalButton>
               </div>
 

@@ -24,7 +24,6 @@ export class AudioManager {
   private backend: SoundBackend | null = null;
   private readonly clock: () => number;
   private sfxVolume: number = EFFECT_CONFIG.MASTER_GAIN;
-  private muted: boolean = false;
   private sfxEnabled: boolean = true;
   private unsubscribeStore?: () => void;
 
@@ -48,17 +47,15 @@ export class AudioManager {
     // Subscribe to settingsStore live changes
     const settings = settingsStore.getSettings();
     this.sfxVolume = settings.sfxVolume ?? EFFECT_CONFIG.MASTER_GAIN;
-    this.muted = settings.muted ?? false;
-    this.sfxEnabled = settings.sfxEnabled && !this.muted;
+    this.sfxEnabled = settings.sfxEnabled ?? true;
 
     this.unsubscribeStore = settingsStore.subscribe(() => {
       const current = settingsStore.getSettings();
       this.sfxVolume = current.sfxVolume ?? EFFECT_CONFIG.MASTER_GAIN;
-      this.muted = current.muted ?? false;
-      const nextEnabled = current.sfxEnabled && !this.muted;
-      if (this.sfxEnabled !== nextEnabled || this.muted) {
+      const nextEnabled = current.sfxEnabled ?? true;
+      if (this.sfxEnabled !== nextEnabled) {
         this.sfxEnabled = nextEnabled;
-        if (!nextEnabled || this.muted) {
+        if (!nextEnabled) {
           this.stopAll();
         }
       }
@@ -116,7 +113,7 @@ export class AudioManager {
   }
 
   private dispatchPlay(cue: SoundCue, rawVolume: number, rate: number): void {
-    if (!this.sfxEnabled || this.muted || this.sfxVolume <= 0) return;
+    if (!this.sfxEnabled || this.sfxVolume <= 0) return;
 
     const now = this.clock();
 
@@ -180,25 +177,27 @@ export class AudioManager {
   }
 
   isMuted(): boolean {
-    return this.muted || !this.sfxEnabled;
+    return !this.sfxEnabled;
   }
 
-  setMuted(muted: boolean): void {
-    this.muted = muted;
-    this.sfxEnabled = !muted;
-    if (muted) {
-      this.stopAll();
-    }
-    settingsStore.updateSettings({ muted, sfxEnabled: !muted });
+  isSfxEnabled(): boolean {
+    return this.sfxEnabled;
   }
 
-  setEnabled(enabled: boolean): void {
+  setSfxEnabled(enabled: boolean): void {
     this.sfxEnabled = enabled;
-    this.muted = !enabled;
     if (!enabled) {
       this.stopAll();
     }
-    settingsStore.updateSettings({ sfxEnabled: enabled, muted: !enabled });
+    settingsStore.updateSettings({ sfxEnabled: enabled });
+  }
+
+  setEnabled(enabled: boolean): void {
+    this.setSfxEnabled(enabled);
+  }
+
+  setMuted(muted: boolean): void {
+    this.setSfxEnabled(!muted);
   }
 
   async unlock(): Promise<void> {
