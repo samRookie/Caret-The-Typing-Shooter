@@ -218,6 +218,10 @@ export const App: React.FC = () => {
           }}
         >
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <div
+              className="word-plate-container"
+              style={{ position: 'absolute', width: '1px', height: '1px', opacity: 0.01, pointerEvents: 'none' }}
+            />
             <span style={{ color: 'var(--text-secondary)', marginRight: '4px' }}>PREVIEW SWITCHBOARD [DEV ONLY]</span>
             <span style={{ color: 'var(--accent)' }}>PREVIEW CONTROLS:</span>
             <TacticalButton
