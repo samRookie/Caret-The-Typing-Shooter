@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import fs from 'fs';
 import path from 'path';
 import { render, screen, fireEvent, act } from '@testing-library/react';
-import React from 'react';
 import { MenuScreen, BeforeInstallPromptEvent } from '@/ui/components/MenuScreen';
 
 describe('PWA & Desktop Installation Specification', () => {
