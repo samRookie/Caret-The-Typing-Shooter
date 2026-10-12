@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { TacticalFrame } from './TacticalFrame';
 import { TacticalButton } from './TacticalButton';
 import { ClockBadge } from './ClockBadge';
@@ -9,6 +9,9 @@ import { GAME_TITLE, GAME_SUBTITLE, HOW_TO_PLAY_TEXT } from '@/shared/config/bra
 import { RunRecord, useHistory } from '@/shared/history/historyStore';
 import { computeStats, GRAPH_MIN_RUNS } from '@/shared/history/statsMath';
 import { formatAccuracy, formatElapsed } from '@/shared/formatters';
+import { usePrimaryInputIsTouch } from '../hooks/usePrimaryInputIsTouch';
+
+export const DISMISS_MOBILE_NOTICE_KEY = 'caret.dismiss_mobile_notice';
 
 export interface MenuScreenProps {
   onPlay: () => void;
@@ -25,6 +28,26 @@ export const MenuScreen: React.FC<MenuScreenProps> = ({
   const historyRuns = useHistory();
   const activeRuns = propRuns ?? historyRuns;
   const stats = computeStats(activeRuns);
+
+  const isTouchPrimary = usePrimaryInputIsTouch();
+  const [isNoticeDismissed, setIsNoticeDismissed] = useState<boolean>(() => {
+    try {
+      return typeof window !== 'undefined' && window.sessionStorage?.getItem(DISMISS_MOBILE_NOTICE_KEY) === '1';
+    } catch {
+      return false;
+    }
+  });
+
+  const handleDismissNotice = () => {
+    setIsNoticeDismissed(true);
+    try {
+      window.sessionStorage?.setItem(DISMISS_MOBILE_NOTICE_KEY, '1');
+    } catch {
+      // Storage unavailable / quota
+    }
+  };
+
+  const showTouchNotice = isTouchPrimary && !isNoticeDismissed;
 
   const playButtonRef = useRef<HTMLButtonElement | null>(null);
 
@@ -127,6 +150,57 @@ export const MenuScreen: React.FC<MenuScreenProps> = ({
                 <ClockBadge />
               </div>
             </div>
+
+            {/* Mobile / No Physical Keyboard Warning Banner (Section 4) */}
+            {showTouchNotice && (
+              <div
+                role="status"
+                data-testid="mobile-keyboard-notice"
+                style={{
+                  background: 'rgba(255, 184, 74, 0.1)',
+                  border: '1px solid var(--accent, #ffb84a)',
+                  borderRadius: 'var(--radius-sm, 4px)',
+                  padding: '8px 12px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '12px',
+                  fontFamily: 'var(--font-condensed)',
+                }}
+              >
+                <div style={{ textAlign: 'left' }}>
+                  <div
+                    style={{
+                      fontFamily: 'var(--font-display, Tektur)',
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      color: 'var(--accent-bright, #ffd37a)',
+                      letterSpacing: '0.08em',
+                      marginBottom: '2px',
+                    }}
+                  >
+                    PHYSICAL KEYBOARD REQUIRED
+                  </div>
+                  <div
+                    style={{
+                      fontSize: '10.5px',
+                      color: 'var(--text-secondary, #8995a1)',
+                      lineHeight: 1.3,
+                    }}
+                  >
+                    Caret is designed for hardware keyboards. On-screen keyboards are not supported.
+                  </div>
+                </div>
+                <TacticalButton
+                  size="sm"
+                  variant="default"
+                  onClick={handleDismissNotice}
+                  style={{ flexShrink: 0, fontSize: '10px', padding: '4px 8px' }}
+                >
+                  CONTINUE ANYWAY
+                </TacticalButton>
+              </div>
+            )}
 
             {/* Career Pilot Records Telemetry */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
